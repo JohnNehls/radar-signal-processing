@@ -1,0 +1,12 @@
+* Section 1 : Range Equation
+** Errors
+- problem 1 solution: uses 1 foot diameter (not 1.5) for antenna.
+- problem 1 question: does not make clear that the antenna parameter is radius, diameter, or circumference.
+
+** Things to cleanup
+- [ ] [[file:./range_equation.py]] : make duty factor a latex /tau in legend of figure 2
+
+* Section 2 : Doppler Radar Overview
+** Errors
+
+** Things to cleanup
