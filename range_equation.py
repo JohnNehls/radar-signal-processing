@@ -19,7 +19,7 @@ def snr_rangeEquation_BPSK_pulses(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, 
     """number of chips is the time-bandwidth product"""
     return snr_rangeEquation_CP(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, Npulses, n_c)
 
-def snr_rangeEquation_CP_DF(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, Tcpi, tau_df):
+def snr_rangeEquation_dutyFactor_pulses(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, Tcpi, tau_df):
     """"Signal-to-noise ratio of range equation with coherent processing (CP) in the
     duty factor form."""
     singlePulse_snr= snr_rangeEquation(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T)
@@ -40,7 +40,7 @@ Npulses = 256
 Pt_ar = [1e3, 5e3, 10e3]
 sig_db_ar = [0, 10, 20]
 sig_ar = [10**(x/10) for x in sig_db_ar]
-range_ar = np.linspace(1e3,30e3,100)
+R_ar = np.linspace(1e3,30e3,100)
 threshold_db = 12
 threshold = 10**(threshold_db/10)
 
@@ -54,17 +54,38 @@ T =290 # Kelvin
 
 # plot
 fig, ax = plt.subplots(1,len(Pt_ar), sharex='all', sharey='all')
-
+fig.suptitle('BPSK SNR')
 for index, Pt in enumerate(Pt_ar):
     for sig in sig_ar:
-        y = snr_rangeEquation_BPSK_pulses(Pt, Gt, Gr, sig, wavelength, range_ar, B, F, L, T, Npulses, Ncode)
+        y = snr_rangeEquation_BPSK_pulses(Pt, Gt, Gr, sig, wavelength, R_ar, B, F, L, T, Npulses, Ncode)
         y = lin2dB(y)
-        ax[index].plot(range_ar/1e3, y, label=f"{sig=}")
-    ax[index].plot(range_ar/1e3, threshold_db*np.ones(range_ar.shape), label=f"threshold")
+        ax[index].plot(R_ar/1e3, y, label=f"{sig=}")
+    ax[index].plot(R_ar/1e3, threshold_db*np.ones(R_ar.shape), label=f"threshold")
     ax[index].set_title(f"{Pt=:.1e}")
     ax[index].set_xlabel("target distance [km]")
     ax[index].set_ylabel("SNR dB")
     ax[index].grid()
-    ax[index].legend()
+    ax[index].legend(loc='upper right')
 
 ## problem 2 #############################################################
+sigma = 10**(0/10) # 0 dBsm
+Pt = 5e3 # Watts
+Tcpi_ar = [2e-3, 5e-3, 10e-3] # seconds
+dutyFactor_ar = [0.01, 0.1, 0.2] # 1%, 10%, 20%
+
+#plot
+fig, ax = plt.subplots(1,len(Tcpi_ar), sharex='all', sharey='all')
+fig.suptitle('CPI DutyFactor SNR')
+for index, Tcpi in enumerate(Tcpi_ar):
+    for dutyFactor in dutyFactor_ar:
+        y = snr_rangeEquation_dutyFactor_pulses(Pt, Gt, Gr, sigma, wavelength, R_ar, B, F, L, T, Tcpi, dutyFactor)
+        y = lin2dB(y)
+        ax[index].plot(R_ar/1e3, y, label=f"df={dutyFactor}")
+    ax[index].plot(R_ar/1e3, threshold_db*np.ones(R_ar.shape), label=f"threshold")
+    ax[index].set_title(f"{Tcpi=:.1e}")
+    ax[index].set_xlabel("target distance [km]")
+    ax[index].set_ylabel("SNR dB")
+    ax[index].grid()
+    ax[index].legend(loc='upper right')
+
+## problem 3 #############################################################
