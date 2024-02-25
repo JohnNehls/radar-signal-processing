@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 import numpy as np
 from numpy.linalg import norm
-from scipy import fft
 
 # constants
 C = 3e8
@@ -95,56 +94,3 @@ def makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, n
         mag = mag/norm(mag)
 
     return t, mag
-
-
-#def main():
-from waveform_helpers import plotPulseAndSpectrum, plotPulseAndCrossCorrelation
-
-sampleRate = 100
-BW = 10
-output_time_T = 2 # time of time sample in terms of lenght of the pulse T,
-print("#############################################")
-print("Problem 1: write the pulse functions and plot")
-print("#############################################")
-####
-print("## uncoded example ##")
-t_u, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=output_time_T, normalize=False)
-plotPulseAndSpectrum(t_u, mag_u, f"uncoded pulse {sampleRate=} {BW=}")
-plotPulseAndCrossCorrelation(t_u, mag_u, f"uncoded pulse {sampleRate=} {BW=}")
-
-print("## Barker example ##")
-nChip = 7
-t_b, mag_b = makeBarkerCodedPulse(sampleRate, BW, nChip, output_length_T=output_time_T,
-                                      normalize=False)
-plotPulseAndSpectrum(t_b, mag_b, f"Barker coded pulse {nChip=} {sampleRate=} {BW=}")
-plotPulseAndCrossCorrelation(t_b, mag_b, f"Barker coded pulse {nChip=} {sampleRate=} {BW=}")
-
-print("## random code example  ##")
-nChip = 7
-t_r, mag_r = makeRandomCodedPulse(sampleRate, BW, nChip, output_length_T=output_time_T,
-                                  normalize=False)
-plotPulseAndSpectrum(t_r, mag_r, f"random coded pulse {nChip=} {sampleRate=} {BW=}")
-
-print("## LFM example ##")
-T = 5
-chirpUpDown=1
-t_lfm, mag_lfm = makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=output_time_T,
-                              normalize=False)
-fig, ax = plotPulseAndSpectrum(t_lfm, mag_lfm, f"LFM pulse {chirpUpDown=} {T=}{sampleRate=} {BW=}")
-
-print("#############################################")
-print("Problem 2: Barker sidelobe check code example")
-print("#############################################")
-print("The sidelobes do not follow the table")
-print("\tconsider the ypeak/nchips comment in the problem")
-output_time_T = 6 # increase time to increase DFT resolution
-for nChip in barker_dict.keys():
-    t_b, mag_b = makeBarkerCodedPulse(sampleRate, BW, nChip, output_length_T=output_time_T,
-                                      normalize=False)
-    # plotPulseAndSpectrum(t_b, mag_b, f"Barker coded pulse {nChip=} {sampleRate=} {BW=}")
-    plotPulseAndCrossCorrelation(t_b, mag_b, f"Barker coded pulse {nChip=} {sampleRate=} {BW=}")
-
-
-print("##############################")
-print("Problem 3: noisy xcorrelations")
-print("##############################")

@@ -1,4 +1,8 @@
 * Section 1 : Range Equation
+Exercise figures are displayed with
+#+begin_src shell
+./range_quation.py
+#+end_src
 ** Errors
 - problem 1 solution: uses 1 foot diameter (not 1.5) for antenna.
 - problem 1 question: does not make clear that the antenna parameter is radius, diameter, or circumference.
@@ -7,6 +11,19 @@
 - [ ] [[file:./range_equation.py]] : make duty factor a latex /tau in legend of figure 2
 
 * Section 2 : Doppler Radar Overview
+Exercise figures are displayed with
+#+begin_src shell
+./pulse_doppler_radar.py
+#+end_src
 ** Errors
 
 ** Things to cleanup
+
+* Section 3 : Waveforms
+Due to the length of the code and the number of figures, the exercises were placed into the [[file:exercises]] directory.
+=cd exercises=
+#+begin_src shell
+cd exercises; ./s3p1.py
+#+end_src
+
+#+RESULTS:

@@ -1,13 +1,14 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import fft
-from scipy import interpolate
 from scipy.interpolate import interp1d
+from scipy import signal
 
 def moving_average(waveform, elements):
     kernel = np.ones(elements)/elements
     av = np.convolve(waveform, kernel, mode='same')
     return av
+
 
 def find_width(x, y,  interp_max=5, interp_count=0,interp_scale=2, debug=False):
     """find the width in x of the real signal y written for recreation"""
@@ -46,7 +47,6 @@ def find_width(x, y,  interp_max=5, interp_count=0,interp_scale=2, debug=False):
 ## problem 1 ###########################################
 def plotPulseAndSpectrum(t, mag, title=None, printBandwidth=True):
     dt = t[1] - t[0]
-    T = t[-1] - t[0]
     N = mag.size
 
     fig, ax = plt.subplots(1,2)
@@ -54,7 +54,6 @@ def plotPulseAndSpectrum(t, mag, title=None, printBandwidth=True):
         ax[0].plot(t, np.abs(mag),'-',label='magnitude')
         ax[0].plot(t, np.real(mag),'--',label='real')
         ax[0].plot(t, np.imag(mag),'-.',label='imag')
-
         ax[0].legend()
     else:
         ax[0].plot(t, mag)
@@ -87,6 +86,7 @@ def plotPulseAndSpectrum(t, mag, title=None, printBandwidth=True):
 
     return fig, ax
 
+
 def autocorrolate_waveform(waveform):
     Nwf = waveform.size
     Nfft = 2*Nwf - 1  # add some padding
@@ -97,17 +97,17 @@ def autocorrolate_waveform(waveform):
 
     return val, index_shift
 
+
 def plotPulseAndCrossCorrelation(t, mag, title=None, printWidth=True):
     dt = t[1] - t[0]
-    T = t[-1] - t[0]
-    N = mag.size
 
     fig, ax = plt.subplots(1,2)
     if np.iscomplexobj(mag):
-        ax[0].plot(t, np.real(mag),'--o',label='real',linewidth=0.1)
-        ax[0].plot(t, np.imag(mag),'-.g',label='imag',linewidth=0.1)
-        ax[0].plot(t, np.abs(mag),'-b',label='magnitude',linewidth=2)
+        ax[0].plot(t, np.abs(mag),'-',label='magnitude',linewidth=2)
+        ax[0].plot(t, np.real(mag),'--',label='real',linewidth=0.1)
+        ax[0].plot(t, np.imag(mag),'-.',label='imag',linewidth=0.1)
         ax[0].legend()
+
     else:
         ax[0].plot(t, mag)
 
@@ -137,3 +137,65 @@ def plotPulseAndCrossCorrelation(t, mag, title=None, printWidth=True):
         print(f"\t{PW_av=:.1f} {f_start_av=:.1f} {f_end_av=:.1f}")
 
     return fig, ax
+
+
+def unityVarianceComplexNoise(N):
+    return(np.random.randn(N) + 1j*np.random.randn(N))/np.sqrt(2)
+
+
+def insertWvfAtIndex(ar, waveform, index):
+    Nar = ar.size
+    Nwv = waveform.size
+
+    if index >= Nar:
+        print("wave form not added")
+
+    elif index+Nwv >= Nar:
+        print("add eclipsed waveform")
+        print(f"\t{index=}")
+        print(f"\t{Nar=}")
+        print(f"\t{Nwv=}")
+        ar[index:-1] = ar[index:-1] + waveform[:-int(Nar-index)]
+    else:
+        print(f"\t{index=}")
+        print(f"\t{Nar=}")
+        print(f"\t{Nwv=}")
+        ar[index:index + Nwv] = ar[index:index + Nwv] + waveform
+
+    return ar
+
+
+def _centered(arr, newshape):
+    "taken from scipy.signal"
+    # Return the center newshape portion of the array.
+    newshape = np.asarray(newshape)
+    currshape = np.array(arr.shape)
+    startind = (currshape - newshape) // 2
+    endind = startind + newshape
+    myslice = [slice(startind[k], endind[k]) for k in range(len(endind))]
+    return arr[tuple(myslice)]
+
+
+def _matchFilterPulse(ar,waveform):
+    """Just use signal.convolve"""
+    Nar = ar.size
+    Nwf = waveform.size
+    Nfft = Nar + Nwf # add some padding
+    AR = fft.fft(ar, Nfft)
+    WF = fft.fft(waveform, Nfft)
+    val = fft.ifft(WF*np.conj(AR))
+    val = _centered(val,Nar)
+    return val
+
+
+def matchFilterPulse(ar,waveform):
+    """Just use signal.convolve"""
+    Nar = ar.size
+    kernel = np.conj(waveform)[::-1]
+    conv = signal.convolve(ar, kernel, mode="same", method='fft')
+    if Nar%2 == 0:
+        index_shift = np.arange(-int(Nar/2), int(Nar/2))
+    else:
+        index_shift = np.arange(-int(Nar/2), int(Nar/2)+1)
+
+    return conv , index_shift
