@@ -5,9 +5,10 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append("..")
 
-from waveform_helpers import matchFilterPulse, unityVarianceComplexNoise, insertWvfAtIndex
+from waveform_helpers import matchFilterPulse, unityVarianceComplexNoise, insertWvfAtIndex, plotPulseAndSpectrum
 from waveforms import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeLFMPulse
 
+plt.close('all')
 print("##############################")
 print("Problem 3: noisy xcorrelations")
 print("##############################")
@@ -20,27 +21,33 @@ print("## Case 1: add uncoded pulse ######")
 print("\tcreate noise")
 noise_1 = unityVarianceComplexNoise(1000)
 
+print("verify uncoded pulse BW")
+t_u, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=100, normalize=True)
+plotPulseAndSpectrum(t_u, mag_u, "uncoded BW check", True)
+
+# make pulse without extra points
+t_u, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
 indx_1 = 200
 SNR = 20 # noise is at 0dB
-t_u, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
 mag_u_s = 10**(SNR/20)*mag_u
 
 noise_1 = insertWvfAtIndex(noise_1, mag_u_s, indx_1)
-print(f"{10*np.log10(np.var(noise_1))=}") # verify noise is at 0dB
+print("verify noise is at ~ 0dB")
+print(f"\t{10*np.log10(np.var(noise_1))=}")
 
 mf, m_index_shift = matchFilterPulse(noise_1, mag_u)
 
 fig, ax = plt.subplots(1,3)
 fig.suptitle(f"S3P3 case 1: uncoded pulse at index{indx_1}")
-ax[0].plot(np.real(noise_1))
+ax[0].plot(np.real(noise_1),'-o')
 ax[0].set_title("noise")
 ax[0].set_xlabel("sample")
 ax[0].set_ylabel("real noise")
-ax[1].plot(t_u, abs(mag_u_s))
+ax[1].plot(t_u, abs(mag_u_s),'-o')
 ax[1].set_title("uncoded pulse")
 ax[1].set_xlabel("time [s]")
 ax[1].set_ylabel("magnitude")
-ax[2].plot(abs(mf))
+ax[2].plot(abs(mf),'-o')
 ax[2].set_xlabel("sample")
 ax[2].set_ylabel("matched magnitude")
 ax[2].set_title("match filter on noise")
@@ -74,20 +81,24 @@ noise_2 = insertWvfAtIndex(noise_2, mag_u_s, indx_3)
 
 mf , _ = matchFilterPulse(noise_2, mag_u)
 
-fig, ax = plt.subplots(1,3)
+fig, ax = plt.subplots(1,4)
 fig.suptitle('S3P3 case 2: three uncoded pulses, check SNR')
-ax[0].plot(np.real(noise_2))
+ax[0].plot(np.real(noise_2),'-o')
 ax[0].set_title("noise")
 ax[0].set_xlabel("sample")
 ax[0].set_ylabel("real noise")
-ax[1].plot(t_u, abs(mag_u_s))
+ax[1].plot(abs(mag_u_s),'-o')
 ax[1].set_title("uncoded pulse")
-ax[1].set_xlabel("time [s]")
+ax[1].set_xlabel("sample")
 ax[1].set_ylabel("magnitude")
-ax[2].plot(abs(mf))
+ax[2].plot(abs(mf),'-o')
 ax[2].set_xlabel("sample")
 ax[2].set_ylabel("matched magnitude")
 ax[2].set_title("match filter on noise")
+ax[3].plot(10*np.log(abs(mf)),'-o')
+ax[3].set_xlabel("sample")
+ax[3].set_ylabel("matched dB")
+ax[3].set_title("match filter on noise")
 plt.tight_layout()
 for a in ax:
     a.grid()

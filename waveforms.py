@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 import numpy as np
 from numpy.linalg import norm
+from scipy import fft
 
 # constants
 C = 3e8
@@ -16,7 +17,8 @@ barker_dict = {2 : [ 1,-1],  # could also be [ 1, 1]
 # Notes
 # - need to fill in all function doc strings with input explinations
 
-def makeUncodedPulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=True):
+def makeUncodedPulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=True,
+                     centered=False):
     """baseband uncoded pulse"""
     assert output_length_T >= 1, "Error: must output a full pulse"
     assert sampleRate/BW >= 2, "Error: sample rate below Nyquist"
@@ -31,9 +33,13 @@ def makeUncodedPulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=Tru
     if normalize:
         mag = mag/norm(mag)
 
+    if centered:
+        mag = fft.fftshift(mag)
+
     return t, mag
 
-def makeCodedPulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize=True):
+def makeCodedPulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize=True,
+                   centered=False):
     """baseband coded pulse"""
     assert output_length_T >= 1, "Error: must output a full pulse"
 
@@ -61,6 +67,9 @@ def makeCodedPulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize
 
     if normalize:
         mag = mag/norm(mag)
+
+    if centered:
+        mag = fft.fftshift(mag)
 
     return t, mag
 

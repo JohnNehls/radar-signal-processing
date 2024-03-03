@@ -145,15 +145,9 @@ def main():
                                                                     dutyFactor)
             min_det_range_sigmaPt[i,j] = val
 
-    def extents(f):
-        """function to help label axes in imshow"""
-        delta = f[1] - f[0]
-        return [f[0] - delta/2, f[-1] + delta/2]
-
     plt.figure()
     plt.title(f"Tcpi={Tcpi*1e3}[ms] df={dutyFactor}  SNR_thresh={SNR_thresh_db}[dBsm]")
-    plt.imshow(min_det_range_sigmaPt*1e-3, aspect='auto', interpolation='none',origin='lower',
-               extent=extents(sigma_db_ar) + extents(Pt_ar*1e-3),cmap='viridis')
+    plt.pcolormesh(sigma_db_ar, Pt_ar*1e-3, min_det_range_sigmaPt*1e-3)
     c = plt.colorbar()
     c.set_label("minimum detectable target range [km]")
     plt.xlabel("target RCS [dBsm]")
@@ -176,8 +170,7 @@ def main():
 
     plt.figure()
     plt.title(f"Pt={Pt*1e-3:.1f}kW  df={dutyFactor}  SNR_thresh={SNR_thresh_db}[dBsm]")
-    plt.imshow(min_det_range_sigmaTcpi*1e-3, aspect='auto', interpolation='none',origin='lower',
-               extent=extents(sigma_db_ar) + extents(Tcpi_ar*1e3),cmap='viridis')
+    plt.pcolormesh(sigma_db_ar, Tcpi_ar*1e3, min_det_range_sigmaTcpi*1e-3)
     c = plt.colorbar()
     c.set_label("minimum detectable target range [km]")
     plt.xlabel("target RCS [dBsm]")

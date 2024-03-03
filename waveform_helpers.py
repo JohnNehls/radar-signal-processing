@@ -51,23 +51,23 @@ def plotPulseAndSpectrum(t, mag, title=None, printBandwidth=True):
 
     fig, ax = plt.subplots(1,2)
     if np.iscomplexobj(mag):
-        ax[0].plot(t, np.abs(mag),'-',label='magnitude')
-        ax[0].plot(t, np.real(mag),'--',label='real')
-        ax[0].plot(t, np.imag(mag),'-.',label='imag')
+        ax[0].plot(t, np.abs(mag),'-o',label='magnitude')
+        ax[0].plot(t, np.real(mag),'--o',label='real')
+        ax[0].plot(t, np.imag(mag),'-.o',label='imag')
         ax[0].legend()
     else:
-        ax[0].plot(t, mag)
+        ax[0].plot(t, mag,'-o')
 
     ax[0].set_xlabel("time [s]")
     ax[0].set_ylabel("baseband signal")
     ax[0].grid()
 
-    sampleRate = 1/dt
     MAG = fft.fftshift( fft.fft(mag) )/N
-    f = np.linspace(-sampleRate/2,sampleRate/2, N)
+    f = fft.fftshift(fft.fftfreq(N,dt))
+
     val = abs(MAG)
     val = val/val.max()
-    ax[1].plot(f, val)
+    ax[1].plot(f, val, '-o')
     ax[1].set_xlabel("freqency [Hz]")
     ax[1].set_ylabel("baseband magnitude")
     ax[1].grid()
@@ -78,11 +78,11 @@ def plotPulseAndSpectrum(t, mag, title=None, printBandwidth=True):
     plt.tight_layout()
 
     if printBandwidth:
-        print("bandwidth:")
+        print("\tbandwidth:")
         PW, f_start, f_end = find_width(f, abs(MAG))
-        print(f"\t{PW=:.1f} {f_start=:.1f} {f_end=:.1f}")
-        PW_av, f_start_av, f_end_av = find_width(f, abs(moving_average(abs(MAG), 3)))
-        print(f"\t{PW_av=:.1f} {f_start_av=:.1f} {f_end_av=:.1f}")
+        print(f"\t{PW=:.1e} {f_start=:.1e} {f_end=:.1e}")
+        # PW_av, f_start_av, f_end_av = find_width(f, abs(moving_average(abs(MAG), 3)))
+        # print(f"\t{PW_av=:.1e} {f_start_av=:.1e} {f_end_av=:.1e}")
 
     return fig, ax
 
@@ -103,13 +103,13 @@ def plotPulseAndCrossCorrelation(t, mag, title=None, printWidth=True):
 
     fig, ax = plt.subplots(1,2)
     if np.iscomplexobj(mag):
-        ax[0].plot(t, np.abs(mag),'-',label='magnitude',linewidth=2)
-        ax[0].plot(t, np.real(mag),'--',label='real',linewidth=0.1)
-        ax[0].plot(t, np.imag(mag),'-.',label='imag',linewidth=0.1)
+        ax[0].plot(t, np.abs(mag),'-o',label='magnitude')
+        ax[0].plot(t, np.real(mag),'--o',label='real')
+        ax[0].plot(t, np.imag(mag),'-.o',label='imag')
         ax[0].legend()
 
     else:
-        ax[0].plot(t, mag)
+        ax[0].plot(t, mag, '-o')
 
     ax[0].set_xlabel("time [s]")
     ax[0].set_ylabel("baseband signal")
@@ -119,7 +119,7 @@ def plotPulseAndCrossCorrelation(t, mag, title=None, printWidth=True):
     time_shift = index_shift*dt
     val = abs(xcor)
     val = val/val.max()
-    ax[1].plot(time_shift, val)
+    ax[1].plot(time_shift, val, '-o')
     ax[1].set_xlabel("time shift")
     ax[1].set_ylabel("cross correlation mag")
     ax[1].grid()
@@ -130,7 +130,7 @@ def plotPulseAndCrossCorrelation(t, mag, title=None, printWidth=True):
     plt.tight_layout()
 
     if printWidth:
-        print("xcor:")
+        print("\txcor:")
         PW, f_start, f_end = find_width(time_shift, abs(xcor))
         print(f"\t{PW=:.1f} {f_start=:.1f} {f_end=:.1f}")
         PW_av, f_start_av, f_end_av = find_width(time_shift, moving_average(abs(xcor), 3))
@@ -152,14 +152,14 @@ def insertWvfAtIndex(ar, waveform, index):
 
     elif index+Nwv >= Nar:
         print("add eclipsed waveform")
-        print(f"\t{index=}")
-        print(f"\t{Nar=}")
-        print(f"\t{Nwv=}")
-        ar[index:-1] = ar[index:-1] + waveform[:-int(Nar-index)]
+        # print(f"\t{index=}")
+        # print(f"\t{Nar=}")
+        # print(f"\t{Nwv=}")
+        ar[index:-1] = ar[index:-1] + waveform[:int(Nar-index-1)]
     else:
-        print(f"\t{index=}")
-        print(f"\t{Nar=}")
-        print(f"\t{Nwv=}")
+        # print(f"\t{index=}")
+        # print(f"\t{Nar=}")
+        # print(f"\t{Nwv=}")
         ar[index:index + Nwv] = ar[index:index + Nwv] + waveform
 
     return ar
