@@ -17,17 +17,21 @@ def calc_range_axis(fs, Nr):
     R_axis = np.arange(1,Nr+1)*dR_grid # Process fast time
     return R_axis
 
-def create_dataCube(fs, PRF, Np):
+def create_dataCube(fs, PRF, Np, noise=False):
     """data cube
     ouputs unprocessed datacube, both in fast and slow time
     """
     Nr = round(fs/PRF)
-    dc = np.zeros((Nr,Np),dtype=np.complex64)
+
+    if noise:
+        dc = (np.random.randn(Nr,Np) + 1j*np.random.randn(Nr,Np))/np.sqrt(2*Np)
+    else:
+        dc = np.zeros((Nr,Np),dtype=np.complex64)
 
     return dc
 
 def dopplerProcess_dataCube(dc, fs, PRF):
-    """data cube
+    """Process data cube in place
     ouputs:\n
     dataCube : \n
     f_axis : [-fs/2, fs/2)\n
@@ -40,10 +44,9 @@ def dopplerProcess_dataCube(dc, fs, PRF):
     R_axis = np.arange(1,Nr+1)*dR_grid # Process fast time
     f_axis = fft.fftshift(fft.fftfreq(Np,1/fs)) # process slow time
 
-    for i in range(dc.shape[0]):
-        dc[i,:] = fft.fftshift(fft.fft(dc[i]))
+    dc[:] = fft.fftshift(fft.fft(dc, axis=1), axes=1)
 
-    return dc, f_axis, R_axis
+    return f_axis, R_axis
 
 
 def R_pf_tgt(pf_pos : list, pf_vel : list, tgt_pos : list, tgt_vel : list):

@@ -28,7 +28,7 @@ Np = 256 # number of pulses
 dc = create_dataCube(fs, PRF, Np)
 dtPulse = 1/PRF
 t_ar = np.arange(Np)*dtPulse
-dc[98] = np.exp(2j*PI*PRF/4*t_ar)
+dc[98,:] = np.exp(2j*PI*PRF/4*t_ar)
 
 fig, ax = plt.subplots(1,2)
 fig.suptitle("test datacube processing")
@@ -37,10 +37,11 @@ ax[0].imshow(abs(dc), origin='lower')
 ax[0].set_xlabel("slow time [PRI]")
 ax[0].set_ylabel("fast time [fs]")
 
-dcp, f_ax, r_ax =dopplerProcess_dataCube(dc, fs, PRF)
+#process datacube in place
+f_ax, r_ax =dopplerProcess_dataCube(dc, fs, PRF)
 
 ax[1].set_title("processed datacube")
-ax[1].pcolormesh(f_ax*1e-6, r_ax, abs(dcp))
+ax[1].pcolormesh(f_ax*1e-6, r_ax, abs(dc))
 ax[1].set_xlabel("frequency [MHz]")
 ax[1].set_ylabel("range [m]")
 plt.tight_layout()

@@ -5,16 +5,19 @@ K_BOLTZ = 1.38064852e-23 # m^2 kg / s^2 K
 C = 3e8 # m/s
 PI = 3.141592653589793
 
-def snr_rangeEquation(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T):
-    """Single-pulse SNR"""
+def snr_rangeEquation_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T):
+    """Single-pulse SNR for uncoded pulse"""
     return (Pt*Gt*Gr*sigma*wavelength**2)/(((4*PI)**3)*(R**4)*K_BOLTZ*T*B*F*L)
 
+def snr_rangeEquation(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, time_bandwidth_prod):
+    """Single-pulse SNR"""
+    return snr_rangeEquation_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T)*time_bandwidth_prod
 
 def snr_rangeEquation_CP(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, n_p,
                          time_bandwidth_prod):
     """"SNR of range equation with coherent processing (CP)"""
-    singlePulse_snr= snr_rangeEquation(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T)
-    return singlePulse_snr*n_p*time_bandwidth_prod
+    singlePulse_snr= snr_rangeEquation(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, time_bandwidth_prod)
+    return singlePulse_snr*n_p
 
 
 def snr_rangeEquation_BPSK_pulses(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, n_p, n_c):
@@ -31,7 +34,7 @@ def snr_rangeEquation_dutyFactor_pulses(Pt, Gt, Gr, sigma, wavelength, R, F, L, 
     \tTcpi := Total time of coherent processing interval (CPI) in seconds
     \ttau_df := duty factor, in [0,1]
     """
-    singlePulse_snr= snr_rangeEquation(Pt, Gt, Gr, sigma, wavelength, R, 1, F, L, T)
+    singlePulse_snr= snr_rangeEquation_uncoded(Pt, Gt, Gr, sigma, wavelength, R, 1, F, L, T)
     return singlePulse_snr*Tcpi*tau_df
 
 
