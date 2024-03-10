@@ -7,6 +7,7 @@ def setZeroToSmallestNumber (array):
     indxs = np.where(array==0)
     array[indxs] = smallest_float32
 
+
 def plotRTM (t_ar, r_axis, data, title):
     """Plot range-time matrix"""
     fig, ax = plt.subplots(1,2)
@@ -22,6 +23,7 @@ def plotRTM (t_ar, r_axis, data, title):
     ax[1].set_title("phase")
     fig.tight_layout ()
 
+
 def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
     """Plot range-Doppler matrix"""
     data = abs(data)
@@ -31,7 +33,7 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
         setZeroToSmallestNumber(data)
         data = 20*np.log10(data)
     p = ax.pcolormesh (rdot_axis*1e-3, r_axis*1e-3, data)
-    ax.set_xlabel("Rdot [km/s]")
+    ax.set_xlabel("range rate [km/s]")
     ax.set_ylabel("range [km]")
     ax.set_title("magnitude squared")
     if cbarRange:

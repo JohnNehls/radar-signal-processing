@@ -4,21 +4,40 @@ import numpy as np
 from scipy import fft
 from scipy import signal
 import matplotlib.pyplot as plt
-from utilities import plotRDM, plotRTM
-from pulse_doppler_radar import frequency_aliased, range_unambiguous, frequency_doppler
+from rdm_helpers import plotRDM, plotRTM
+from pulse_doppler_radar import range_unambiguous, frequency_doppler, frequency_aliased
 from rf_datacube import calc_range_axis, create_dataCube, dopplerProcess_dataCube, R_pf_tgt
 from waveforms import makeBarkerCodedPulse, makeLFMPulse, makeRandomCodedPulse, makeUncodedPulse
 from waveform_helpers import insertWvfAtIndex, matchFilterPulse
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
 
-def applyMatchFilterToDataCube (dataCube, pulse_wvf):
-    """Inplace match filter on data cube
-    #TODO there is a faster way to do this"""
-    for j in range(dataCube.shape[1]):
-        mf, _= matchFilterPulse(dataCube [:,j], pulse_wvf)
-        dataCube[:, j] = mf
+def applyMatchFilterToDataCube(dataCube, pulse_wvf, pedantic=False):
+    """Inplace match filter on data cube"""
+    if pedantic:
+        for j in range(dataCube.shape[1]):
+            mf, _= matchFilterPulse(dataCube[:,j], pulse_wvf)
+            dataCube[:, j] = mf
+    else:
+        # Take FFT convolution directly
+        kernel = np.conj(pulse_wvf)[::-1]
 
+        # Pad and "center" pulse relative to 0 index so output is centered (dataCube is centered)
+        # Method was tested but should be tested further
+        # ref:  https://stackoverflow.com/questions/29746894/why-is-my-convolution-result-shifted-when-using-fft
+        kernel = np.pad(kernel, pad_width=(0,dataCube.shape[0]-pulse_wvf.size))
+        offset = -int(pulse_wvf.size/2)
+        if offset%2:
+            offset += 1
+        kernel = np.roll(kernel, offset)
+
+        Kernel = fft.fft(kernel).reshape(dataCube.shape[0],1)
+        PulseM = Kernel@np.ones((1, dataCube.shape[1]))
+        DataCube = fft.fft(dataCube, axis=0)
+        dataCube[:] = fft.ifft(PulseM * DataCube, axis=0, overwrite_x=True, workers=2)
+
+################################################################################
 # notes:
+################################################################################
 # - Need to decide if radar parameters are added in dB and when to convert
 #   - Volts -> dB: 10+ log10( abs (Volts) **2 )
 # - Why does noise have SNR > 1 in final noise RDM?
@@ -27,7 +46,9 @@ def applyMatchFilterToDataCube (dataCube, pulse_wvf):
 # - Break into smaller funcitons:
 #   - signal gen?
 # - Could make wvf class with BW, pulse_length, time_BW_product attributes
+################################################################################
 # issues:
+################################################################################
 # - solution SNR does not depend on time-BW product-- are we to scale input amplutide?
 # - solution does not account for PW/2 range offest in range
 
@@ -192,9 +213,9 @@ def signal_gen (tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=T
     applyMatchFilterToDataCube(total_dc, pulse_wvf)
 
     if plotSteps:
-        plotRTM(t_ar, r_axis, total_dc, f"NOISE: match filtered {wvf["type"]}")
         plotRTM(t_ar, r_axis, signal_dc, f"SIGNAL: match filtered {wvf["type"]}")
-        plotRTM(t_ar, r_axis, noise_dc, f"TOTAL: match filtered {wvf["type"]}")
+        plotRTM(t_ar, r_axis, noise_dc,   f"NOISE: match filtered {wvf["type"]}")
+        plotRTM(t_ar, r_axis, total_dc,   f"TOTAL: match filtered {wvf["type"]}")
 
     ################################################################################
     #9 Doppler process
@@ -210,14 +231,13 @@ def signal_gen (tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=T
     signal_dc = signal_dc*chwin_norm_mat
 
     if plotSteps:
-        plotRTM(t_ar, r_axis, total_dc, f"NOISE: mf & windowed {wvf["type"]}")
-        plotRTM(t_ar, r_axis, noise_dc, f"TOTAL: mf & windowed {wvf["type"]}")
-
+        plotRTM(t_ar, r_axis, signal_dc, f"SIGNAL: mf & windowed {wvf["type"]}")
+        plotRTM(t_ar, r_axis, noise_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
 
     # doppler process ######### #####################
     f_axis, r_axis = dopplerProcess_dataCube(signal_dc, radar["sampRate"], radar["PRF"])
-    _, _ = dopplerProcess_dataCube(noise_dc, radar["sampRate"], radar["PRF"])
-    _, _ = dopplerProcess_dataCube(total_dc, radar["sampRate"], radar["PRF"])
+    _, _           = dopplerProcess_dataCube(noise_dc,  radar["sampRate"], radar["PRF"])
+    _, _           = dopplerProcess_dataCube(total_dc,  radar["sampRate"], radar["PRF"])
 
     # calc rangeRate axis #*#**######################
     #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
@@ -264,13 +284,13 @@ wvf = {"type": "uncoded",
 wvf = {"type" : "barker",
        "nchips" : 13,
        "bw" : bw}
-# wvf = {"type": "random",
+# # wvf = {"type": "random",
 #        "nchips" : 13,
 #        "bw" : bw}
-# wvf = {"type": "lfm",
-#        "bw" : bw,
-#        "T": 10/40e6,
-#        'chirpUpDown': 1}
+wvf = {"type": "lfm",
+       "bw" : bw,
+       "T": 10/40e6,
+       'chirpUpDown': 1}
 
 dwell_time = 2e-3
 Npulses = int(np.ceil(dwell_time* radar ["PRF"]))
@@ -288,5 +308,7 @@ rdot_axis, r_axis, total_dc, signal_dc, noise_dc = signal_gen(tgtInfo, radar,
 ## Plot outputs
 ################################################################################
 plotRDM(rdot_axis, r_axis, signal_dc, f"SIGNAL: dB doppler processed match filtered {wvf["type"]}")
+# plotRDM(rdot_axis, r_axis, total_dc, f"TOTAL: dB doppler processed match filtered {wvf["type"]}", cbarRange=False)
 # plotRDM(rdot_axis, r_axis, noise_dc, f"NOISE: dB doppler processed match filtered {wvf["type"]}")
-plotRDM(rdot_axis, r_axis, total_dc, f"TOTAL: dB doppler processed match filtered {wvf["type"]}", cbarRange=False)
+
+plt.show()
