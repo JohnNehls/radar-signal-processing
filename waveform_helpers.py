@@ -192,7 +192,7 @@ def matchFilterPulse(ar,waveform):
     """Just use signal.convolve"""
     Nar = ar.size
     kernel = np.conj(waveform)[::-1]
-    conv = signal.convolve(ar, kernel, mode="same", method='fft')
+    conv = signal.convolve(ar, kernel, mode="same", method='direct')
     if Nar%2 == 0:
         index_shift = np.arange(-int(Nar/2), int(Nar/2))
     else:

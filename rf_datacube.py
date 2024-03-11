@@ -48,6 +48,30 @@ def dopplerProcess_dataCube(dc, fs, PRF):
 
     return f_axis, R_axis
 
+def applyMatchFilterToDataCube(dataCube, pulse_wvf, pedantic=True):
+    """Inplace match filter on data cube"""
+    if pedantic:
+        for j in range(dataCube.shape[1]):
+            mf, _= matchFilterPulse(dataCube[:,j], pulse_wvf)
+            dataCube[:, j] = mf
+    else:
+        # Take FFT convolution directly
+        kernel = np.conj(pulse_wvf)[::-1]
+
+        # Pad and "center" pulse relative to 0 index so output is centered (dataCube is centered)
+        # Method was tested but should be tested further
+        # ref:  https://stackoverflow.com/questions/29746894/why-is-my-convolution-result-shifted-when-using-fft
+        kernel = np.pad(kernel, pad_width=(0,dataCube.shape[0]-pulse_wvf.size))
+        offset = -int(pulse_wvf.size/2)
+        if offset%2:
+            offset += 1
+        kernel = np.roll(kernel, offset)
+
+        Kernel = fft.fft(kernel).reshape(dataCube.shape[0],1)
+        PulseM = Kernel@np.ones((1, dataCube.shape[1]))
+        DataCube = fft.fft(dataCube, axis=0)
+        dataCube[:] = fft.ifft(PulseM * DataCube, axis=0, overwrite_x=True, workers=2)
+
 
 def R_pf_tgt(pf_pos : list, pf_vel : list, tgt_pos : list, tgt_vel : list):
 

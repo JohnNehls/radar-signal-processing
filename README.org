@@ -27,3 +27,7 @@ cd exercises; ./s3p1.py
 #+end_src
 
 #+RESULTS:
+
+
+* Section 5: RDMs
+Currently for "stop and hop method"
