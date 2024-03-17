@@ -14,7 +14,7 @@ from range_equation import snr_rangeEquation, snr_rangeEquation_CP
 from noise import band_limited_complex_noise
 
 ################################################################################
-# notes:
+# notes
 ################################################################################
 # - Need to decide if radar parameters are added in dB and when to convert
 #   - Volts -> dB: 10+ log10( abs (Volts) **2 )
@@ -38,6 +38,8 @@ from noise import band_limited_complex_noise
 # future
 ################################################################################
 # - make a pod (seperate from skin) at the same range as target
+# - may move pw/2 offset out of kernel and rtm placement
+# -
 
 # constants
 C = 3e8
@@ -78,6 +80,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     ################################################################################
     signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], Npulses, noise=False)
     r_axis = calc_range_axis(radar["sampRate"], signal_dc.shape[0])
+    t_axis = 2*r_axis/C
 
     ################################################################################
     #2 Range and range rate of the target ######
@@ -153,15 +156,41 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     print(f"\t{10*np.log10(SNR_expected)=:.2f}")
 
     ################################################################################
-    #6 Place pulse at range index and apply phase
+    #6 Return
     ################################################################################
-    ## pulses timed from their start not their center, we compensate with pw/2 range offset
-    r_pwOffset = pulse_width/2*C/2
 
-    aliasedRange_ar = range_ar%range_unambiguous(radar["PRF"])
-    phase_ar = -4*PI*radar["fcar"]/C*range_ar
+    ## Skin : place pulse at range index and apply phase ###########################
+    if returnInfo["type"] == "skin":
+        ## pulses timed from their start not their center, we compensate with pw/2 range offset
+        r_pwOffset = pulse_width/2*C/2
+        aliasedRange_ar = range_ar%range_unambiguous(radar["PRF"])
+        phase_ar = -4*PI*radar["fcar"]/C*range_ar
 
+        for i in range(Npulses-firstEchoBin):
+            # TODO is this how these should be binned? Should they be interpolated onto grid?
+            rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + r_pwOffset))
+
+            pulse= SNR_volt*pulse_wvf*np.exp(1j*phase_ar[i])
+
+            signal_dc[:,i+firstEchoBin] += insertWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse,
+                                                   rangeIndex)
+
+    ## VBM : place pulse at range index and apply phase #############################
+    # - this should be generalized to per-pulse phase and delay on first recorded waveform
     if returnInfo["type"] == "VBM":
+        ## pulses timed from their start not their center, we compensate with pw/2 range offset
+        # - should EA compensate for this?
+        # - should convert all of this to time-based?
+        # - radar -> pod technique (time, freq) -> radar
+        # - change the amplitude to not be connected to SNR/rcs/target
+        # - ? x2 diff f_delta and f_rdot calc?
+
+        t_pwOffset = pulse_width/2
+        oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_ar)/C
+        oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
+
+        f_rdot = radar["fcar"]/C*returnInfo["rdot"]
+
         #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time
         # - want to add phase so wvfm will sill pass radar's match filter
 
@@ -177,24 +206,33 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
         #Method 2 : use LFM in slow time
         _, band_noise = makeLFMPulse(radar["PRF"], f_delta, Npulses/radar["PRF"], 1,
                                      normalize=False)
+        delay = 0
 
+        for i in range(Npulses-firstEchoBin):
+            recieved_pulse = pulse_wvf*np.exp(1j*oneWay_phase_ar[i])
 
-    for i in range(Npulses-firstEchoBin):
-        # TODO is this how these should be binned? Should they be interpolated onto grid?
-        rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + r_pwOffset))
+            #Store first pulse
+            if i == 0:
+                stored_pulse = recieved_pulse
 
-        if returnInfo["type"] == "skin":
-            pulse= SNR_volt*pulse_wvf*np.exp(1j*phase_ar[i])
+            # make the VBM pulse
+            pulse = SNR_volt*stored_pulse*band_noise[i]
+            # add prescribed rdot
+            pulse = pulse*(np.exp(-1j*i*2*PI*f_rdot/radar["PRF"]))
+            # add 1-way propagation phase
+            pulse = pulse*(np.exp(1j*oneWay_phase_ar[i+firstEchoBin])) #CLEAN UP echo piece!
 
-        elif returnInfo["type"] == "VBM":
-            pulse= SNR_volt*pulse_wvf*np.exp(1j*phase_ar[i])*band_noise[i]
+            aliasedTime_ar = (2*oneWay_time_ar + delay)%(1/radar["PRF"])
 
-        else:
-            print(f"{returnInfo["type"]=} not known, no return added.")
-            pulse = np.zeros(1)
+            # TODO is this how these should be binned? Should they be interpolated onto grid?
+            rangeIndex = np.argmin(abs(t_axis - aliasedTime_ar[i] + t_pwOffset))
 
-        signal_dc[:,i+firstEchoBin] += insertWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse,
+            signal_dc[:,i+firstEchoBin] += insertWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse,
                                                    rangeIndex)
+
+    else:
+        print(f"{returnInfo["type"]=} not known, no return added.")
+
 
     ################################################################################
     #7 Create noise and total datacube
@@ -270,9 +308,9 @@ plt.close('all')
 # Function inputs
 ################################################################################
 bw = 10e6
-
+rdot = 0.5e3
 tgtInfo = {"range": 3.5e3,
-           "rangeRate": 0e3,
+           "rangeRate": rdot,
            "rcs" : 10}
 
 radar = {"fcar" : 10e9,
@@ -303,9 +341,10 @@ wvf = {"type" : "barker",
 #        "T": 10/40e6,
 #        'chirpUpDown': 1}
 
-returnInfo = {"type" : "skin"}
+# returnInfo = {"type" : "skin"}
 returnInfo = {"type" : "VBM",
-              "rdot_delta" : 1e3}
+              "rdot_delta" : 0.6e3,
+              "rdot" : rdot}
 
 dwell_time = 2e-3
 Npulses = int(np.ceil(dwell_time* radar ["PRF"]))
