@@ -2,26 +2,28 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+
+def plotRTM (r_axis, data, title):
+    """Plot range-time matrix"""
+    pulses = range(data.shape[1])
+    fig, ax = plt.subplots(1,2)
+    fig.suptitle(title)
+    p = ax[0].pcolormesh(pulses, r_axis*1e-3, abs(data))
+    ax[0].set_xlabel("pulse number")
+    ax[0].set_ylabel("range [km]")
+    ax[0].set_title("magnitude")
+    fig.colorbar (p)
+    ax[1].pcolormesh(pulses, r_axis*1e-3, np.angle(data))
+    ax[1].set_xlabel("pulse number")
+    ax[1].set_ylabel("range [km]")
+    ax[1].set_title("phase")
+    fig.tight_layout ()
+
+
 def setZeroToSmallestNumber (array):
     smallest_float32= sys.float_info.min + sys.float_info.epsilon
     indxs = np.where(array==0)
     array[indxs] = smallest_float32
-
-
-def plotRTM (t_ar, r_axis, data, title):
-    """Plot range-time matrix"""
-    fig, ax = plt.subplots(1,2)
-    fig.suptitle(title)
-    p = ax[0].pcolormesh(t_ar*1e6, r_axis*1e-3, abs(data))
-    ax[0].set_xlabel("dwell start time [us]")
-    ax[0].set_ylabel("range [km]")
-    ax[0].set_title("magnitude")
-    fig.colorbar (p)
-    ax[1].pcolormesh(t_ar*1e6, r_axis*1e-3, np.angle(data))
-    ax[1].set_xlabel("dwell start time [us]")
-    ax[1].set_ylabel("range [km]")
-    ax[1].set_title("phase")
-    fig.tight_layout ()
 
 
 def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):

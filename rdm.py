@@ -9,8 +9,9 @@ from pulse_doppler_radar import range_unambiguous, frequency_doppler, frequency_
 from rf_datacube import calc_range_axis, create_dataCube, dopplerProcess_dataCube, R_pf_tgt
 from rf_datacube import applyMatchFilterToDataCube
 from waveform import makeBarkerCodedPulse, makeLFMPulse, makeRandomCodedPulse, makeUncodedPulse
-from waveform_helpers import insertWvfAtIndex, matchFilterPulse
+from waveform_helpers import insertWvfAtIndex
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
+from noise import band_limited_complex_noise
 
 ################################################################################
 # notes:
@@ -25,31 +26,39 @@ from range_equation import snr_rangeEquation, snr_rangeEquation_CP
 # - Break into smaller funcitons:
 #   - signal gen?
 # - Could make wvf class with BW, pulse_length, time_BW_product attributes
+# - make non-skin returns range and range/rate agnostic
+
 ################################################################################
-# issues:
+# comparison to MATLAB solutions
 ################################################################################
-# - solution SNR does not depend on time-BW product-- are we to scale input amplutide?
-# - solution does not account for PW/2 range offest in range
+# - solution SNR does not depend on time-BW product-- assumes it is 1 for all wvfms
+# - solution does not account for pulseWidth/2 range offest in range
+
+################################################################################
+# future
+################################################################################
+# - make a pod (seperate from skin) at the same range as target
 
 # constants
 C = 3e8
 PI = np.pi
 
-def signal_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=True, seed=None, plotSteps=False):
+def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dict,
+            seed=None, plotSteps=False):
     """
-    "Radar response for one target (later take a list of targets)
+    Genearat a CPI RDM for single target moving at a constant range rate.
 
     Parameters
     ----------
-    tgtInfo: dict holding range, rangeRate, and rcs (range rate constant for CPI)
+    tgtInfo: dict holding range, rangeRate, and rcs (range rate and rcs constant for CPI)
     radar: dict holding fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFig, totalLosses, PRF
-    wvf: string for wvform types
-    Npulses: number of puleses the CPI
+    wvf: string for wvform types : "uncoded" "barker" "random" "lfm"
+    Npulses: number of puleses in the CPI
 
     Returns
     -------
-    rdot_axis: array of rangeRate axis
-    r_axis: range axis.
+    rdot_axis: array of rangeRate axis [m/s]
+    r_axis: range axisk [m]
     total_dc: RDM in Volts for noise + signal
     signal_dc: RDM in Volts for signal
     noise_dc: RDM in Volts for noise
@@ -71,10 +80,9 @@ def signal_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=Tr
     r_axis = calc_range_axis(radar["sampRate"], signal_dc.shape[0])
 
     ################################################################################
-    #2 Range and rang rate of the target ######
+    #2 Range and range rate of the target ######
     ################################################################################
     # Currently takes in constant range rate
-    # TODO: take in tgt and platform positions and velocity vectors and calc these
     range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_ar
 
     ################################################################################
@@ -86,34 +94,31 @@ def signal_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=Tr
     #4 Waveform
     ################################################################################
     # Q: Should I normalize pulses? Yes, the time-bandwidth poduct is used for amp
-    # A: Yes, the time-bandwidth poduct is used for amp scaling in step 5 normalize = True
-    normalize = True
+    # A: Yes, the time-bandwidth poduct is used for amp scaling in step 5.
     if wvf["type"] == "uncoded":
-        _, pulse_wvf = makeUncodedPulse(radar['sampRate'], wvf['bw'], normalize=normalize)
+        _, pulse_wvf = makeUncodedPulse(radar['sampRate'], wvf['bw'])
         BW = wvf['bw']
         time_BW_product = 1
         pulse_width = 1/wvf["bw"]
 
     elif wvf["type"] == "barker":
-        _, pulse_wvf = makeBarkerCodedPulse(radar ['sampRate'], wvf['bw'], wvf["nchips"],
-                                             normalize=normalize)
+        _, pulse_wvf = makeBarkerCodedPulse(radar ['sampRate'], wvf['bw'], wvf["nchips"])
         BW = wvf['bw']
         time_BW_product = wvf["nchips"]
         pulse_width = 1/wvf["bw"]*wvf ["nchips"]
 
     elif wvf["type"] == "random":
-        _, pulse_wvf = makeRandomCodedPulse(radar ['sampRate'], wvf['bw'], wvf["nchips"],
-                                             normalize=normalize)
+        _, pulse_wvf = makeRandomCodedPulse(radar ['sampRate'], wvf['bw'], wvf["nchips"])
         BW = wvf['bw']
         time_BW_product = wvf ["nchips"]
         pulse_width = 1/wvf["bw"]*wvf ["nchips"]
 
     elif wvf["type"] == "lfm":
-        _, pulse_wvf = makeLFMPulse(radar ['sampRate'], wvf['bw'], wvf['T'], wvf['chirpUpDown'],
-                                     normalize=normalize)
+        _, pulse_wvf = makeLFMPulse(radar ['sampRate'], wvf['bw'], wvf['T'], wvf['chirpUpDown'])
         BW = wvf ['bw']
         time_BW_product = wvf ["bw"]*wvf["T"]
         pulse_width = wvf["T"]
+
     else:
         print("wvf type not found: no pulse added")
         pulse_wvf = np.array([1])
@@ -124,15 +129,9 @@ def signal_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=Tr
     ################################################################################
     #5 Determin scaling factor for SNR
     ################################################################################
-    # so we can direclty plot the RDM in SNR
-    # Here we find the SNR expected using range eqation and then adjust pulse scaling
-    # Notes:
+    # Motivation: direclty plot the RDM in SNR by way of the range equation
+    # notes:
     # - The SNR is calculated at the initial range and does not change in time
-
-    ### Start wrong values for check ################****
-    print("REMOVE THIS: solution mistakenly uses uncoded SNR")
-    time_BW_product = 1
-    ### End wrong values for check ###
 
     # SNR for one pulse
     SNR1 = snr_rangeEquation(radar["txPower"], radar["txGain"], radar["rxGain"],
@@ -159,24 +158,43 @@ def signal_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=Tr
     ## pulses timed from their start not their center, we compensate with pw/2 range offset
     r_pwOffset = pulse_width/2*C/2
 
-    print(f"{r_pwOffset=}")
-    print(f"{firstEchoBin=}")
-    print(f"{np.min(range_ar)}")
-    print(f"{np.max(range_ar)}")
-
     aliasedRange_ar = range_ar%range_unambiguous(radar["PRF"])
     phase_ar = -4*PI*radar["fcar"]/C*range_ar
 
+    if returnInfo["type"] == "VBM":
+        #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time
+        # - want to add phase so wvfm will sill pass radar's match filter
+
+        #convert rdot_delta to a frequency delta
+        f_delta = 2*radar["fcar"]/C*returnInfo["rdot_delta"]
+
+        #Method 1 : add random phase to each pulse
+        # - does not require assumption on processing interval
+        # - dirty result
+        # band_noise = band_limited_complex_noise(-f_delta/2, +f_delta/2, Npulses, radar["PRF"],
+        #                                         normalize=True)
+
+        #Method 2 : use LFM in slow time
+        _, band_noise = makeLFMPulse(radar["PRF"], f_delta, Npulses/radar["PRF"], 1,
+                                     normalize=False)
+
+
     for i in range(Npulses-firstEchoBin):
         # TODO is this how these should be binned? Should they be interpolated onto grid?
-        if rangeWalk:
-            rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + r_pwOffset)) # walkoff
-        else:
-            rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[0] + r_pwOffset)) # no walkoff
+        rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + r_pwOffset))
 
-        pulse= SNR_volt*pulse_wvf*np.exp(1j*phase_ar[i])
-        signal_dc[:,i+firstEchoBin] = insertWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse,
-                                                       rangeIndex)
+        if returnInfo["type"] == "skin":
+            pulse= SNR_volt*pulse_wvf*np.exp(1j*phase_ar[i])
+
+        elif returnInfo["type"] == "VBM":
+            pulse= SNR_volt*pulse_wvf*np.exp(1j*phase_ar[i])*band_noise[i]
+
+        else:
+            print(f"{returnInfo["type"]=} not known, no return added.")
+            pulse = np.zeros(1)
+
+        signal_dc[:,i+firstEchoBin] += insertWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse,
+                                                   rangeIndex)
 
     ################################################################################
     #7 Create noise and total datacube
@@ -188,7 +206,7 @@ def signal_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=Tr
     total_dc = signal_dc + noise_dc
 
     if plotSteps:
-        plotRTM(t_ar, r_axis, signal_dc, f"SIGNAL: unprocessed {wvf["type"]}")
+        plotRTM(r_axis, signal_dc, f"SIGNAL: unprocessed {wvf["type"]}")
 
     ################################################################################
     #8 Apply the match filter
@@ -198,9 +216,9 @@ def signal_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=Tr
     applyMatchFilterToDataCube(total_dc, pulse_wvf)
 
     if plotSteps:
-        plotRTM(t_ar, r_axis, signal_dc, f"SIGNAL: match filtered {wvf["type"]}")
-        # plotRTM(t_ar, r_axis, noise_dc,   f"NOISE: match filtered {wvf["type"]}")
-        # plotRTM(t_ar, r_axis, total_dc,   f"TOTAL: match filtered {wvf["type"]}")
+        plotRTM(r_axis, signal_dc, f"SIGNAL: match filtered {wvf["type"]}")
+        # plotRTM(r_axis, noise_dc,   f"NOISE: match filtered {wvf["type"]}")
+        # plotRTM(r_axis, total_dc,   f"TOTAL: match filtered {wvf["type"]}")
 
     ################################################################################
     #9 Doppler process
@@ -216,9 +234,9 @@ def signal_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, rangeWalk=Tr
     total_dc = total_dc*chwin_norm_mat
     signal_dc = signal_dc*chwin_norm_mat
 
-    if plotSteps:
-        plotRTM(t_ar, r_axis, signal_dc, f"SIGNAL: mf & windowed {wvf["type"]}")
-        # plotRTM(t_ar, r_axis, total_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
+    # if plotSteps:
+        # plotRTM(r_axis, signal_dc, f"SIGNAL: mf & windowed {wvf["type"]}")
+        # plotRTM(r_axis, total_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
 
     # doppler process ######### #####################
     f_axis, r_axis = dopplerProcess_dataCube(signal_dc, radar["sampRate"], radar["PRF"])
@@ -252,7 +270,11 @@ plt.close('all')
 # Function inputs
 ################################################################################
 bw = 10e6
-tgtInfo = {"range": 3.5e3, "rangeRate": 0.6e3, "rcs" : 10} #TODO make into a list
+
+tgtInfo = {"range": 3.5e3,
+           "rangeRate": 0e3,
+           "rcs" : 10}
+
 radar = {"fcar" : 10e9,
          "txPower": 1e3,
          "txGain" : 10**(30/10),
@@ -261,7 +283,7 @@ radar = {"fcar" : 10e9,
          "sampRate": 2*bw,
          "noiseFig": 10**(8/10),
          "totalLosses" : 10**(8/10),
-         "PRF": 32e3}
+         "PRF": 200e3}
 
 wvf = {"type" : None} # noise test
 
@@ -281,6 +303,10 @@ wvf = {"type" : "barker",
 #        "T": 10/40e6,
 #        'chirpUpDown': 1}
 
+returnInfo = {"type" : "skin"}
+returnInfo = {"type" : "VBM",
+              "rdot_delta" : 1e3}
+
 dwell_time = 2e-3
 Npulses = int(np.ceil(dwell_time* radar ["PRF"]))
 plotsteps = True
@@ -288,10 +314,11 @@ plotsteps = True
 ################################################################################
 ## Call function
 ################################################################################
-rdot_axis, r_axis, total_dc, signal_dc, noise_dc = signal_gen(tgtInfo, radar,
-                                                              wvf, Npulses,
-                                                              seed=0,
-                                                              plotSteps=True)
+rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar,
+                                                           wvf, Npulses,
+                                                           returnInfo,
+                                                           seed=0,
+                                                           plotSteps=True)
 
 ################################################################################
 ## Plot outputs
