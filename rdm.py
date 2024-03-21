@@ -1,6 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
+from numpy.linalg import norm
 from scipy import fft
 from scipy import signal
 import matplotlib.pyplot as plt
@@ -11,7 +12,8 @@ from rf_datacube import applyMatchFilterToDataCube
 from waveform import makeBarkerCodedPulse, makeLFMPulse, makeRandomCodedPulse, makeUncodedPulse
 from waveform_helpers import insertWvfAtIndex
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
-from noise import band_limited_complex_noise
+from noise import band_limited_complex_noise, guassian_complex_noise
+from utilities import phase_negpi_pospi
 
 ################################################################################
 # notes
@@ -39,7 +41,7 @@ from noise import band_limited_complex_noise
 ################################################################################
 # - make a pod (seperate from skin) at the same range as target
 # - may move pw/2 offset out of kernel and rtm placement
-# -
+# - make VBM guassian normalization work and make sense (all mags !=1) (method 1.5)
 
 # constants
 C = 3e8
@@ -189,37 +191,83 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
         oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_ar)/C
         oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
 
-        f_rdot = radar["fcar"]/C*returnInfo["rdot"]
+        #OPTION: prescirbed rdot offset
+        f_rdot = 2*radar["fcar"]/C*returnInfo["rdot_offset"] # remove x2 for setting absolute rdot
 
-        #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time
+        #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #########################
         # - want to add phase so wvfm will sill pass radar's match filter
 
         #convert rdot_delta to a frequency delta
         f_delta = 2*radar["fcar"]/C*returnInfo["rdot_delta"]
 
-        #Method 1 : add random phase to each pulse
+        # SET VBM_METHOD ###################
+        vbm_method = 1.5
+
+        #Method 0 : random phase in all frequencies
+        if vbm_method == 0:
+            rand_phase = 2*PI*np.random.rand(Npulses)
+            band_noise = np.exp(1j*rand_phase)
+
+        #Method 1 : random phase in a band width
         # - does not require assumption on processing interval
-        # - dirty result
-        # band_noise = band_limited_complex_noise(-f_delta/2, +f_delta/2, Npulses, radar["PRF"],
-        #                                         normalize=True)
+        # - dirty result if each element is made magnitude = 1
+        # - un-normalized (normalized over interval) only makes sense if possible on hardware
+        if vbm_method == 1:
+            band_noise = band_limited_complex_noise(-f_delta/2, +f_delta/2, Npulses, radar["PRF"],
+                                                    normalize=True)
+            band_noise = guassian_complex_noise(0, f_delta/2, 1, Npulses, radar["PRF"],
+                                                normalize=True)
+
+        #Method 1.5: WIP random phase normalized over a period
+        # - A way to make the random noise cleaner is to normalize over a an interval
+        # - use with un-normalized noise
+        # - requires knowldet of number of pulses? (maybe)
+        if vbm_method == 1.5:
+            band_noise = guassian_complex_noise(0, f_delta/2, 1, Npulses, radar["PRF"],
+                                                normalize=False)
+            band_noise = band_noise/norm(band_noise)*np.sqrt(band_noise.size)
 
         #Method 2 : use LFM in slow time
-        _, band_noise = makeLFMPulse(radar["PRF"], f_delta, Npulses/radar["PRF"], 1,
+        if vbm_method == 2:
+            _, band_noise = makeLFMPulse(radar["PRF"], f_delta, Npulses/radar["PRF"], 1,
                                      normalize=False)
-        delay = 0
+
+        print(f"\nBand Noise:")
+        print(f"\t{norm(band_noise)=}")
+        print(f"\t{band_noise.size=}")
+        print(f"\t{np.mean(abs(band_noise))=}")
+        print(f"\t{np.var(abs(band_noise))=}")
+        print(f"\t{np.mean(np.angle(band_noise))=}")
+        print(f"\t{np.sqrt(np.var(np.angle(band_noise)))=}")
+
+        delay = 0 # handle later when making a more abstract interface
 
         for i in range(Npulses-firstEchoBin):
+            # pulse recieved by the EW system
             recieved_pulse = pulse_wvf*np.exp(1j*oneWay_phase_ar[i])
 
             #Store first pulse
             if i == 0:
                 stored_pulse = recieved_pulse
+                continue # only store pulse and wait for next pulse
+
+            if i == 1:
+                stored_angle = (np.angle(recieved_pulse) - np.angle(stored_pulse))
+                stored_angle = phase_negpi_pospi(stored_angle)
+                stored_angle = np.mean(stored_angle)
 
             # make the VBM pulse
             pulse = SNR_volt*stored_pulse*band_noise[i]
-            # add prescribed rdot
+            print(f"{stored_angle=}")
+            print(f"{i=}")
+            # add sored pulse difference rdot
+            pulse = pulse*(np.exp(1j*i*stored_angle))
+
+            #OPTION: add prescirbed rdot offset
             pulse = pulse*(np.exp(-1j*i*2*PI*f_rdot/radar["PRF"]))
+
             # add 1-way propagation phase
+            # echo may be incorrect in line below
             pulse = pulse*(np.exp(1j*oneWay_phase_ar[i+firstEchoBin])) #CLEAN UP echo piece!
 
             aliasedTime_ar = (2*oneWay_time_ar + delay)%(1/radar["PRF"])
@@ -231,7 +279,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
                                                    rangeIndex)
 
     else:
-        print(f"{returnInfo["type"]=} not known, no return added.")
+        print(f"{returnInfo['type']=} not known, no return added.")
 
 
     ################################################################################
@@ -244,7 +292,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     total_dc = signal_dc + noise_dc
 
     if plotSteps:
-        plotRTM(r_axis, signal_dc, f"SIGNAL: unprocessed {wvf["type"]}")
+        plotRTM(r_axis, signal_dc, f"SIGNAL: unprocessed {wvf['type']}")
 
     ################################################################################
     #8 Apply the match filter
@@ -254,9 +302,9 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     applyMatchFilterToDataCube(total_dc, pulse_wvf)
 
     if plotSteps:
-        plotRTM(r_axis, signal_dc, f"SIGNAL: match filtered {wvf["type"]}")
-        # plotRTM(r_axis, noise_dc,   f"NOISE: match filtered {wvf["type"]}")
-        # plotRTM(r_axis, total_dc,   f"TOTAL: match filtered {wvf["type"]}")
+        plotRTM(r_axis, signal_dc, f"SIGNAL: match filtered {wvf['type']}")
+        # plotRTM(r_axis, noise_dc,   f"NOISE: match filtered {wvf['type']}")
+        # plotRTM(r_axis, total_dc,   f"TOTAL: match filtered {wvf['type']}")
 
     ################################################################################
     #9 Doppler process
@@ -343,8 +391,8 @@ wvf = {"type" : "barker",
 
 # returnInfo = {"type" : "skin"}
 returnInfo = {"type" : "VBM",
-              "rdot_delta" : 0.6e3,
-              "rdot" : rdot}
+              "rdot_delta" : 0.5e3,
+              "rdot_offset" : 0.0e3}
 
 dwell_time = 2e-3
 Npulses = int(np.ceil(dwell_time* radar ["PRF"]))
@@ -362,8 +410,8 @@ rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar,
 ################################################################################
 ## Plot outputs
 ################################################################################
-plotRDM(rdot_axis, r_axis, signal_dc, f"SIGNAL: dB doppler processed match filtered {wvf["type"]}")
-plotRDM(rdot_axis, r_axis, total_dc, f"TOTAL: dB doppler processed match filtered {wvf["type"]}", cbarRange=False)
-# plotRDM(rdot_axis, r_axis, noise_dc, f"NOISE: dB doppler processed match filtered {wvf["type"]}")
+plotRDM(rdot_axis, r_axis, signal_dc, f"SIGNAL: dB doppler processed match filtered {wvf['type']}")
+plotRDM(rdot_axis, r_axis, total_dc, f"TOTAL: dB doppler processed match filtered {wvf['type']}", cbarRange=False)
+# plotRDM(rdot_axis, r_axis, noise_dc, f"NOISE: dB doppler processed match filtered {wvf['type']}")
 
 plt.show()

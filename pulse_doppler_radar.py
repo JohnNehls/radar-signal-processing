@@ -1,5 +1,7 @@
 #!/usr/bin/env python
 
+import numpy as np
+
 # constants
 K_BOLTZ = 1.38064852e-23 # m^2 kg / s^2 K
 C = 3e8 # m/s
