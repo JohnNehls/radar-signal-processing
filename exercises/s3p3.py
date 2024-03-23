@@ -5,8 +5,8 @@ import matplotlib.pyplot as plt
 import sys
 sys.path.append("..")
 
-from waveform_helpers import matchFilterPulse, unityVarianceComplexNoise, insertWvfAtIndex, plotPulseAndSpectrum
-from waveforms import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeLFMPulse
+from waveform_helpers import matchFilterPulse, unityVarianceComplexNoise, addWvfAtIndex, plotPulseAndSpectrum
+from waveform import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeLFMPulse
 
 plt.close('all')
 print("##############################")
@@ -31,7 +31,7 @@ indx_1 = 200
 SNR = 20 # noise is at 0dB
 mag_u_s = 10**(SNR/20)*mag_u
 
-noise_1 = insertWvfAtIndex(noise_1, mag_u_s, indx_1)
+addWvfAtIndex(noise_1, mag_u_s, indx_1) # add in place
 print("verify noise is at ~ 0dB")
 print(f"\t{10*np.log10(np.var(noise_1))=}")
 
@@ -63,21 +63,21 @@ indx_1 = 128
 SNR = 15 # noise is at 0dB
 _, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
 mag_u_s = 10**(SNR/20)*mag_u
-noise_2 = insertWvfAtIndex(noise_2, mag_u_s, indx_1)
+addWvfAtIndex(noise_2, mag_u_s, indx_1) # add in place
 
 # second pulse
 indx_2 = 200
 SNR = 30 # noise is at 0dB
 _, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
 mag_u_s = 10**(SNR/20)*mag_u
-noise_2 = insertWvfAtIndex(noise_2, mag_u_s, indx_2)
+addWvfAtIndex(noise_2, mag_u_s, indx_2) # add in place
 
 # third pulse
 indx_3 = 950
 SNR = 20 # noise is at 0dB
 _, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
 mag_u_s = 10**(SNR/20)*mag_u
-noise_2 = insertWvfAtIndex(noise_2, mag_u_s, indx_3)
+addWvfAtIndex(noise_2, mag_u_s, indx_3) # add in place
 
 mf , _ = matchFilterPulse(noise_2, mag_u)
 
@@ -115,14 +115,14 @@ T = 2e-6
 chirpUpDown = 1
 _, mag_lfm = makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, normalize=True)
 mag_lfm_s = 10**(SNR/20)*mag_lfm
-noise_3 = insertWvfAtIndex(noise_3, mag_lfm_s, lfm_idx)
+addWvfAtIndex(noise_3, mag_lfm_s, lfm_idx) # add in place
 
 #BPSK
 bpsk_idx = 600
 SNR=20
 _, mag_b = makeBarkerCodedPulse(sampleRate, BW, 13, output_length_T=1, normalize=True)
 mag_b_s = 10**(SNR/20)*mag_b
-noise_3 = insertWvfAtIndex(noise_3, mag_b_s, bpsk_idx)
+addWvfAtIndex(noise_3, mag_b_s, bpsk_idx) # add in place
 
 fig, ax = plt.subplots(1,5)
 fig.suptitle("S3P3 case 3")

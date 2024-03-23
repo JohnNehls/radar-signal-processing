@@ -143,7 +143,8 @@ def unityVarianceComplexNoise(N):
     return(np.random.randn(N) + 1j*np.random.randn(N))/np.sqrt(2)
 
 
-def insertWvfAtIndex(ar, waveform, index):
+def addWvfAtIndex(ar, waveform, index):
+    """In place add wvf to current array"""
     Nar = ar.size
     Nwv = waveform.size
 
