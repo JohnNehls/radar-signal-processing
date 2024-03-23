@@ -5,7 +5,7 @@ sys.path.append("..")
 
 from waveform_helpers import matchFilterPulse
 import matplotlib.pyplot as plt
-from waveforms import makeUncodedPulse, makeBarkerCodedPulse, barker_dict
+from waveform import makeUncodedPulse, makeBarkerCodedPulse, barker_dict
 
 print("#############################################")
 print("Problem 2: Barker sidelobe check code example")

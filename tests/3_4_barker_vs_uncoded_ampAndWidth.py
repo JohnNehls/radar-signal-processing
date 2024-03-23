@@ -3,7 +3,7 @@ import sys
 sys.path.append("..")
 
 from waveform_helpers import matchFilterPulse
-from waveforms import makeUncodedPulse, makeBarkerCodedPulse
+from waveform import makeUncodedPulse, makeBarkerCodedPulse
 
 plt.close('all')
 print("##############################")

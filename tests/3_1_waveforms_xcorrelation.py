@@ -5,7 +5,7 @@ import sys
 sys.path.append("..")
 
 from waveform_helpers import plotPulseAndSpectrum, plotPulseAndCrossCorrelation
-from waveforms import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeRandomCodedPulse, makeLFMPulse
+from waveform import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeRandomCodedPulse, makeLFMPulse
 
 print("#############################################")
 print("Problem 1: write the pulse functions and plot")

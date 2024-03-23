@@ -18,7 +18,7 @@ PI = np.pi
 print("##########################")
 print("TEST windowing")
 print("##########################")
-from waveforms import makeUncodedPulse
+from waveform import makeUncodedPulse
 from waveform_helpers import plotPulseAndSpectrum
 # given
 fs = 100e6 # sampling frequency in Hz
