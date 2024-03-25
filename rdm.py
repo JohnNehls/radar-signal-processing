@@ -12,8 +12,8 @@ from rf_datacube import applyMatchFilterToDataCube
 from waveform import makeBarkerCodedPulse, makeLFMPulse, makeRandomCodedPulse, makeUncodedPulse
 from waveform_helpers import addWvfAtIndex
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
-from noise import band_limited_complex_noise, guassian_complex_noise
 from utilities import phase_negpi_pospi
+from vbm import create_VBM_slowtime_noise
 
 ################################################################################
 # notes
@@ -39,6 +39,8 @@ from utilities import phase_negpi_pospi
 ################################################################################
 # future
 ################################################################################
+# - make VBM it's own function to pull out the details and methods from rdm_gen
+# - add range_delta to returnInfo['memory']
 # - make a pod (seperate from skin) at the same range as target
 # - may move pw/2 offset out of kernel and rtm placement
 # - add flag to odify freq due to doppler using frequence_doppler function.
@@ -179,105 +181,9 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
             addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place
 
 
-    ## VBM : place pulse at range index and apply phase #############################
+    ## Memory : place pulse at range index and apply phase #############################
     # - this should be generalized to per-pulse phase and delay on first recorded waveform
-    elif returnInfo["type"] == "VBM":
-        ## pulses timed from their start not their center, we compensate with pw/2 range offset
-        # - should EA compensate for this?
-        # - should convert all of this to time-based?
-        # - radar -> pod technique (time, freq) -> radar
-        # - change the amplitude to not be connected to SNR/rcs/target
-        # - ? x2 diff f_delta and f_rdot calc?
-
-        t_pwOffset = pulse_width/2
-        oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_ar)/C
-        oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
-
-        #OPTION: prescirbed rdot offset
-        f_rdot = 2*radar["fcar"]/C*returnInfo["rdot_offset"] # remove x2 for setting absolute rdot
-
-        #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #########################
-        # - want to add phase so wvfm will sill pass radar's match filter
-
-        #convert rdot_delta to a frequency delta
-        f_delta = 2*radar["fcar"]/C*returnInfo["rdot_delta"]
-
-        #Method 0 : random phase in all frequencies
-        if returnInfo["method"] == 0:
-            rand_phase = 2*PI*np.random.rand(Npulses)
-            band_noise = np.exp(1j*rand_phase)
-
-        #Method 1 : random phase in a band width
-        # - does not require assumption on processing interval
-        # - dirty result if each element is made magnitude = 1
-        # - un-normalized (normalized over interval) only makes sense if possible on hardware
-        if returnInfo["method"] == 1:
-            band_noise = band_limited_complex_noise(-f_delta/2, +f_delta/2, Npulses, radar["PRF"],
-                                                    normalize=True)
-            band_noise = guassian_complex_noise(0, f_delta/2, 1, Npulses, radar["PRF"],
-                                                normalize=True)
-
-        #Method 1.5 : random phase normalized over a period-- WIP
-        # - A way to make the random noise cleaner is to normalize over a an interval
-        # - use with un-normalized noise
-        # - requires knowledge of number of pulses? (maybe)
-        if returnInfo["method"] == 1.5:
-            band_noise = guassian_complex_noise(0, f_delta/2, 1, Npulses, radar["PRF"],
-                                                normalize=False)
-            band_noise = band_noise/norm(band_noise)*np.sqrt(band_noise.size)
-
-        #Method 2 : use LFM in slow time
-        if returnInfo["method"] == 2:
-            _, band_noise = makeLFMPulse(radar["PRF"], f_delta, Npulses/radar["PRF"], 1,
-                                     normalize=False)
-
-        print(f"\nBand Noise:")
-        print(f"\t{norm(band_noise)=}")
-        print(f"\t{band_noise.size=}")
-        print(f"\t{np.mean(abs(band_noise))=}")
-        print(f"\t{np.var(abs(band_noise))=}")
-        print(f"\t{np.mean(np.angle(band_noise))=}")
-        print(f"\t{np.sqrt(np.var(np.angle(band_noise)))=}")
-
-        delay = 0 # handle later when making a more abstract interface
-
-        for i in range(Npulses-firstEchoBin):
-            # pulse recieved by the EW system
-            recieved_pulse = pulse_wvf*np.exp(1j*oneWay_phase_ar[i])
-
-            #Store first pulse
-            if i == 0:
-                stored_pulse = recieved_pulse
-                continue # only store pulse and wait for next pulse
-
-            if i == 1:
-                stored_angle = (np.angle(recieved_pulse) - np.angle(stored_pulse))
-                stored_angle = phase_negpi_pospi(stored_angle)
-                stored_angle = np.mean(stored_angle)
-
-            # make the VBM pulse
-            pulse = SNR_volt*stored_pulse*band_noise[i]
-
-            # add sored pulse difference rdot
-            pulse = pulse*(np.exp(1j*i*stored_angle))
-
-            #OPTION: add prescirbed rdot offset
-            pulse = pulse*(np.exp(-1j*i*2*PI*f_rdot/radar["PRF"]))
-
-            # add 1-way propagation phase
-            # echo may be incorrect in line below
-            pulse = pulse*(np.exp(1j*oneWay_phase_ar[i+firstEchoBin])) #CLEAN UP echo piece!
-
-            aliasedTime_ar = (2*oneWay_time_ar + delay)%(1/radar["PRF"])
-
-            # TODO is this how these should be binned? Should they be interpolated onto grid?
-            rangeIndex = np.argmin(abs(t_axis - aliasedTime_ar[i] + t_pwOffset))
-
-            addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place
-
-    ## General : place pulse at range index and apply phase #############################
-    # - this should be generalized to per-pulse phase and delay on first recorded waveform
-    elif returnInfo["type"] == "general":
+    elif returnInfo["type"] == "memory":
         ## pulses timed from their start not their center, we compensate with pw/2 range offset
         # - should EA compensate for this?
         # - radar -> pod technique (time, freq) -> radar
@@ -298,13 +204,15 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
 
         #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #################
         # - want to add phase so wvfm will sill pass radar's match filter
+        # - there are several methods see vbm.py
         if "rdot_delta" in returnInfo.keys():
-            #convert rdot_delta to a frequency delta
-            f_delta = 2*radar["fcar"]/C*returnInfo["rdot_delta"]
-            _, band_noise = makeLFMPulse(radar["PRF"], f_delta, Npulses/radar["PRF"], 1,
-                                         normalize=False)
+            slowtime_noise = create_VBM_slowtime_noise(Npulses,
+                                                         radar["fcar"],
+                                                         returnInfo["rdot_delta"],
+                                                         radar["PRF"],
+                                                         debug=True)
         else:
-            band_noise = np.ones(Npulses) # default if no VBM
+            slowtime_noise = np.ones(Npulses) # default if no VBM
 
         #Delay the return ################################################################
         # - can be negative
@@ -342,7 +250,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
             pulse = SNR_volt*stored_pulse
 
             # add noise (VBM)
-            pulse = pulse*band_noise[i]
+            pulse = pulse*slowtime_noise[i]
 
             # add stored pulse difference rdot
             pulse = pulse*(np.exp(1j*i*stored_angle))
@@ -408,7 +316,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
         # plotRTM(r_axis, signal_dc, f"SIGNAL: mf & windowed {wvf["type"]}")
         # plotRTM(r_axis, total_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
 
-    # doppler process ######### #####################
+    # doppler process in place ##############################
     f_axis, r_axis = dopplerProcess_dataCube(signal_dc, radar["sampRate"], radar["PRF"])
     _, _           = dopplerProcess_dataCube(noise_dc,  radar["sampRate"], radar["PRF"])
     _, _           = dopplerProcess_dataCube(total_dc,  radar["sampRate"], radar["PRF"])
@@ -471,22 +379,17 @@ def main():
     #        "nchips" : 13,
     #        "bw" : bw}
 
-    # wvf = {"type": "lfm",
-    #        "bw" : bw,
-    #        "T": 10/40e6,
-    #        'chirpUpDown': 1}
+    wvf = {"type": "lfm",
+           "bw" : bw,
+           "T": 10/40e6,
+           'chirpUpDown': 1}
 
     # returnInfo = {"type" : "skin"}
 
-    # returnInfo = {"type" : "VBM",
-    #               "rdot_delta" : 0.5e3,
-    #               "method" : 2,
-    #               "rdot_offset" : 0.0e3}
-
-    returnInfo = {"type" : "general",
+    returnInfo = {"type" : "memory",
                   "rdot_delta" : 0.5e3,
                   "rdot_offset" : 0.1e3,
-                  "range_offset" : -0.1e3,
+                  "range_offset" : -0.0e3,
                   }
 
 
@@ -513,3 +416,5 @@ def main():
 
 if __name__ == "__main__":
     main()
+
+main()
