@@ -156,7 +156,8 @@ if __name__ == "__main__":
              "sampRate": 2*bw,
              "noiseFig": 10**(8/10),
              "totalLosses" : 10**(8/10),
-             "PRF": 200e3}
+             "PRF": 200e3,
+             "dwell_time": 2e-3}
 
     process_waveform_dict(wvf, radar)
 

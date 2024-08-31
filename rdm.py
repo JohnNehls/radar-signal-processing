@@ -90,12 +90,6 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
     t_fast_axis = 2*r_axis/C
 
 
-    ### Range and range rate of the target #################
-    # Currently takes in constant range rate
-    target_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis
-
-    ### Find first response pulse location #################
-    firstEchoBin = int(tgtInfo["range"]/range_unambiguous(radar ["PRF"]))
 
     ### Determin scaling factor for SNR ####################
     # Motivation: direclty plot the RDM in SNR by way of the range equation
@@ -123,6 +117,13 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
 
     ### Return  ##########################################
     signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"])
+    #Range and range rate of the target
+    # Currently takes in constant range rate
+    target_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis
+
+    ### Find first response pulse location #################
+    firstEchoBin = int(tgtInfo["range"]/range_unambiguous(radar ["PRF"]))
+
 
     ## Skin : place pulse at range index and apply phase ###########################
     if returnInfo["type"] == "skin":
