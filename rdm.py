@@ -9,7 +9,7 @@ from rdm_helpers import plotRDM, plotRTM
 from pulse_doppler_radar import range_unambiguous, frequency_doppler, frequency_aliased
 from rf_datacube import calc_range_axis, create_dataCube, dopplerProcess_dataCube, R_pf_tgt
 from rf_datacube import applyMatchFilterToDataCube
-from waveform import makeBarkerCodedPulse, makeLFMPulse, makeRandomCodedPulse, makeUncodedPulse
+from waveform import ComputeAndAddWaveformParameters
 from waveform_helpers import addWvfAtIndex
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
 from utilities import phase_negpi_pospi
@@ -22,6 +22,7 @@ from vbm import create_VBM_slowtime_noise
 #   - Volts -> dB: 10+ log10( abs (Volts) **2 )
 # - Why does noise have SNR > 1 in final noise RDM?
 # - Pedantic direct match filter is cleaner in phase (zeros where there is no signal)
+#   - a more efficient one is also implemented but not used (see padantic parameter)
 # - Make pulsewidth/2 range offset clearer
 # - range bins are A/D samples
 # - Break into smaller funcitons:
@@ -34,7 +35,7 @@ from vbm import create_VBM_slowtime_noise
 # comparison to MATLAB solutions
 ################################################################################
 # - solution SNR does not depend on time-BW product-- assumes it is 1 for all wvfms
-# - solution does not account for pulseWidth/2 range offest in range
+# - solution does not account for pulseWidth/2 range offest
 
 ################################################################################
 # future
@@ -102,38 +103,8 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     ################################################################################
     #4 Waveform
     ################################################################################
-    # Q: Should I normalize pulses? Yes, the time-bandwidth poduct is used for amp
-    # A: Yes, the time-bandwidth poduct is used for amp scaling in step 5.
-    if wvf["type"] == "uncoded":
-        _, pulse_wvf = makeUncodedPulse(radar['sampRate'], wvf['bw'])
-        BW = wvf['bw']
-        time_BW_product = 1
-        pulse_width = 1/wvf["bw"]
-
-    elif wvf["type"] == "barker":
-        _, pulse_wvf = makeBarkerCodedPulse(radar ['sampRate'], wvf['bw'], wvf["nchips"])
-        BW = wvf['bw']
-        time_BW_product = wvf["nchips"]
-        pulse_width = 1/wvf["bw"]*wvf ["nchips"]
-
-    elif wvf["type"] == "random":
-        _, pulse_wvf = makeRandomCodedPulse(radar ['sampRate'], wvf['bw'], wvf["nchips"])
-        BW = wvf['bw']
-        time_BW_product = wvf ["nchips"]
-        pulse_width = 1/wvf["bw"]*wvf ["nchips"]
-
-    elif wvf["type"] == "lfm":
-        _, pulse_wvf = makeLFMPulse(radar ['sampRate'], wvf['bw'], wvf['T'], wvf['chirpUpDown'])
-        BW = wvf ['bw']
-        time_BW_product = wvf ["bw"]*wvf["T"]
-        pulse_width = wvf["T"]
-
-    else:
-        print("wvf type not found: no pulse added")
-        pulse_wvf = np.array([1])
-        BW = 1
-        time_BW_product = 1
-        pulse_width = 1
+    # Use normalized pulses the time-bandwidth poduct is used for amp scaling in step 5.
+    ComputeAndAddWaveformParameters(wvf, radar)
 
     ################################################################################
     #5 Determin scaling factor for SNR
@@ -145,17 +116,17 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     # SNR for one pulse
     SNR1 = snr_rangeEquation(radar["txPower"], radar["txGain"], radar["rxGain"],
                              tgtInfo["rcs"], C/radar["fcar"], tgtInfo["range"],
-                             BW, radar["noiseFig"], radar["totalLosses"],
-                             radar["opTemp"], time_BW_product)
+                             wvf["bw"], radar["noiseFig"], radar["totalLosses"],
+                             radar["opTemp"], wvf["time_BW_product"])
 
     SNR_volt = np.sqrt(SNR1/Npulses)
 
     # calculated to check we see the expected SNR SNR_expected
     SNR_expected = snr_rangeEquation_CP(radar["txPower"], radar["txGain"],
                                         radar["rxGain"], tgtInfo["rcs"],
-                                        C/radar["fcar"], tgtInfo["range"], BW,
+                                        C/radar["fcar"], tgtInfo["range"], wvf["bw"],
                                         radar["noiseFig"], radar["totalLosses"],
-                                        radar["opTemp"], Npulses, time_BW_product)
+                                        radar["opTemp"], Npulses, wvf["time_BW_product"])
     print (f"SNR Check: ")
     print(f"\t{10*np.log10(SNR1)=:.2f}")
     print(f"\t{SNR_volt=:.1e}\n\t{SNR_expected=:.1e}")
@@ -168,7 +139,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     ## Skin : place pulse at range index and apply phase ###########################
     if returnInfo["type"] == "skin":
         ## pulses timed from their start not their center, we compensate with pw/2 range offset
-        r_pwOffset = pulse_width/2*C/2
+        r_pwOffset = wvf["pulse_width"]/2*C/2
         aliasedRange_ar = range_ar%range_unambiguous(radar["PRF"])
         phase_ar = -4*PI*radar["fcar"]/C*range_ar
 
@@ -176,7 +147,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
             # TODO is this how these should be binned? Should they be interpolated onto grid?
             rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + r_pwOffset))
 
-            pulse= SNR_volt*pulse_wvf*np.exp(1j*phase_ar[i])
+            pulse= SNR_volt*wvf["pulse"]*np.exp(1j*phase_ar[i])
 
             addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place
 
@@ -191,7 +162,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
         # - ? x2 diff f_delta and f_rdot calc?
         # interface for returnInfo: rdot_offset, rdot_delta, delay
 
-        t_pwOffset = pulse_width/2
+        t_pwOffset = wvf["pulse_width"]/2
         oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_ar)/C
         oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
 
@@ -232,7 +203,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
 
         for i in range(Npulses-firstEchoBin):
             # pulse recieved by the EW system
-            recieved_pulse = pulse_wvf*np.exp(1j*oneWay_phase_ar[i])
+            recieved_pulse = wvf["pulse"]*np.exp(1j*oneWay_phase_ar[i])
 
             #Store first pulse and wait for next pulse
             if i == 0:
@@ -289,9 +260,9 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     ################################################################################
     #8 Apply the match filter
     ################################################################################
-    applyMatchFilterToDataCube(signal_dc, pulse_wvf)
-    applyMatchFilterToDataCube(noise_dc, pulse_wvf)
-    applyMatchFilterToDataCube(total_dc, pulse_wvf)
+    applyMatchFilterToDataCube(signal_dc, wvf["pulse"])
+    applyMatchFilterToDataCube(noise_dc, wvf["pulse"])
+    applyMatchFilterToDataCube(total_dc, wvf["pulse"])
 
     if plotSteps:
         plotRTM(r_axis, signal_dc, f"SIGNAL: match filtered {wvf['type']}")

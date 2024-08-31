@@ -17,6 +17,9 @@ barker_dict = {2 : [ 1,-1],  # could also be [ 1, 1]
 # Notes
 # - need to fill in all function doc strings with input explinations
 
+
+
+
 def makeUncodedPulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=True,
                      centered=False):
     """baseband uncoded pulse"""
@@ -103,3 +106,58 @@ def makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, n
         mag = mag/norm(mag)
 
     return t, mag
+
+
+def  ComputeAndAddWaveformParameters(wvf : dict, radar : dict):
+    """Fill in wvf dict with "pulse", "time_BW_product", "pulse_width" """
+    if wvf["type"] == "uncoded":
+        _, pulse_wvf = makeUncodedPulse(radar['sampRate'], wvf['bw'])
+        wvf["pulse"] = pulse_wvf
+        wvf["time_BW_product"] = 1
+        wvf["pulse_width"] = 1/wvf["bw"]
+
+    elif wvf["type"] == "barker":
+        _, pulse_wvf = makeBarkerCodedPulse(radar ['sampRate'], wvf['bw'], wvf["nchips"])
+        wvf["pulse"] = pulse_wvf
+        wvf["time_BW_product"] = wvf["nchips"]
+        wvf["pulse_width"] = 1/wvf["bw"]*wvf ["nchips"]
+
+
+    elif wvf["type"] == "random":
+        _, pulse_wvf = makeRandomCodedPulse(radar ['sampRate'], wvf['bw'], wvf["nchips"])
+        wvf["pulse"] = pulse_wvf
+        wvf["time_BW_product"] = wvf ["nchips"]
+        wvf["pulse_width"] = 1/wvf["bw"]*wvf ["nchips"]
+
+
+    elif wvf["type"] == "lfm":
+        _, pulse_wvf = makeLFMPulse(radar ['sampRate'], wvf['bw'], wvf['T'], wvf['chirpUpDown'])
+        wvf["pulse"] = pulse_wvf
+        wvf["time_BW_product"] = wvf ["bw"]*wvf["T"]
+        wvf["pulse_width"] = wvf["T"]
+
+    else:
+        raise Exception(f"wvf type {wvf["type"]} not found.")
+
+
+if __name__ == "__main__":
+    bw = 10e6
+
+    wvf = {"type": "lfm",
+           "bw" : bw,
+           "T": 10/40e6,
+           'chirpUpDown': 1}
+
+    radar = {"fcar" : 10e9,
+             "txPower": 1e3,
+             "txGain" : 10**(30/10),
+             "rxGain" : 10**(30/10),
+             "opTemp": 290,
+             "sampRate": 2*bw,
+             "noiseFig": 10**(8/10),
+             "totalLosses" : 10**(8/10),
+             "PRF": 200e3}
+
+    ComputeAndAddWaveformParameters(wvf, radar)
+
+    print(wvf)
