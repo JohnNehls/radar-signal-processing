@@ -108,7 +108,7 @@ def makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, n
     return t, mag
 
 
-def  ComputeAndAddWaveformParameters(wvf : dict, radar : dict):
+def process_waveform_dict(wvf : dict, radar : dict):
     """Fill in wvf dict with "pulse", "time_BW_product", "pulse_width" """
     if wvf["type"] == "uncoded":
         _, pulse_wvf = makeUncodedPulse(radar['sampRate'], wvf['bw'])
@@ -158,6 +158,6 @@ if __name__ == "__main__":
              "totalLosses" : 10**(8/10),
              "PRF": 200e3}
 
-    ComputeAndAddWaveformParameters(wvf, radar)
+    process_waveform_dict(wvf, radar)
 
     print(wvf)
