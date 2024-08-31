@@ -17,11 +17,19 @@ def calc_range_axis(fs, Nr):
     R_axis = np.arange(1,Nr+1)*dR_grid # Process fast time
     return R_axis
 
-def create_dataCube(fs, PRF, Np, noise=False):
+def calc_number_range_bins(fs, prf):
+    return round(fs/prf)
+
+def create_dataCube(fs, prf, Np, noise=False):
     """data cube
-    ouputs unprocessed datacube, both in fast and slow time
+    Outputs unprocessed datacube, both in fast and slow time
+    inputs:
+      Nr = number of range bins
+      Np = number of pulses
+    outputs:
+      Datacube of size [Nr,Np]
     """
-    Nr = round(fs/PRF)
+    Nr = calc_number_range_bins(fs, prf)
 
     if noise:
         dc = (np.random.randn(Nr,Np) + 1j*np.random.randn(Nr,Np))/np.sqrt(2*Np)

@@ -7,7 +7,7 @@ from scipy import signal
 import matplotlib.pyplot as plt
 from rdm_helpers import plotRDM, plotRTM
 from pulse_doppler_radar import range_unambiguous, frequency_doppler, frequency_aliased
-from rf_datacube import calc_range_axis, create_dataCube, dopplerProcess_dataCube, R_pf_tgt
+from rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube, dopplerProcess_dataCube, R_pf_tgt
 from rf_datacube import applyMatchFilterToDataCube
 from waveform import ComputeAndAddWaveformParameters
 from waveform_helpers import addWvfAtIndex
@@ -73,32 +73,29 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     noise_dc: RDM in Volts for noise
     """
 
-    t_ar = np.arange(Npulses)*1/radar["PRF"]
-
-    ################################################################################
-    #0 Set random seed
-    ################################################################################
+    #set random seed
     if seed != None:
         print (f"{seed=}")
         np.random.seed(seed)
 
     ################################################################################
-    #1 Create signal datacube
+    #1 Create range and time axes
     ################################################################################
-    signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], Npulses, noise=False)
-    r_axis = calc_range_axis(radar["sampRate"], signal_dc.shape[0])
-    t_axis = 2*r_axis/C
+    t_slow_axis = np.arange(Npulses)*1/radar["PRF"]
+    NrangeBins = calc_number_range_bins(radar["sampRate"], radar["PRF"])
+    r_axis = calc_range_axis(radar["sampRate"], NrangeBins)
+    t_fast_axis = 2*r_axis/C
 
     ################################################################################
     #2 Range and range rate of the target ######
     ################################################################################
     # Currently takes in constant range rate
-    range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_ar
+    target_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis
 
     ################################################################################
     #3 First response pulse location
     ################################################################################
-    firstEchoBin = int(tgtInfo["range"]/range_unambiguous (radar ["PRF"]))
+    firstEchoBin = int(tgtInfo["range"]/range_unambiguous(radar ["PRF"]))
 
     ################################################################################
     #4 Waveform
@@ -135,13 +132,14 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     ################################################################################
     #6 Return
     ################################################################################
+    signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], Npulses)
 
     ## Skin : place pulse at range index and apply phase ###########################
     if returnInfo["type"] == "skin":
         ## pulses timed from their start not their center, we compensate with pw/2 range offset
         r_pwOffset = wvf["pulse_width"]/2*C/2
-        aliasedRange_ar = range_ar%range_unambiguous(radar["PRF"])
-        phase_ar = -4*PI*radar["fcar"]/C*range_ar
+        aliasedRange_ar = target_range_ar%range_unambiguous(radar["PRF"])
+        phase_ar = -4*PI*radar["fcar"]/C*target_range_ar
 
         for i in range(Npulses-firstEchoBin):
             # TODO is this how these should be binned? Should they be interpolated onto grid?
@@ -163,7 +161,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
         # interface for returnInfo: rdot_offset, rdot_delta, delay
 
         t_pwOffset = wvf["pulse_width"]/2
-        oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_ar)/C
+        oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis)/C
         oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
 
         #Make output offset from skin return #############################################
@@ -237,7 +235,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
             aliasedTime_ar = (2*oneWay_time_ar + delay)%(1/radar["PRF"])
 
             # TODO is this how these should be binned? Should they be interpolated onto grid?
-            rangeIndex = np.argmin(abs(t_axis - aliasedTime_ar[i] + t_pwOffset))
+            rangeIndex = np.argmin(abs(t_fast_axis - aliasedTime_ar[i] + t_pwOffset))
 
             addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place
 
