@@ -73,39 +73,30 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     noise_dc: RDM in Volts for noise
     """
 
-    #set random seed
+    ### set random seed ####################################
     if seed != None:
         print (f"{seed=}")
         np.random.seed(seed)
 
-    ################################################################################
-    #1 Create range and time axes
-    ################################################################################
+    ### Create range and time axes #########################
     t_slow_axis = np.arange(Npulses)*1/radar["PRF"]
     NrangeBins = calc_number_range_bins(radar["sampRate"], radar["PRF"])
     r_axis = calc_range_axis(radar["sampRate"], NrangeBins)
     t_fast_axis = 2*r_axis/C
 
-    ################################################################################
-    #2 Range and range rate of the target ######
-    ################################################################################
+
+    ### Range and range rate of the target #################
     # Currently takes in constant range rate
     target_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis
 
-    ################################################################################
-    #3 First response pulse location
-    ################################################################################
+    ### Find first response pulse location #################
     firstEchoBin = int(tgtInfo["range"]/range_unambiguous(radar ["PRF"]))
 
-    ################################################################################
-    #4 Waveform
-    ################################################################################
+    ### Waveform ###########################################
     # Use normalized pulses the time-bandwidth poduct is used for amp scaling in step 5.
     ComputeAndAddWaveformParameters(wvf, radar)
 
-    ################################################################################
-    #5 Determin scaling factor for SNR
-    ################################################################################
+    ### Determin scaling factor for SNR ####################
     # Motivation: direclty plot the RDM in SNR by way of the range equation
     # notes:
     # - The SNR is calculated at the initial range and does not change in time
@@ -118,7 +109,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
 
     SNR_volt = np.sqrt(SNR1/Npulses)
 
-    # calculated to check we see the expected SNR SNR_expected
+    # calculate the expected SNR
     SNR_expected = snr_rangeEquation_CP(radar["txPower"], radar["txGain"],
                                         radar["rxGain"], tgtInfo["rcs"],
                                         C/radar["fcar"], tgtInfo["range"], wvf["bw"],
@@ -129,9 +120,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     print(f"\t{SNR_volt=:.1e}\n\t{SNR_expected=:.1e}")
     print(f"\t{10*np.log10(SNR_expected)=:.2f}")
 
-    ################################################################################
-    #6 Return
-    ################################################################################
+    ### Return  ##########################################
     signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], Npulses)
 
     ## Skin : place pulse at range index and apply phase ###########################
@@ -242,10 +231,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     else:
         print(f"{returnInfo['type']=} not known, no return added.")
 
-
-    ################################################################################
-    #7 Create noise and total datacube
-    ################################################################################
+    ### Create noise and total datacube ####################
     noise_dc = create_dataCube(radar["sampRate"], radar["PRF"], Npulses, noise=True)
 
     print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
@@ -255,9 +241,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
     if plotSteps:
         plotRTM(r_axis, signal_dc, f"SIGNAL: unprocessed {wvf['type']}")
 
-    ################################################################################
-    #8 Apply the match filter
-    ################################################################################
+    ### Apply the match filter #############################
     applyMatchFilterToDataCube(signal_dc, wvf["pulse"])
     applyMatchFilterToDataCube(noise_dc, wvf["pulse"])
     applyMatchFilterToDataCube(total_dc, wvf["pulse"])
@@ -267,17 +251,15 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
         # plotRTM(r_axis, noise_dc,   f"NOISE: match filtered {wvf['type']}")
         # plotRTM(r_axis, total_dc,   f"TOTAL: match filtered {wvf['type']}")
 
-    ################################################################################
-    #9 Doppler process
-    ################################################################################
-    # create filter window ###############
+    ### Doppler process ####################################
+    # create filter window
     chwin = signal.windows.chebwin(Npulses, 60)
     chwin_norm = chwin/np.mean(chwin)
     chwin_norm = chwin_norm.reshape((1, chwin.size))
     tmp = np.ones((total_dc.shape[0],1))
     chwin_norm_mat = tmp@chwin_norm
 
-    # apply filter window ###############
+    # apply filter window
     total_dc = total_dc*chwin_norm_mat
     signal_dc = signal_dc*chwin_norm_mat
 
@@ -285,19 +267,18 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, Npulses: int, returnInfo: dic
         # plotRTM(r_axis, signal_dc, f"SIGNAL: mf & windowed {wvf["type"]}")
         # plotRTM(r_axis, total_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
 
-    # doppler process in place ##############################
+    # doppler process in place
     f_axis, r_axis = dopplerProcess_dataCube(signal_dc, radar["sampRate"], radar["PRF"])
     _, _           = dopplerProcess_dataCube(noise_dc,  radar["sampRate"], radar["PRF"])
     _, _           = dopplerProcess_dataCube(total_dc,  radar["sampRate"], radar["PRF"])
 
-    # calc rangeRate axis #*#**######################
+    # calc rangeRate axis
     #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
     #TODO WHY PRF/fs ratio at end??!?!
     rdot_axis = -C*f_axis/(2*radar["fcar"])*radar["PRF"]/radar["sampRate"]
 
-    ################################################################################
-    # Verify SNR and noise
-    ################################################################################
+
+    ### Verify SNR and noise ###################################
     print(f"\nnoise check:")
     noise_var = np.var (total_dc, 1)
     print(f"\t{np.mean (noise_var)=: .4f}")
