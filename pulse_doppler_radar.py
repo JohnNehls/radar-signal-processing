@@ -1,11 +1,7 @@
 #!/usr/bin/env python
 
 import numpy as np
-
-# constants
-K_BOLTZ = 1.38064852e-23 # m^2 kg / s^2 K
-C = 3e8 # m/s
-PI = 3.141592653589793
+from constants import C
 
 def range_unambiguous(PRF):
     "maximum unambigious range"

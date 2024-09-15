@@ -1,14 +1,11 @@
 import numpy as np
 from numpy.linalg import norm
+from constants import PI, C, K_BOLTZ
 from noise import band_limited_complex_noise, guassian_complex_noise
 from waveform import makeLFMPulse
 
 #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #########################
 # - want to add phase so wvfm will sill pass radar's match filter
-
-#constants
-C = 3e8
-PI = np.pi
 
 def calc_f_delta(fcar, rdot_delta):
     #convert rdot_delta to a frequency delta

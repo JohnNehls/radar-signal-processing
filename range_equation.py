@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
-# constants
-K_BOLTZ = 1.38064852e-23 # m^2 kg / s^2 K
-C = 3e8 # m/s
-PI = 3.141592653589793
+from constants import PI, C, K_BOLTZ
 
 def snr_rangeEquation_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T):
     """Single-pulse SNR for uncoded pulse"""

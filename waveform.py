@@ -2,10 +2,9 @@
 import numpy as np
 from numpy.linalg import norm
 from scipy import fft
+from constants import PI, C, K_BOLTZ
 
 # constants
-C = 3e8
-PI =  3.141592653589793
 barker_dict = {2 : [ 1,-1],  # could also be [ 1, 1]
                3 : [ 1, 1,-1],
                4 : [ 1, 1,-1, 1],

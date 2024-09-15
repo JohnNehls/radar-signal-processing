@@ -3,7 +3,7 @@ from scipy import fft
 from numpy.linalg import norm
 
 # constants
-PI = np.pi
+from constants import PI, C
 
 def band_limited_complex_noise(min_freq, max_freq, samples, sampleRate, normalize=False):
     freqs = fft.fftfreq(samples, 1/sampleRate)

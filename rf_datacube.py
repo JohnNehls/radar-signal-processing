@@ -6,11 +6,9 @@ from scipy import fft
 from scipy import signal
 import matplotlib.pyplot as plt
 
+from constants import PI, C, K_BOLTZ
 from waveform_helpers import matchFilterPulse
 
-# constants
-C = 3e8
-PI = np.pi
 
 def calc_range_axis(fs, Nr):
     dR_grid = C/(2*fs)

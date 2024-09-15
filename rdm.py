@@ -5,6 +5,7 @@ from numpy.linalg import norm
 from scipy import fft
 from scipy import signal
 import matplotlib.pyplot as plt
+from constants import PI, C
 from rdm_helpers import plotRDM, plotRTM
 from pulse_doppler_radar import range_unambiguous, frequency_doppler, frequency_aliased
 from rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube, dopplerProcess_dataCube, R_pf_tgt
@@ -47,10 +48,6 @@ from vbm import create_VBM_slowtime_noise
 # - add flag to odify freq due to doppler using frequence_doppler function.
 # - make VBM guassian normalization work and make sense (all mags !=1) (method 1.5)
 # - setup tests and a CDCI
-
-# constants
-C = 3e8
-PI = np.pi
 
 def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
             seed=None, plotSteps=False):

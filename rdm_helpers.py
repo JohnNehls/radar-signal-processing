@@ -2,6 +2,7 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
+from constants import PI, C
 
 def plotRTM (r_axis, data, title):
     """Plot range-time matrix"""
