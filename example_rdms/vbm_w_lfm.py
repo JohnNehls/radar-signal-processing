@@ -27,23 +27,20 @@ radar = {"fcar" : 10e9,
          "sampRate": 2*bw,
          "noiseFig": 10**(8/10),
          "totalLosses" : 10**(8/10),
-         "PRF": 200e3}
+         "PRF": 200e3,
+         "dwell_time" : 2e-3}
 
 wvf = {"type": "lfm",
        "bw" : bw,
        "T": 1.5e-6,
        'chirpUpDown': 1}
 
-returnInfo = {"type" : "VBM",
+returnInfo = {"type" : "memory",
               "rdot_delta" : 0.5e3,
               "method" : 2,
               "rdot_offset" : 0.0e3}
 
-dwell_time = 2e-3
-Npulses = int(np.ceil(dwell_time* radar ["PRF"]))
-
-rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar,
-                                                           wvf, Npulses,
+rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar, wvf,
                                                            returnInfo,
                                                            seed=0,
                                                            plotSteps=True)
