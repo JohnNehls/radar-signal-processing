@@ -17,38 +17,6 @@ from utilities import phase_negpi_pospi
 from vbm import create_VBM_slowtime_noise
 from rdm_helpers import addSkin, addMemory
 
-################################################################################
-# notes
-################################################################################
-# - Need to decide if radar parameters are added in dB and when to convert
-#   - Volts -> dB: 10+ log10( abs (Volts) **2 )
-# - Why does noise have SNR > 1 in final noise RDM?
-# - Pedantic direct match filter is cleaner in phase (zeros where there is no signal)
-#   - a more efficient one is also implemented but not used (see padantic parameter)
-# - Make pulsewidth/2 range offset clearer
-# - range bins are A/D samples
-# - Break into smaller funcitons:
-#   - signal gen?
-# - Could make wvf class with BW, pulse_length, time_BW_product attributes
-# - make non-skin returns range and range/rate agnostic
-#   - should be abstract and each method gives parameters
-
-################################################################################
-# comparison to MATLAB solutions
-################################################################################
-# - solution SNR does not depend on time-BW product-- assumes it is 1 for all wvfms
-# - solution does not account for pulseWidth/2 range offest
-
-################################################################################
-# future
-################################################################################
-# - make VBM it's own function to pull out the details and methods from rdm_gen
-# - add range_delta to returnInfo['memory']
-# - make a pod (seperate from skin) at the same range as target
-# - may move pw/2 offset out of kernel and rtm placement
-# - add flag to odify freq due to doppler using frequence_doppler function.
-# - make VBM guassian normalization work and make sense (all mags !=1) (method 1.5)
-# - setup tests and a CDCI
 
 def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
             seed=None, plotSteps=False):

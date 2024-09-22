@@ -1,25 +1,57 @@
-* Section 1 : Range Equation
+* RSP
+Simple RDM generator
+
+** General Notes
+ - Need to decide if radar parameters are added in dB and when to convert
+   - Volts -> dB: 10+ log10( abs (Volts) **2 )
+ - Why does noise have SNR > 1 in final noise RDM?
+ - Pedantic direct match filter is cleaner in phase (zeros where there is no signal)
+   - a more efficient one is also implemented but not used (see padantic parameter)
+ - Make pulsewidth/2 range offset clearer
+ - range bins are A/D samples
+ - Break into smaller funcitons:
+   - signal gen?
+ - Could make wvf class with BW, pulse_length, time_BW_product attributes
+ - make non-skin returns range and range/rate agnostic
+   - should be abstract and each method gives parameters
+
+**  future
+ - make VBM it's own function to pull out the details and methods from rdm_gen
+ - add range_delta to returnInfo['memory']
+ - make a pod (seperate from skin) at the same range as target
+ - may move pw/2 offset out of kernel and rtm placement
+ - add flag to odify freq due to doppler using frequence_doppler function.
+ - make VBM guassian normalization work and make sense (all mags !=1) (method 1.5)
+ - setup tests and a CDCI
+
+
+** Radar PDF
+*** Comparison to MATLAB solutions
+ - solution SNR does not depend on time-BW product-- assumes it is 1 for all wvfms
+ - solution does not account for pulseWidth/2 range offest
+
+*** Section 1 : Range Equation
 Exercise figures are displayed with
 #+begin_src shell
 ./range_quation.py
 #+end_src
-** Errors
+**** Errors
 - problem 1 solution: uses 1 foot diameter (not 1.5) for antenna.
 - problem 1 question: does not make clear that the antenna parameter is radius, diameter, or circumference.
 
-** Things to cleanup
+**** Things to cleanup
 - [ ] [[file:./range_equation.py]] : make duty factor a latex /tau in legend of figure 2
 
-* Section 2 : Doppler Radar Overview
+*** Section 2 : Doppler Radar Overview
 Exercise figures are displayed with
 #+begin_src shell
 ./pulse_doppler_radar.py
 #+end_src
-** Errors
+**** Errors
 
-** Things to cleanup
+**** Things to cleanup
 
-* Section 3 : Waveforms
+*** Section 3 : Waveforms
 Due to the length of the code and the number of figures, the exercises were placed into the [[file:exercises]] directory.
 =cd exercises=
 #+begin_src shell
@@ -28,6 +60,5 @@ cd exercises; ./s3p1.py
 
 #+RESULTS:
 
-
-* Section 5: RDMs
+*** Section 5: RDMs
 Currently for "stop and hop method"
