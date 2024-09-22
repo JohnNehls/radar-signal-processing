@@ -52,7 +52,7 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
     fig.tight_layout ()
 
 
-def addSkin(signal_dc, wvf : dict, radar : dict, target_range_ar, firstEchoBin, r_axis, SNR_volt):
+def addSkin(signal_dc, wvf:dict, radar:dict, target_range_ar, firstEchoBin, r_axis, SNR_volt):
     """asdfadsf"""
 
     ## pulses timed from their start not their center, we compensate with pw/2 range offset
@@ -68,8 +68,9 @@ def addSkin(signal_dc, wvf : dict, radar : dict, target_range_ar, firstEchoBin, 
 
         addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place
 
-def addMemory(signal_dc, wvf, tgtInfo, radar, returnInfo, t_slow_axis, t_fast_axis, firstEchoBin, SNR_volt):
-        """"place pulse at range index and apply phase
+def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_axis,
+              t_fast_axis, firstEchoBin, SNR_volt):
+    """"Place pulse at range index and apply phase
          - this should be generalized to per-pulse phase and delay on first recorded waveform
         ## pulses timed from their start not their center, we compensate with pw/2 range offset
         - should EA compensate for this?
@@ -77,82 +78,82 @@ def addMemory(signal_dc, wvf, tgtInfo, radar, returnInfo, t_slow_axis, t_fast_ax
          - change the amplitude to not be connected to SNR/rcs/target
          - ? x2 diff f_delta and f_rdot calc?
          interface for returnInfo: rdot_offset, rdot_delta, delay
-        """
-        t_pwOffset = wvf["pulse_width"]/2
-        oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis)/C
-        oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
+    """
+    t_pwOffset = wvf["pulse_width"]/2
+    oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis)/C
+    oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
 
-        #Make output offset from skin return #############################################
-        if "rdot_offset" in returnInfo.keys():
-            f_rdot = 2*radar["fcar"]/C*returnInfo["rdot_offset"] # remove x2 for absolute rdot
-            rdot_offset_flag = True
-        else:
-            rdot_offset_flag = False
+    #Make output offset from skin return #############################################
+    if "rdot_offset" in returnInfo.keys():
+        f_rdot = 2*radar["fcar"]/C*returnInfo["rdot_offset"] # remove x2 for absolute rdot
+        rdot_offset_flag = True
+    else:
+        rdot_offset_flag = False
 
-        #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #################
-        # - want to add phase so wvfm will sill pass radar's match filter
-        # - there are several methods see vbm.py
-        if "rdot_delta" in returnInfo.keys():
-            slowtime_noise = create_VBM_slowtime_noise(radar["Npulses"],
-                                                         radar["fcar"],
-                                                         returnInfo["rdot_delta"],
-                                                         radar["PRF"],
-                                                         debug=True)
-        else:
-            slowtime_noise = np.ones(radar["Npulses"]) # default if no VBM
+    #Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #################
+    # - want to add phase so wvfm will sill pass radar's match filter
+    # - there are several methods see vbm.py
+    if "rdot_delta" in returnInfo.keys():
+        slowtime_noise = create_VBM_slowtime_noise(radar["Npulses"],
+                                                   radar["fcar"],
+                                                   returnInfo["rdot_delta"],
+                                                   radar["PRF"],
+                                                   debug=True)
+    else:
+        slowtime_noise = np.ones(radar["Npulses"]) # default if no VBM
 
-        #Delay the return ################################################################
-        # - can be negative
-        # - can make a range interface which converts range to time
-        if "delay" in returnInfo.keys():
-            delay = returnInfo["delay"]
-        else:
-            delay = 0
+    #Delay the return ################################################################
+    # - can be negative
+    # - can make a range interface which converts range to time
+    if "delay" in returnInfo.keys():
+        delay = returnInfo["delay"]
+    else:
+        delay = 0
 
-        if "range_offset" in returnInfo.keys():
-            delay = 2*returnInfo["range_offset"]/C
-        else:
-            delay = 0
+    if "range_offset" in returnInfo.keys():
+        delay = 2*returnInfo["range_offset"]/C
+    else:
+        delay = 0
 
 
-        stored_pulse = 0; stored_angle = 0 # initialize to stop lsp from complaining
+    stored_pulse = 0; stored_angle = 0 # initialize to stop lsp from complaining
 
-        for i in range(radar["Npulses"]-firstEchoBin):
-            # pulse recieved by the EW system
-            recieved_pulse = wvf["pulse"]*np.exp(1j*oneWay_phase_ar[i])
+    for i in range(radar["Npulses"]-firstEchoBin):
+        # pulse recieved by the EW system
+        recieved_pulse = wvf["pulse"]*np.exp(1j*oneWay_phase_ar[i])
 
-            #Store first pulse and wait for next pulse
-            if i == 0:
-                stored_pulse = recieved_pulse
-                continue
+        #Store first pulse and wait for next pulse
+        if i == 0:
+            stored_pulse = recieved_pulse
+            continue
 
-            #Calculate 1-way phase difference between first two pulses
-            if i == 1:
-                stored_angle = (np.angle(recieved_pulse) - np.angle(stored_pulse))
-                stored_angle = phase_negpi_pospi(stored_angle)
-                stored_angle = np.mean(stored_angle)
+        #Calculate 1-way phase difference between first two pulses
+        if i == 1:
+            stored_angle = (np.angle(recieved_pulse) - np.angle(stored_pulse))
+            stored_angle = phase_negpi_pospi(stored_angle)
+            stored_angle = np.mean(stored_angle)
 
-            # create base pulse
-            # - TODO set amplitude base on pod parameters
-            pulse = SNR_volt*stored_pulse
+        # create base pulse
+        # - TODO set amplitude base on pod parameters
+        pulse = SNR_volt*stored_pulse
 
-            # add noise (VBM)
-            pulse = pulse*slowtime_noise[i]
+        # add noise (VBM)
+        pulse = pulse*slowtime_noise[i]
 
-            # add stored pulse difference rdot
-            pulse = pulse*(np.exp(1j*i*stored_angle))
+        # add stored pulse difference rdot
+        pulse = pulse*(np.exp(1j*i*stored_angle))
 
-            # add prescirbed rdot offset
-            if rdot_offset_flag:
-                pulse = pulse*(np.exp(-1j*i*2*PI*f_rdot/radar["PRF"]))
+        # add prescirbed rdot offset
+        if rdot_offset_flag:
+            pulse = pulse*(np.exp(-1j*i*2*PI*f_rdot/radar["PRF"]))
 
-            # add 1-way propagation phase back to radar
-            # echo may be incorrect in line below
-            pulse = pulse*(np.exp(1j*oneWay_phase_ar[i+firstEchoBin])) #CLEAN UP echo piece!
+        # add 1-way propagation phase back to radar
+        # echo may be incorrect in line below
+        pulse = pulse*(np.exp(1j*oneWay_phase_ar[i+firstEchoBin])) #CLEAN UP echo piece!
 
-            aliasedTime_ar = (2*oneWay_time_ar + delay)%(1/radar["PRF"])
+        aliasedTime_ar = (2*oneWay_time_ar + delay)%(1/radar["PRF"])
 
-            # TODO is this how these should be binned? Should they be interpolated onto grid?
-            rangeIndex = np.argmin(abs(t_fast_axis - aliasedTime_ar[i] + t_pwOffset))
+        # TODO is this how these should be binned? Should they be interpolated onto grid?
+        rangeIndex = np.argmin(abs(t_fast_axis - aliasedTime_ar[i] + t_pwOffset))
 
-            addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place
+        addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place

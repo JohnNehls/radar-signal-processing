@@ -5,7 +5,7 @@ sys.path.append("..")
 
 from waveform_helpers import matchFilterPulse
 import matplotlib.pyplot as plt
-from waveform import makeUncodedPulse, makeBarkerCodedPulse, barker_dict
+from waveform import makeUncodedPulse, makeBarkerCodedPulse, BARKER_DICT
 
 print("#############################################")
 print("Problem 2: Barker sidelobe check code example")
@@ -35,7 +35,7 @@ ax[1].set_xlabel("magnitude")
 ax[1].set_title("xcorrelation")
 # ax[1].set_yscale("log")
 
-for nChip in barker_dict.keys():
+for nChip in BARKER_DICT.keys():
     t_b, mag_b = makeBarkerCodedPulse(sampleRate, BW, nChip, output_length_T=output_time_T,
                                       normalize=True)
     ax[0].plot(t_b, mag_b, label=f"barker {nChip=}")

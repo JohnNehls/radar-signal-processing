@@ -9,13 +9,14 @@ Simple RDM generator
    - a more efficient one is also implemented but not used (see padantic parameter)
  - Make pulsewidth/2 range offset clearer
  - range bins are A/D samples
- - Break into smaller funcitons:
+ - Break into smaller functions:
    - signal gen?
  - Could make wvf class with BW, pulse_length, time_BW_product attributes
  - make non-skin returns range and range/rate agnostic
    - should be abstract and each method gives parameters
 
-**  future
+**  Future
+- need to fill in all function doc strings with input explanations
  - make VBM it's own function to pull out the details and methods from rdm_gen
  - add range_delta to returnInfo['memory']
  - make a pod (seperate from skin) at the same range as target

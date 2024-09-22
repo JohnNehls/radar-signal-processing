@@ -1,22 +1,18 @@
 #!/usr/bin/env python
+
 import numpy as np
 from numpy.linalg import norm
 from scipy import fft
 from constants import PI, C, K_BOLTZ
 
 # constants
-barker_dict = {2 : [ 1,-1],  # could also be [ 1, 1]
+BARKER_DICT = {2 : [ 1,-1],  # could also be [ 1, 1]
                3 : [ 1, 1,-1],
                4 : [ 1, 1,-1, 1],
                5 : [ 1, 1, 1,-1, 1],
                7 : [ 1, 1, 1,-1,-1, 1,-1],
                11: [ 1, 1, 1,-1,-1,-1, 1,-1,-1, 1,-1],
                13: [ 1, 1, 1, 1, 1,-1,-1, 1, 1,-1, 1,-1, 1]}
-
-# Notes
-# - need to fill in all function doc strings with input explinations
-
-
 
 
 def makeUncodedPulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=True,
@@ -78,9 +74,9 @@ def makeCodedPulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize
 
 def makeBarkerCodedPulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
     """baseband Barker coded pulse"""
-    assert nChips in barker_dict, f"Error: {nChips=} is not a valid Barker code."
-    assert nChips == len(barker_dict[nChips]), f"Error: Barker dict is incorrect"
-    return makeCodedPulse(sampleRate, BW, barker_dict[nChips], output_length_T=output_length_T,
+    assert nChips in BARKER_DICT, f"Error: {nChips=} is not a valid Barker code."
+    assert nChips == len(BARKER_DICT[nChips]), f"Error: Barker dict is incorrect"
+    return makeCodedPulse(sampleRate, BW, BARKER_DICT[nChips], output_length_T=output_length_T,
                           t_start=t_start, normalize=normalize)
 
 
