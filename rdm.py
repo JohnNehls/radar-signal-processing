@@ -1,20 +1,16 @@
 #!/usr/bin/env python
 
 import numpy as np
-from numpy.linalg import norm
 from scipy import fft
 from scipy import signal
 import matplotlib.pyplot as plt
-from constants import PI, C
+from constants import C
 from rdm_helpers import plotRDM, plotRTM
-from pulse_doppler_radar import range_unambiguous, frequency_doppler, frequency_aliased
-from rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube, dopplerProcess_dataCube, R_pf_tgt
-from rf_datacube import applyMatchFilterToDataCube
+from pulse_doppler_radar import range_unambiguous
+from rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube
+from rf_datacube import applyMatchFilterToDataCube, dopplerProcess_dataCube
 from waveform import process_waveform_dict
-from waveform_helpers import addWvfAtIndex
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
-from utilities import phase_negpi_pospi
-from vbm import create_VBM_slowtime_noise
 from rdm_helpers import addSkin, addMemory
 
 

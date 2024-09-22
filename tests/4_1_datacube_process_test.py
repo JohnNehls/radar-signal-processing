@@ -1,9 +1,6 @@
 #!/usr/bin/env python
 
 import numpy as np
-from numpy.linalg import norm
-from scipy import fft
-from scipy import signal
 import matplotlib.pyplot as plt
 import sys
 

@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import numpy as np
 from constants import C
 
 def range_unambiguous(PRF):

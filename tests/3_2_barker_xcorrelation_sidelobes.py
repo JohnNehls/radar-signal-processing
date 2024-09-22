@@ -47,5 +47,3 @@ for nChip in barker_dict.keys():
 for a in ax:
     a.grid()
     a.legend()
-
-plt.show()

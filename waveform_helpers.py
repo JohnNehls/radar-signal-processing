@@ -9,7 +9,6 @@ def moving_average(waveform, elements):
     av = np.convolve(waveform, kernel, mode='same')
     return av
 
-
 def find_width(x, y,  interp_max=5, interp_count=0,interp_scale=2, debug=False):
     """find the width in x of the real signal y written for recreation"""
     # Step 1: Find the maximum amplitude of the signal

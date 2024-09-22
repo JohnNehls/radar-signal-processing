@@ -43,5 +43,3 @@ fig, ax = plotPulseAndSpectrum(t_lfm, mag_lfm,
                                f"S3P1 LFM pulse {chirpUpDown=} {T=}{sampleRate=} {BW=}")
 plotPulseAndCrossCorrelation(t_lfm, mag_lfm,
                                f"S3P1 LFM pulse {chirpUpDown=} {T=}{sampleRate=} {BW=}")
-
-plt.show()

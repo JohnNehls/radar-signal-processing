@@ -177,5 +177,3 @@ ax[1].legend()
 plt.tight_layout()
 for a in ax:
     a.grid()
-
-plt.show()

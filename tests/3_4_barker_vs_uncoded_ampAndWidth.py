@@ -1,3 +1,5 @@
+#!/usr/bin/env python
+
 import matplotlib.pyplot as plt
 import sys
 sys.path.append("..")
@@ -38,5 +40,3 @@ ax[1].legend()
 plt.tight_layout()
 for a in ax:
     a.grid()
-
-plt.show()

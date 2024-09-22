@@ -1,6 +1,5 @@
 import numpy as np
 from scipy import fft
-from numpy.linalg import norm
 
 # constants
 from constants import PI, C
