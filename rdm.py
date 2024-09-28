@@ -79,19 +79,18 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
     signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"])
     #Range and range rate of the target
     # Currently takes in constant range rate
-    target_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis
+    tgt_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis
 
     ### Find first response pulse location #################
-    firstEchoBin = int(tgtInfo["range"]/range_unambiguous(radar ["PRF"]))
+    # firstEchoBin = int(tgtInfo["range"]/range_unambiguous(radar ["PRF"]))
 
     ## Skin : place pulse at range index and apply phase ###########################
     if returnInfo["type"] == "skin":
-        addSkin(signal_dc, wvf, radar, target_range_ar, firstEchoBin, r_axis, SNR_volt)
+        addSkin(signal_dc, wvf, radar, tgt_range_ar, tgtInfo["range"], r_axis, SNR_volt)
 
     ## Memory : place pulse at range index and apply phase #############################
     elif returnInfo["type"] == "memory":
-        addMemory(signal_dc, wvf, tgtInfo, radar, returnInfo, t_slow_axis, t_fast_axis,
-                  firstEchoBin, SNR_volt)
+        addMemory(signal_dc, wvf, tgtInfo, radar, returnInfo, t_slow_axis, t_fast_axis, SNR_volt)
     else:
         print(f"{returnInfo['type']=} not known, no return added.")
 

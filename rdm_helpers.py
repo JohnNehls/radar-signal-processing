@@ -7,6 +7,9 @@ from waveform_helpers import addWvfAtIndex
 from vbm import create_VBM_slowtime_noise
 from utilities import phase_negpi_pospi
 
+def firstEchoBin(range, PRF):
+    return int(range/range_unambiguous(PRF))
+
 def plotRTM (r_axis, data, title):
     """Plot range-time matrix"""
     pulses = range(data.shape[1])
@@ -52,24 +55,26 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
     fig.tight_layout ()
 
 
-def addSkin(signal_dc, wvf:dict, radar:dict, target_range_ar, firstEchoBin, r_axis, SNR_volt):
+def addSkin(signal_dc, wvf:dict, radar:dict, tgt_range_ar, tgt_range, r_axis, SNR_volt):
     """asdfadsf"""
+
+    firstEchoIndex = firstEchoBin(tgt_range, radar["PRF"])
 
     ## pulses timed from their start not their center, we compensate with pw/2 range offset
     r_pwOffset = wvf["pulse_width"]/2*C/2
-    aliasedRange_ar = target_range_ar%range_unambiguous(radar["PRF"])
-    phase_ar = -4*PI*radar["fcar"]/C*target_range_ar
+    aliasedRange_ar = tgt_range_ar%range_unambiguous(radar["PRF"])
+    phase_ar = -4*PI*radar["fcar"]/C*tgt_range_ar
 
-    for i in range(radar["Npulses"]-firstEchoBin):
+    for i in range(radar["Npulses"] - firstEchoIndex):
         # TODO is this how these should be binned? Should they be interpolated onto grid?
         rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + r_pwOffset))
 
         pulse= SNR_volt*wvf["pulse"]*np.exp(1j*phase_ar[i])
 
-        addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place
+        addWvfAtIndex(signal_dc[:,i+firstEchoIndex], pulse, rangeIndex) # add in place
 
 def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_axis,
-              t_fast_axis, firstEchoBin, SNR_volt):
+              t_fast_axis, SNR_volt):
     """"Place pulse at range index and apply phase
          - this should be generalized to per-pulse phase and delay on first recorded waveform
         ## pulses timed from their start not their center, we compensate with pw/2 range offset
@@ -79,6 +84,7 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_
          - ? x2 diff f_delta and f_rdot calc?
          interface for returnInfo: rdot_offset, rdot_delta, delay
     """
+    firstEchoIndex = firstEchoBin(tgtInfo["range"], radar["PRF"])
     t_pwOffset = wvf["pulse_width"]/2
     oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis)/C
     oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
@@ -118,7 +124,7 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_
 
     stored_pulse = 0; stored_angle = 0 # initialize to stop lsp from complaining
 
-    for i in range(radar["Npulses"]-firstEchoBin):
+    for i in range(radar["Npulses"]-firstEchoIndex):
         # pulse recieved by the EW system
         recieved_pulse = wvf["pulse"]*np.exp(1j*oneWay_phase_ar[i])
 
@@ -149,11 +155,11 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_
 
         # add 1-way propagation phase back to radar
         # echo may be incorrect in line below
-        pulse = pulse*(np.exp(1j*oneWay_phase_ar[i+firstEchoBin])) #CLEAN UP echo piece!
+        pulse = pulse*(np.exp(1j*oneWay_phase_ar[i+firstEchoIndex])) #CLEAN UP echo piece!
 
         aliasedTime_ar = (2*oneWay_time_ar + delay)%(1/radar["PRF"])
 
         # TODO is this how these should be binned? Should they be interpolated onto grid?
         rangeIndex = np.argmin(abs(t_fast_axis - aliasedTime_ar[i] + t_pwOffset))
 
-        addWvfAtIndex(signal_dc[:,i+firstEchoBin], pulse, rangeIndex) # add in place
+        addWvfAtIndex(signal_dc[:,i+firstEchoIndex], pulse, rangeIndex) # add in place
