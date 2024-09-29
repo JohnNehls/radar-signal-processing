@@ -55,19 +55,19 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
     fig.tight_layout ()
 
 
-def addSkin(signal_dc, wvf:dict, radar:dict, tgt_range_ar, tgt_range, r_axis, SNR_volt):
+def addSkin(signal_dc, wvf:dict, radar:dict, tgt_range_ar, r_axis, SNR_volt):
     """asdfadsf"""
 
-    firstEchoIndex = firstEchoBin(tgt_range, radar["PRF"])
+    firstEchoIndex = firstEchoBin(tgt_range_ar[0], radar["PRF"])
 
     ## pulses timed from their start not their center, we compensate with pw/2 range offset
-    r_pwOffset = wvf["pulse_width"]/2*C/2
+    range_pw_offset = wvf["pulse_width"]/2*C/2
     aliasedRange_ar = tgt_range_ar%range_unambiguous(radar["PRF"])
     phase_ar = -4*PI*radar["fcar"]/C*tgt_range_ar
 
     for i in range(radar["Npulses"] - firstEchoIndex):
         # TODO is this how these should be binned? Should they be interpolated onto grid?
-        rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + r_pwOffset))
+        rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + range_pw_offset))
 
         pulse= SNR_volt*wvf["pulse"]*np.exp(1j*phase_ar[i])
 
@@ -85,7 +85,7 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_
          interface for returnInfo: rdot_offset, rdot_delta, delay
     """
     firstEchoIndex = firstEchoBin(tgtInfo["range"], radar["PRF"])
-    t_pwOffset = wvf["pulse_width"]/2
+    time_pw_offset = wvf["pulse_width"]/2
     oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis)/C
     oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
 
@@ -160,6 +160,6 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_
         aliasedTime_ar = (2*oneWay_time_ar + delay)%(1/radar["PRF"])
 
         # TODO is this how these should be binned? Should they be interpolated onto grid?
-        rangeIndex = np.argmin(abs(t_fast_axis - aliasedTime_ar[i] + t_pwOffset))
+        rangeIndex = np.argmin(abs(t_fast_axis - aliasedTime_ar[i] + time_pw_offset))
 
         addWvfAtIndex(signal_dc[:,i+firstEchoIndex], pulse, rangeIndex) # add in place

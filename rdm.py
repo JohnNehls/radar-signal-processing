@@ -86,7 +86,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
 
     ## Skin : place pulse at range index and apply phase ###########################
     if returnInfo["type"] == "skin":
-        addSkin(signal_dc, wvf, radar, tgt_range_ar, tgtInfo["range"], r_axis, SNR_volt)
+        addSkin(signal_dc, wvf, radar, tgt_range_ar, r_axis, SNR_volt)
 
     ## Memory : place pulse at range index and apply phase #############################
     elif returnInfo["type"] == "memory":
@@ -164,9 +164,9 @@ def main():
 
     # Function inputs ########################################################################
     bw = 10e6
-    rdot = 0.5e3
+
     tgtInfo = {"range": 3.5e3,
-               "rangeRate": rdot,
+               "rangeRate": 0.5e3,
                "rcs" : 10}
 
     radar = {"fcar" : 10e9,
