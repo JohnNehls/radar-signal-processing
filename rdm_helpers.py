@@ -88,7 +88,7 @@ def addSkin(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, SNR_volt):
     ## pulses timed from their start not their center, we compensate with pw/2 range offset
     time_pw_offset = wvf["pulse_width"]/2
 
-    # Due to the time axis being the non-continuous we most do some transposing
+    # Due to the time axis being the non-continuous (slow) axis, we most do some transposing
     tmpSignal = signal_dc.T.flatten()
 
     for i in range(radar["Npulses"]):
@@ -103,8 +103,7 @@ def addSkin(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, SNR_volt):
 
     signal_dc[:] = tmpSignal[:]
 
-def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_axis,
-              t_fast_axis, SNR_volt):
+def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, r_axis, SNR_volt):
     """"Place pulse at range index and apply phase
          - this should be generalized to per-pulse phase and delay on first recorded waveform
         ## pulses timed from their start not their center, we compensate with pw/2 range offset
@@ -114,6 +113,8 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_
          - ? x2 diff f_delta and f_rdot calc?
          interface for returnInfo: rdot_offset, rdot_delta, delay
     """
+    t_slow_axis = np.arange(radar["Npulses"])*1/radar["PRF"]
+    t_fast_axis = 2*r_axis/C
     firstEchoIndex = firstEchoBin(tgtInfo["range"], radar["PRF"])
     time_pw_offset = wvf["pulse_width"]/2
     oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis)/C

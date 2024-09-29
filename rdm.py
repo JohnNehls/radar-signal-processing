@@ -12,10 +12,9 @@ from rf_datacube import applyMatchFilterToDataCube, dopplerProcess_dataCube
 from waveform import process_waveform_dict
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
 from rdm_helpers import addSkin, addMemory
-from rdm_helpers import addSkin_old #REMOVE THIS once debugged
 
 
-def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
+def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
             seed=None, plotSteps=False):
     """
     Genearat a CPI RDM for single target moving at a constant range rate.
@@ -47,10 +46,8 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
     radar["Npulses"] = int(np.ceil(radar["dwell_time"] * radar["PRF"]))
 
     ### Create range and time axes #########################
-    t_slow_axis = np.arange(radar["Npulses"])*1/radar["PRF"]
     NrangeBins = calc_number_range_bins(radar["sampRate"], radar["PRF"])
     r_axis = calc_range_axis(radar["sampRate"], NrangeBins)
-    t_fast_axis = 2*r_axis/C
 
     ### Determin scaling factor for SNR ####################
     # Motivation: direclty plot the RDM in SNR by way of the range equation
@@ -77,24 +74,17 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
     print(f"\t{10*np.log10(SNR_expected)=:.2f}")
 
     ### Return  ##########################################
-    signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"])
-    #Range and range rate of the target
-    # Currently takes in constant range rate
-    tgt_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis
-
-    ### Find first response pulse location #################
-    # firstEchoBin = int(tgtInfo["range"]/range_unambiguous(radar ["PRF"]))
-
-    ## Skin : place pulse at range index and apply phase ###########################
-    if returnInfo["type"] == "skin":
-        addSkin(signal_dc, wvf, tgtInfo, radar,  SNR_volt)
-        # addSkin_old(signal_dc, wvf, tgtInfo, radar, tgt_range_ar, r_axis, SNR_volt)
-
-    ## Memory : place pulse at range index and apply phase #############################
-    elif returnInfo["type"] == "memory":
-        addMemory(signal_dc, wvf, tgtInfo, radar, returnInfo, t_slow_axis, t_fast_axis, SNR_volt)
-    else:
-        print(f"{returnInfo['type']=} not known, no return added.")
+    signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"]) # signal datacube
+    for returnItem in returnInfo_list:
+        ## Skin : place pulse at range index and apply phase ###########################
+        if returnItem["type"] == "skin":
+            addSkin(signal_dc, wvf, tgtInfo, radar,  SNR_volt)
+            # addSkin_old(signal_dc, wvf, tgtInfo, radar, tgt_range_ar, r_axis, SNR_volt)
+        ## Memory : place pulse at range index and apply phase #############################
+        elif returnItem["type"] == "memory":
+            addMemory(signal_dc, wvf, tgtInfo, radar, returnItem, r_axis, SNR_volt)
+        else:
+            print(f"{returnItem['type']=} not known, no return added.")
 
     ### Create noise and total datacube ####################
     noise_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"], noise=True)
@@ -200,13 +190,14 @@ def main():
            "T": 10/40e6,
            'chirpUpDown': 1}
 
-    returnInfo = {"type" : "skin"}
-
-    returnInfo = {"type" : "memory",
-                  "rdot_delta" : 0.5e3,
-                  "rdot_offset" : 0.1e3,
-                  "range_offset" : -0.0e3,
-                  }
+    returnInfo_list = [
+        {"type" : "memory",
+         "rdot_delta" : 0.5e3,
+         "rdot_offset" : 0.2e3,
+         "range_offset" : -0.2e3,
+         },
+        {"type" : "skin"}
+    ]
 
 
     plotsteps = True
@@ -215,7 +206,7 @@ def main():
     ## Call function ###############################################################
     rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar,
                                                                wvf,
-                                                               returnInfo,
+                                                               returnInfo_list,
                                                                seed=0,
                                                                plotSteps=plotsteps)
 
