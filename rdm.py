@@ -97,9 +97,8 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
         plotRTM(r_axis, signal_dc, f"SIGNAL: unprocessed {wvf['type']}")
 
     ### Apply the match filter #############################
-    applyMatchFilterToDataCube(signal_dc, wvf["pulse"])
-    applyMatchFilterToDataCube(noise_dc, wvf["pulse"])
-    applyMatchFilterToDataCube(total_dc, wvf["pulse"])
+    for dc in [signal_dc, noise_dc, total_dc]:
+            applyMatchFilterToDataCube(dc, wvf["pulse"])
 
     if plotSteps:
         plotRTM(r_axis, signal_dc, f"SIGNAL: match filtered {wvf['type']}")
@@ -123,9 +122,8 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
         # plotRTM(r_axis, total_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
 
     # doppler process in place
-    f_axis, r_axis = dopplerProcess_dataCube(signal_dc, radar["sampRate"], radar["PRF"])
-    _, _           = dopplerProcess_dataCube(noise_dc,  radar["sampRate"], radar["PRF"])
-    _, _           = dopplerProcess_dataCube(total_dc,  radar["sampRate"], radar["PRF"])
+    for dc in [signal_dc, noise_dc, total_dc]:
+        f_axis, r_axis = dopplerProcess_dataCube(dc, radar["sampRate"], radar["PRF"])
 
     # calc rangeRate axis
     #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
