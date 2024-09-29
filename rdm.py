@@ -12,6 +12,7 @@ from rf_datacube import applyMatchFilterToDataCube, dopplerProcess_dataCube
 from waveform import process_waveform_dict
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
 from rdm_helpers import addSkin, addMemory
+from rdm_helpers import addSkin_old #REMOVE THIS once debugged
 
 
 def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
@@ -86,7 +87,8 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo: dict,
 
     ## Skin : place pulse at range index and apply phase ###########################
     if returnInfo["type"] == "skin":
-        addSkin(signal_dc, wvf, radar, tgt_range_ar, r_axis, SNR_volt)
+        addSkin(signal_dc, wvf, tgtInfo, radar,  SNR_volt)
+        # addSkin_old(signal_dc, wvf, tgtInfo, radar, tgt_range_ar, r_axis, SNR_volt)
 
     ## Memory : place pulse at range index and apply phase #############################
     elif returnInfo["type"] == "memory":

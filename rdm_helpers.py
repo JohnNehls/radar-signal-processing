@@ -55,7 +55,7 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
     fig.tight_layout ()
 
 
-def addSkin(signal_dc, wvf:dict, radar:dict, tgt_range_ar, r_axis, SNR_volt):
+def addSkin_old(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, tgt_range_ar, r_axis, SNR_volt):
     """asdfadsf"""
 
     firstEchoIndex = firstEchoBin(tgt_range_ar[0], radar["PRF"])
@@ -72,6 +72,36 @@ def addSkin(signal_dc, wvf:dict, radar:dict, tgt_range_ar, r_axis, SNR_volt):
         pulse= SNR_volt*wvf["pulse"]*np.exp(1j*phase_ar[i])
 
         addWvfAtIndex(signal_dc[:,i+firstEchoIndex], pulse, rangeIndex) # add in place
+
+def addSkin(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, SNR_volt):
+    """asdfadsf"""
+
+    # time and range arrays
+    time_ar = np.arange(signal_dc.size)*1/radar["sampRate"]  # time of all samples in CPI
+    t_slow_axis = np.arange(radar["Npulses"])*1/radar["PRF"] # time when pulses sent
+
+    tgt_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis # tgt range at pulse send
+    twoWay_time_delay_ar = 2*tgt_range_ar/C # time of travel from radar to tgt and back
+    pulse_return_time = t_slow_axis + twoWay_time_delay_ar # time pulses return to radar
+    twoWay_phase_ar = -2*PI*radar["fcar"]*twoWay_time_delay_ar # Phase added due to
+
+    ## pulses timed from their start not their center, we compensate with pw/2 range offset
+    time_pw_offset = wvf["pulse_width"]/2
+
+    # Due to the time axis being the non-continuous we most do some transposing
+    tmpSignal = signal_dc.T.flatten()
+
+    for i in range(radar["Npulses"]):
+        # TODO is this how these should be binned? Should they be interpolated onto grid?
+        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] + time_pw_offset))
+        pulse= SNR_volt*wvf["pulse"]*np.exp(1j*twoWay_phase_ar[i])
+
+        if timeIndex < signal_dc.size: # else pulse is in next CPI
+            addWvfAtIndex(tmpSignal, pulse, timeIndex)
+
+    tmpSignal = tmpSignal.reshape(tuple(reversed(signal_dc.shape))).T
+
+    signal_dc[:] = tmpSignal[:]
 
 def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, t_slow_axis,
               t_fast_axis, SNR_volt):
