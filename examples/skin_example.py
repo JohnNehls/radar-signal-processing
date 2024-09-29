@@ -5,17 +5,16 @@ import numpy as np
 import sys
 
 sys.path.append("..")
-
 from rdm import rdm_gen, plotRDM
 
 ################################################################################
 # skin example
 ################################################################################
-# - solution is incorrect due to not accounting for time-bandwidth prod in SNR
-# - solution neglects range walk off, our SNR may be off when rangeRate>>0
+# - Matlab solution is incorrect due to not accounting for time-bandwidth prod in SNR
+# - Matlab solution neglects range walk off, our SNR may be off when rangeRate>>0
 
-tgtInfo = {"range": 3.5e3,
-           "rangeRate": 0.5e3,
+tgtInfo = {"range": 20e3,
+           "rangeRate": 200e3,
            "rcs" : 10}
 
 bw = 10e6
