@@ -142,26 +142,22 @@ def unityVarianceComplexNoise(N):
     return(np.random.randn(N) + 1j*np.random.randn(N))/np.sqrt(2)
 
 
-def addWvfAtIndex(ar, waveform, index):
+def addWvfAtIndex(ar, waveform, index, debug=False):
     """In place add wvf to current array"""
     Nar = ar.size
     Nwv = waveform.size
 
     if index >= Nar:
-        print("wave form not added")
-
+        if debug:
+            print("wave form not added")
     elif index+Nwv >= Nar:
-        print("add eclipsed waveform")
-        # print(f"\t{index=}")
-        # print(f"\t{Nar=}")
-        # print(f"\t{Nwv=}")
         ar[index:-1] = ar[index:-1] + waveform[:int(Nar-index-1)]
+        if debug:
+            print(f"add eclipsed waveform \n\t{index}\n\t{Nar}\n\t{Nwv}")
     else:
-        # print(f"\t{index=}")
-        # print(f"\t{Nar=}")
-        # print(f"\t{Nwv=}")
         ar[index:index + Nwv] = ar[index:index + Nwv] + waveform
-
+        if debug:
+            print(f"add waveform \n\t{index}\n\t{Nar}\n\t{Nwv}")
     return ar
 
 

@@ -1,6 +1,7 @@
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
+from scipy import signal
 from pulse_doppler_radar import range_unambiguous
 from constants import PI, C
 from waveform_helpers import addWvfAtIndex
@@ -206,3 +207,19 @@ def noiseChecks(signal_dc, noise_dc, total_dc):
     print(f"\t{20*np.log10(np.max(abs(signal_dc)))=:.2f}")
     print(f"\t{20*np.log10(np.max(abs(noise_dc)))=:.2f}")
     print (f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
+
+def createWindow(inShape:tuple, plot=True):
+    chwin = signal.windows.chebwin(inShape[1], 60)
+    chwin_norm = chwin/np.mean(chwin)
+    chwin_norm = chwin_norm.reshape((1, chwin.size))
+    tmp = np.ones((inShape[0],1))
+    chwin_norm_mat = tmp@chwin_norm
+    if plot:
+        plt.figure()
+        plt.title("Window")
+        plt.imshow(chwin_norm_mat)
+        plt.xlabel("slow time")
+        plt.ylabel("fast time")
+        plt.colorbar()
+
+    return chwin_norm_mat

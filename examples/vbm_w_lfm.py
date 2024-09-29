@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-import numpy as np
 import sys
 
 sys.path.append("..")
@@ -35,13 +34,13 @@ wvf = {"type": "lfm",
        "T": 1.5e-6,
        'chirpUpDown': 1}
 
-returnInfo = {"type" : "memory",
-              "rdot_delta" : 0.5e3,
-              "method" : 2,
-              "rdot_offset" : 0.0e3}
+returnInfo_list = [{"type" : "memory",
+                    "rdot_delta" : 0.5e3,
+                    "method" : 2,
+                    "rdot_offset" : 0.0e3}]
 
 rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar, wvf,
-                                                           returnInfo,
+                                                           returnInfo_list,
                                                            seed=0,
                                                            plotSteps=True)
 

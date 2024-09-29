@@ -2,7 +2,6 @@
 
 import numpy as np
 from scipy import fft
-from scipy import signal
 import matplotlib.pyplot as plt
 from constants import C
 from rdm_helpers import plotRDM, plotRTM
@@ -10,10 +9,10 @@ from rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube
 from rf_datacube import applyMatchFilterToDataCube, dopplerProcess_dataCube
 from waveform import process_waveform_dict
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
-from rdm_helpers import addSkin, addMemory, noiseChecks
+from rdm_helpers import addSkin, addMemory, noiseChecks, createWindow
 
 
-def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
+def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
             seed=None, plotSteps=False):
     """
     Genearat a CPI RDM for single target moving at a constant range rate.
@@ -67,10 +66,9 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
                                         C/radar["fcar"], tgtInfo["range"], wvf["bw"],
                                         radar["noiseFig"], radar["totalLosses"],
                                         radar["opTemp"], radar["Npulses"], wvf["time_BW_product"])
-    print (f"SNR Check: ")
-    print(f"\t{10*np.log10(SNR1)=:.2f}")
-    print(f"\t{SNR_volt=:.1e}\n\t{SNR_expected=:.1e}")
-    print(f"\t{10*np.log10(SNR_expected)=:.2f}")
+
+    print (f"SNR Check:\n\t{10*np.log10(SNR1)=:.2f}\n\t{SNR_volt=:.1e}\n\t{SNR_expected=:.1e} \
+    \n\t{10*np.log10(SNR_expected)=:.2f}")
 
     ### Return  ##########################################
     signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"]) # signal datacube
@@ -101,27 +99,16 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
         plotRTM(r_axis, signal_dc, f"SIGNAL: match filtered {wvf['type']}")
 
     ### Doppler process ####################################
-    # create filter window
-    chwin = signal.windows.chebwin(radar["Npulses"], 60)
-    chwin_norm = chwin/np.mean(chwin)
-    chwin_norm = chwin_norm.reshape((1, chwin.size))
-    tmp = np.ones((total_dc.shape[0],1))
-    chwin_norm_mat = tmp@chwin_norm
-
-    # apply filter window
+    # create filter window and apply it
+    chwin_norm_mat = createWindow(signal_dc.shape, plot=False)
     total_dc = total_dc*chwin_norm_mat
     signal_dc = signal_dc*chwin_norm_mat
 
-    # if plotSteps:
-    #     plotRTM(r_axis, signal_dc, f"SIGNAL: mf & windowed {wvf["type"]}")
-    #     plotRTM(r_axis, total_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
-
-    # doppler process in place
+    # doppler process datacubes
     for dc in [signal_dc, noise_dc, total_dc]:
         f_axis, r_axis = dopplerProcess_dataCube(dc, radar["sampRate"], radar["PRF"])
 
-    # calc rangeRate axis
-    #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
+    # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
     #TODO WHY PRF/fs ratio at end??!?!
     rdot_axis = -C*f_axis/(2*radar["fcar"])*radar["PRF"]/radar["sampRate"]
 

@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-import numpy as np
 import sys
 
 sys.path.append("..")
@@ -13,8 +12,8 @@ from rdm import rdm_gen, plotRDM
 # - Matlab solution is incorrect due to not accounting for time-bandwidth prod in SNR
 # - Matlab solution neglects range walk off, our SNR may be off when rangeRate>>0
 
-tgtInfo = {"range": 20e3,
-           "rangeRate": 200e3,
+tgtInfo = {"range": 3.5e3,
+           "rangeRate": 0.5e3,
            "rcs" : 10}
 
 bw = 10e6
@@ -35,13 +34,14 @@ wvf = {"type": "lfm",
        "T": 1.0e-6,
        'chirpUpDown': 1}
 
-returnInfo = {"type" : "skin"}
+# wvf = {"type": "uncoded",
+#        "bw" : bw}
 
-dwell_time = 2e-3
-Npulses = int(np.ceil(dwell_time* radar ["PRF"]))
+
+returnInfo_list = [{"type" : "skin"}]
 
 rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar, wvf,
-                                                           returnInfo,
+                                                           returnInfo_list,
                                                            seed=0,
                                                            plotSteps=True)
 
