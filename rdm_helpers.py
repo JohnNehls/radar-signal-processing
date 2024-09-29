@@ -194,3 +194,15 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, r_axis,
         rangeIndex = np.argmin(abs(t_fast_axis - aliasedTime_ar[i] + time_pw_offset))
 
         addWvfAtIndex(signal_dc[:,i+firstEchoIndex], pulse, rangeIndex) # add in place
+
+def noiseChecks(signal_dc, noise_dc, total_dc):
+    print(f"\nnoise check:")
+    noise_var = np.var (total_dc, 1)
+    print(f"\t{np.mean (noise_var)=: .4f}")
+    print(f"\t{np.var(noise_var)=: .4f}")
+    print(f"\t{np.mean (20*np.log10(noise_var))=: .4f}")
+    print(f"\t{np.var (20*np.log10(noise_var))=: .4f}")
+    print(f"\nSNR test:")
+    print(f"\t{20*np.log10(np.max(abs(signal_dc)))=:.2f}")
+    print(f"\t{20*np.log10(np.max(abs(noise_dc)))=:.2f}")
+    print (f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")

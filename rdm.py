@@ -6,12 +6,11 @@ from scipy import signal
 import matplotlib.pyplot as plt
 from constants import C
 from rdm_helpers import plotRDM, plotRTM
-from pulse_doppler_radar import range_unambiguous
 from rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube
 from rf_datacube import applyMatchFilterToDataCube, dopplerProcess_dataCube
 from waveform import process_waveform_dict
 from range_equation import snr_rangeEquation, snr_rangeEquation_CP
-from rdm_helpers import addSkin, addMemory
+from rdm_helpers import addSkin, addMemory, noiseChecks
 
 
 def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
@@ -88,9 +87,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
 
     ### Create noise and total datacube ####################
     noise_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"], noise=True)
-
     print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
-
     total_dc = signal_dc + noise_dc
 
     if plotSteps:
@@ -102,8 +99,6 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
 
     if plotSteps:
         plotRTM(r_axis, signal_dc, f"SIGNAL: match filtered {wvf['type']}")
-        # plotRTM(r_axis, noise_dc,   f"NOISE: match filtered {wvf['type']}")
-        # plotRTM(r_axis, total_dc,   f"TOTAL: match filtered {wvf['type']}")
 
     ### Doppler process ####################################
     # create filter window
@@ -118,8 +113,8 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
     signal_dc = signal_dc*chwin_norm_mat
 
     # if plotSteps:
-        # plotRTM(r_axis, signal_dc, f"SIGNAL: mf & windowed {wvf["type"]}")
-        # plotRTM(r_axis, total_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
+    #     plotRTM(r_axis, signal_dc, f"SIGNAL: mf & windowed {wvf["type"]}")
+    #     plotRTM(r_axis, total_dc,   f"TOTAL: mf & windowed {wvf["type"]}")
 
     # doppler process in place
     for dc in [signal_dc, noise_dc, total_dc]:
@@ -130,18 +125,8 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: dict,
     #TODO WHY PRF/fs ratio at end??!?!
     rdot_axis = -C*f_axis/(2*radar["fcar"])*radar["PRF"]/radar["sampRate"]
 
-
-    ### Verify SNR and noise ###################################
-    print(f"\nnoise check:")
-    noise_var = np.var (total_dc, 1)
-    print(f"\t{np.mean (noise_var)=: .4f}")
-    print(f"\t{np.var(noise_var)=: .4f}")
-    print(f"\t{np.mean (20*np.log10(noise_var))=: .4f}")
-    print(f"\t{np.var (20*np.log10(noise_var))=: .4f}")
-    print(f"\nSNR test:")
-    print(f"\t{20*np.log10(np.max(abs(signal_dc)))=:.2f}")
-    print(f"\t{20*np.log10(np.max(abs(noise_dc)))=:.2f}")
-    print (f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
+    #Verify SNR and noise
+    noiseChecks(signal_dc, noise_dc, total_dc)
 
     return rdot_axis, r_axis, total_dc, signal_dc, noise_dc
 
