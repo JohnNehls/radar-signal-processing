@@ -1,11 +1,9 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-import sys
-sys.path.append("..")
 
-from waveform_helpers import matchFilterPulse
-from waveform import makeUncodedPulse, makeBarkerCodedPulse
+from rsp.waveform_helpers import matchFilterPulse
+from rsp.waveform import makeUncodedPulse, makeBarkerCodedPulse
 
 plt.close('all')
 print("##############################")
@@ -40,3 +38,5 @@ ax[1].legend()
 plt.tight_layout()
 for a in ax:
     a.grid()
+
+plt.show()

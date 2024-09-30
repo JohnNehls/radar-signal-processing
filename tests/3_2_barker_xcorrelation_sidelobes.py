@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
-import sys
-sys.path.append("..")
-
-from waveform_helpers import matchFilterPulse
 import matplotlib.pyplot as plt
-from waveform import makeUncodedPulse, makeBarkerCodedPulse, BARKER_DICT
+from rsp.waveform_helpers import matchFilterPulse
+from rsp.waveform import makeUncodedPulse, makeBarkerCodedPulse, BARKER_DICT
 
 print("#############################################")
 print("Problem 2: Barker sidelobe check code example")
@@ -47,3 +44,4 @@ for nChip in BARKER_DICT.keys():
 for a in ax:
     a.grid()
     a.legend()
+plt.show()

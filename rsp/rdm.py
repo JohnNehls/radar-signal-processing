@@ -2,14 +2,13 @@
 
 import numpy as np
 from scipy import fft
-import matplotlib.pyplot as plt
-from constants import C
-from rdm_helpers import plotRDM, plotRTM
-from rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube
-from rf_datacube import applyMatchFilterToDataCube, dopplerProcess_dataCube
-from waveform import process_waveform_dict
-from range_equation import snr_rangeEquation, snr_rangeEquation_CP
-from rdm_helpers import addSkin, addMemory, noiseChecks, createWindow
+from .constants import C
+from .rdm_helpers import plotRDM, plotRTM
+from .rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube
+from .rf_datacube import applyMatchFilterToDataCube, dopplerProcess_dataCube
+from .waveform import process_waveform_dict
+from .range_equation import snr_rangeEquation, snr_rangeEquation_CP
+from .rdm_helpers import addSkin, addMemory, noiseChecks, createWindow
 
 
 def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
@@ -116,78 +115,3 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
     noiseChecks(signal_dc, noise_dc, total_dc)
 
     return rdot_axis, r_axis, total_dc, signal_dc, noise_dc
-
-def main():
-    plt.close('all')
-    ################################################################################
-    # Example below is ephemeral and used for debugging new features
-    # - Main examples are in the ./example_rdm directory
-    ################################################################################
-
-    # Function inputs ########################################################################
-    bw = 10e6
-
-    tgtInfo = {"range": 3.5e3,
-               "rangeRate": 0.5e3,
-               "rcs" : 10}
-
-    radar = {"fcar" : 10e9,
-             "txPower": 1e3,
-             "txGain" : 10**(30/10),
-             "rxGain" : 10**(30/10),
-             "opTemp": 290,
-             "sampRate": 2*bw,
-             "noiseFig": 10**(8/10),
-             "totalLosses" : 10**(8/10),
-             "PRF": 200e3,
-             "dwell_time" : 2e-3}
-
-    wvf = {"type" : None} # noise test
-
-    wvf = {"type": "uncoded",
-           "bw" : bw}
-
-    wvf = {"type" : "barker",
-           "nchips" : 13,
-           "bw" : bw}
-
-    # # wvf = {"type": "random",
-    #        "nchips" : 13,
-    #        "bw" : bw}
-
-    wvf = {"type": "lfm",
-           "bw" : bw,
-           "T": 10/40e6,
-           'chirpUpDown': 1}
-
-    returnInfo_list = [
-        {"type" : "memory",
-         "rdot_delta" : 0.5e3,
-         "rdot_offset" : 0.2e3,
-         "range_offset" : -0.2e3,
-         },
-        {"type" : "skin"}
-    ]
-
-
-    plotsteps = True
-
-
-    ## Call function ###############################################################
-    rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar,
-                                                               wvf,
-                                                               returnInfo_list,
-                                                               seed=0,
-                                                               plotSteps=plotsteps)
-
-    ## Plot outputs ################################################################
-    plotRDM(rdot_axis, r_axis, signal_dc, f"SIGNAL: dB doppler processed match filtered {wvf['type']}")
-    plotRDM(rdot_axis, r_axis, total_dc,
-            f"TOTAL: dB doppler processed match filtered {wvf['type']}", cbarRange=False)
-    # plotRDM(rdot_axis, r_axis, noise_dc, f"NOISE: dB doppler processed match filtered {wvf['type']}")
-
-    plt.show()
-
-
-if __name__ == "__main__":
-    main()

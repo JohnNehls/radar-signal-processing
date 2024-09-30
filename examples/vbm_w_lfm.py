@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-import sys
 
-sys.path.append("..")
-
-from rdm import rdm_gen, plotRDM
+from rsp import rdm
 
 ################################################################################
 # Doppler noise is LFM in slow time
@@ -39,14 +36,14 @@ returnInfo_list = [{"type" : "memory",
                     "method" : 2,
                     "rdot_offset" : 0.0e3}]
 
-rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm_gen(tgtInfo, radar, wvf,
-                                                           returnInfo_list,
-                                                           seed=0,
-                                                           plotSteps=True)
+rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm.rdm_gen(tgtInfo, radar, wvf,
+                                                               returnInfo_list,
+                                                               seed=0,
+                                                               plotSteps=True)
 
-plotRDM(rdot_axis, r_axis, signal_dc,
-        f"SIGNAL: dB doppler processed match filtered {wvf['type']}")
-plotRDM(rdot_axis, r_axis, total_dc,
-        f"TOTAL: dB doppler processed match filtered {wvf['type']}", cbarRange=False)
+rdm.plotRDM(rdot_axis, r_axis, signal_dc,
+            f"SIGNAL: dB doppler processed match filtered {wvf['type']}")
+rdm.plotRDM(rdot_axis, r_axis, total_dc,
+            f"TOTAL: dB doppler processed match filtered {wvf['type']}", cbarRange=False)
 
 plt.show()

@@ -5,16 +5,14 @@ import matplotlib.pyplot as plt
 from rsp import rdm
 
 ################################################################################
-# skin example
+# Kitchen sink: script showing a sample of all of the options available
 ################################################################################
-# - Matlab solution is incorrect due to not accounting for time-bandwidth prod in SNR
-# - Matlab solution neglects range walk off, our SNR may be off when rangeRate>>0
+
+bw = 10e6
 
 tgtInfo = {"range": 3.5e3,
            "rangeRate": 0.5e3,
            "rcs" : 10}
-
-bw = 10e6
 
 radar = {"fcar" : 10e9,
          "txPower": 1e3,
@@ -27,13 +25,32 @@ radar = {"fcar" : 10e9,
          "PRF": 200e3,
          "dwell_time" : 2e-3}
 
+wvf = {"type" : None} # noise test
+
+wvf = {"type": "uncoded",
+       "bw" : bw}
+
+wvf = {"type" : "barker",
+       "nchips" : 13,
+       "bw" : bw}
+
+wvf = {"type": "random",
+       "nchips" : 13,
+       "bw" : bw}
+
 wvf = {"type": "lfm",
        "bw" : bw,
-       "T": 1.0e-6,
+       "T": 10/40e6,
        'chirpUpDown': 1}
 
-
-returnInfo_list = [{"type" : "skin"}]
+returnInfo_list = [
+    {"type" : "memory",
+     "rdot_delta" : 0.5e3,
+     "rdot_offset" : 0.2e3,
+     "range_offset" : -0.2e3,
+     },
+    {"type" : "skin"}
+]
 
 rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm.rdm_gen(tgtInfo, radar, wvf,
                                                                returnInfo_list,
@@ -42,6 +59,7 @@ rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm.rdm_gen(tgtInfo, radar, w
 
 rdm.plotRDM(rdot_axis, r_axis, signal_dc,
             f"SIGNAL: dB doppler processed match filtered {wvf['type']}")
-rdm.plotRDM(rdot_axis, r_axis, total_dc, f"TOTAL: dB doppler processed match filtered {wvf['type']}", cbarRange=False)
+rdm.plotRDM(rdot_axis, r_axis, total_dc,
+            f"TOTAL: dB doppler processed match filtered {wvf['type']}", cbarRange=False)
 
 plt.show()

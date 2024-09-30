@@ -2,11 +2,11 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
-from pulse_doppler_radar import range_unambiguous
-from constants import PI, C
-from waveform_helpers import addWvfAtIndex
-from vbm import create_VBM_slowtime_noise
-from utilities import phase_negpi_pospi
+from .pulse_doppler_radar import range_unambiguous
+from .constants import PI, C
+from .waveform_helpers import addWvfAtIndex
+from .vbm import create_VBM_slowtime_noise
+from .utilities import phase_negpi_pospi
 
 def firstEchoBin(range, PRF):
     return int(range/range_unambiguous(PRF))

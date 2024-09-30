@@ -1,15 +1,6 @@
 #!/usr/bin/env python
 
-import numpy as np
-import sys
-
-sys.path.append("..")
-
-from rf_datacube import R_pf_tgt
-
-# constants
-C = 3e8
-PI = np.pi
+from rsp.rf_datacube import R_pf_tgt
 
 print("##########################")
 print("3D radial calcs")

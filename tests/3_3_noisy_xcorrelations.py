@@ -2,11 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
-sys.path.append("..")
 
-from waveform_helpers import matchFilterPulse, unityVarianceComplexNoise, addWvfAtIndex, plotPulseAndSpectrum
-from waveform import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeLFMPulse
+from rsp.waveform_helpers import matchFilterPulse, unityVarianceComplexNoise, addWvfAtIndex, plotPulseAndSpectrum
+from rsp.waveform import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeLFMPulse
 
 plt.close('all')
 print("##############################")
@@ -177,3 +175,5 @@ ax[1].legend()
 plt.tight_layout()
 for a in ax:
     a.grid()
+
+plt.show()

@@ -3,7 +3,7 @@
 import numpy as np
 from numpy.linalg import norm
 from scipy import fft
-from constants import PI, C, K_BOLTZ
+from .constants import PI, C, K_BOLTZ
 
 # constants
 BARKER_DICT = {2 : [ 1,-1],  # could also be [ 1, 1]

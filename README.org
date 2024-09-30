@@ -1,6 +1,13 @@
 * RSP
 Simple RDM generator
 
+** Installing RSP
+Must add this directory to your python path.
+On Linux, add the following to your =~/.bashrc=
+#+begin_src shell
+export PYTHONPATH=<path to rsp repo>:$PYTHONPATH
+#+end_src
+
 ** General Notes
  - Need to decide if radar parameters are added in dB and when to convert
    - Volts -> dB: 10+ log10( abs (Volts) **2 )

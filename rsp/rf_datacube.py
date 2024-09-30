@@ -4,8 +4,8 @@ import numpy as np
 from numpy.linalg import norm
 from scipy import fft
 
-from constants import PI, C, K_BOLTZ
-from waveform_helpers import matchFilterPulse
+from .constants import PI, C, K_BOLTZ
+from .waveform_helpers import matchFilterPulse
 
 
 def calc_range_axis(fs, Nr):

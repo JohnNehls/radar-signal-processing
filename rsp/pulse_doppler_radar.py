@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from constants import C
+from .constants import C
 
 def range_unambiguous(PRF):
     "maximum unambigious range"

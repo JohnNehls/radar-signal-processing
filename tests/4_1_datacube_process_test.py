@@ -2,15 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import sys
 
-sys.path.append("..")
-
-from rf_datacube import create_dataCube, dopplerProcess_dataCube, R_pf_tgt
-
-# constants
-C = 3e8
-PI = np.pi
+from rsp.rf_datacube import create_dataCube, dopplerProcess_dataCube
+from rsp.constants import C, PI
 
 print("##########################")
 print("TEST datacube processing")
@@ -42,3 +36,5 @@ ax[1].pcolormesh(f_ax*1e-6, r_ax, abs(dc))
 ax[1].set_xlabel("frequency [MHz]")
 ax[1].set_ylabel("range [m]")
 plt.tight_layout()
+
+plt.show()

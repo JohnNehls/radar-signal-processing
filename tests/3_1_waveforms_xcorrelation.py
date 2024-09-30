@@ -1,11 +1,8 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-import sys
-sys.path.append("..")
-
-from waveform_helpers import plotPulseAndSpectrum, plotPulseAndCrossCorrelation
-from waveform import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeRandomCodedPulse, makeLFMPulse
+from rsp.waveform_helpers import plotPulseAndSpectrum, plotPulseAndCrossCorrelation
+from rsp.waveform import makeLFMPulse, makeUncodedPulse, makeBarkerCodedPulse, makeRandomCodedPulse, makeLFMPulse
 
 print("#############################################")
 print("Problem 1: write the pulse functions and plot")
@@ -43,3 +40,4 @@ fig, ax = plotPulseAndSpectrum(t_lfm, mag_lfm,
                                f"S3P1 LFM pulse {chirpUpDown=} {T=}{sampleRate=} {BW=}")
 plotPulseAndCrossCorrelation(t_lfm, mag_lfm,
                                f"S3P1 LFM pulse {chirpUpDown=} {T=}{sampleRate=} {BW=}")
+plt.show()
