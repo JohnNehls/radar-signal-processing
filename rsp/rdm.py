@@ -12,7 +12,7 @@ from .rdm_helpers import addSkin, addMemory, noiseChecks, createWindow
 
 
 def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
-            seed=None, plotSteps=False):
+            seed:int=0, plotSteps:bool=False):
     """
     Genearat a CPI RDM for single target moving at a constant range rate.
 
@@ -21,7 +21,11 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
     tgtInfo: dict holding range, rangeRate, and rcs (range rate and rcs constant for CPI)
     radar: dict holding fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFig, totalLosses, PRF
     wvf: string for wvform types : "uncoded" "barker" "random" "lfm"
-    Npulses: number of puleses in the CPI
+    returnInfo_list: list of return types to place in the RDM.
+
+    Optional parameters
+    seed: int random seed for random module
+    plotSteps: boolean to plot each step in building the RDM.
 
     Returns
     -------
@@ -32,17 +36,14 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
     noise_dc: RDM in Volts for noise
     """
 
-    ### set random seed ####################################
-    if seed != None:
-        print (f"{seed=}")
-        np.random.seed(seed)
+    np.random.seed(seed)
 
     ### Compute waveform and radar parameters ##############
     # Use normalized pulses the time-bandwidth poduct is used for amp scaling
     process_waveform_dict(wvf, radar)
     radar["Npulses"] = int(np.ceil(radar["dwell_time"] * radar["PRF"]))
 
-    ### Create range and time axes #########################
+    ### Create range axes #########################
     NrangeBins = calc_number_range_bins(radar["sampRate"], radar["PRF"])
     r_axis = calc_range_axis(radar["sampRate"], NrangeBins)
 
@@ -65,9 +66,9 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
                                         C/radar["fcar"], tgtInfo["range"], wvf["bw"],
                                         radar["noiseFig"], radar["totalLosses"],
                                         radar["opTemp"], radar["Npulses"], wvf["time_BW_product"])
-
-    print (f"SNR Check:\n\t{10*np.log10(SNR1)=:.2f}\n\t{SNR_volt=:.1e}\n\t{SNR_expected=:.1e} \
-    \n\t{10*np.log10(SNR_expected)=:.2f}")
+    if plotSteps:
+        print (f"SNR Check:\n\t{10*np.log10(SNR1)=:.2f}\n\t{SNR_volt=:.1e}\n\t{SNR_expected=:.1e} \
+        \n\t{10*np.log10(SNR_expected)=:.2f}")
 
     ### Return  ##########################################
     signal_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"]) # signal datacube
@@ -84,10 +85,10 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
 
     ### Create noise and total datacube ####################
     noise_dc = create_dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"], noise=True)
-    print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
     total_dc = signal_dc + noise_dc
 
     if plotSteps:
+        print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
         plotRTM(r_axis, signal_dc, f"SIGNAL: unprocessed {wvf['type']}")
 
     ### Apply the match filter #############################
@@ -112,6 +113,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
     rdot_axis = -C*f_axis/(2*radar["fcar"])*radar["PRF"]/radar["sampRate"]
 
     #Verify SNR and noise
-    noiseChecks(signal_dc, noise_dc, total_dc)
+    if plotSteps:
+        noiseChecks(signal_dc, noise_dc, total_dc)
 
     return rdot_axis, r_axis, total_dc, signal_dc, noise_dc

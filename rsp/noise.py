@@ -1,7 +1,5 @@
 import numpy as np
 from scipy import fft
-
-# constants
 from .constants import PI, C
 
 def band_limited_complex_noise(min_freq, max_freq, samples, sampleRate, normalize=False):

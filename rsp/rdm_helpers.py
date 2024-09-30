@@ -136,7 +136,7 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, r_axis,
                                                    radar["fcar"],
                                                    returnInfo["rdot_delta"],
                                                    radar["PRF"],
-                                                   debug=True)
+                                                   debug=False)
     else:
         slowtime_noise = np.ones(radar["Npulses"]) # default if no VBM
 

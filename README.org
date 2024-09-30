@@ -1,37 +1,37 @@
-* RSP
-Simple RDM generator
+* Radar Signal Processing (RSP)
+Range-Doppler Map (RDM) engine including each of the components: waveform generation, match filtering, windowing, and Doppler processing. Furthermore, the returns can be either "skin" or "memory" to demonstrate both simple RCS returns and modulated recorded returns.
 
-** Installing RSP
-Must add this directory to your python path.
-On Linux, add the following to your =~/.bashrc=
+** Installation
+Must add this directory to your python path. On Linux, this is accomplished by adding the following to your =~/.bashrc=:
 #+begin_src shell
 export PYTHONPATH=<path to rsp repo>:$PYTHONPATH
 #+end_src
+** Directory Structure
+*** =examples=: holds example RDM scripts, each can be run =./<example_name>.py=
+*** =rsp=: source code for the project
+*** =tests=: scripts to test the components used in the RDM generation
 
-** General Notes
- - Need to decide if radar parameters are added in dB and when to convert
+* General Notes
+- [ ] Inspect each python file and turn each main function into a test
+   - example: [[file:rsp/pulse_doppler_radar.py]]
+
+- Need to decide if radar parameters are added in dB and when to convert
    - Volts -> dB: 10+ log10( abs (Volts) **2 )
- - Why does noise have SNR > 1 in final noise RDM?
- - Pedantic direct match filter is cleaner in phase (zeros where there is no signal)
+- Why does noise have SNR > 1 in final noise RDM?
+- Pedantic direct match filter is cleaner in phase (zeros where there is no signal)
    - a more efficient one is also implemented but not used (see padantic parameter)
- - Make pulsewidth/2 range offset clearer
- - range bins are A/D samples
- - Break into smaller functions:
-   - signal gen?
- - Could make wvf class with BW, pulse_length, time_BW_product attributes
- - make non-skin returns range and range/rate agnostic
+- Make pulsewidth/2 range offset clearer
+- range bins are A/D samples
+- Could make wvf class with BW, pulse_length, time_BW_product attributes
+- make non-skin returns range and range/rate agnostic
    - should be abstract and each method gives parameters
 
 **  Future
 - need to fill in all function doc strings with input explanations
- - make VBM it's own function to pull out the details and methods from rdm_gen
- - add range_delta to returnInfo['memory']
- - make a pod (seperate from skin) at the same range as target
  - may move pw/2 offset out of kernel and rtm placement
- - add flag to odify freq due to doppler using frequence_doppler function.
+ - add flag to modify freq due to doppler using frequence_doppler function.
  - make VBM guassian normalization work and make sense (all mags !=1) (method 1.5)
  - setup tests and a CDCI
-
 
 ** Radar PDF
 *** Comparison to MATLAB solutions
