@@ -1,12 +1,8 @@
-#!/usr/bin/env python
-
 import numpy as np
 from numpy.linalg import norm
 from scipy import fft
-
 from .constants import PI, C, K_BOLTZ
 from .waveform_helpers import matchFilterPulse
-
 
 def calc_range_axis(fs, Nr):
     dR_grid = C/(2*fs)

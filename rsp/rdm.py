@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 import numpy as np
 from scipy import fft
 from .constants import C

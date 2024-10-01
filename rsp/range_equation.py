@@ -1,5 +1,3 @@
-#!/usr/bin/env python
-
 from .constants import PI, C, K_BOLTZ
 
 def snr_rangeEquation_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T):

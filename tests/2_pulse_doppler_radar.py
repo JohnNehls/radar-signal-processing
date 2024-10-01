@@ -3,7 +3,6 @@ import numpy as np
 import matplotlib.pyplot as plt
 from rsp import pulse_doppler_radar as pdr
 
-
 ## problem 1 ######################################
 PRF_ar = np.arange(1e3,200.5e3,500)
 plt.figure()

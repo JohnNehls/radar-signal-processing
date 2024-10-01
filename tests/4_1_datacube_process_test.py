@@ -2,7 +2,6 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-
 from rsp.rf_datacube import create_dataCube, dopplerProcess_dataCube
 from rsp.constants import C, PI
 

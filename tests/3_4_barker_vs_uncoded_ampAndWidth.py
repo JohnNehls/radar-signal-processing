@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-
 from rsp.waveform_helpers import matchFilterPulse
 from rsp.waveform import makeUncodedPulse, makeBarkerCodedPulse
 
