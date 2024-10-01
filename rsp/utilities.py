@@ -2,7 +2,7 @@ import numpy as np
 from .constants import PI, C, K_BOLTZ
 
 def phase_negpi_pospi(phase: list):
-    """return phase in [-pi, pi)"""
+    """return input phase in [-pi, pi)"""
 
     if not hasattr(phase, '__iter__'):
         phase = [phase]
@@ -16,7 +16,7 @@ def phase_negpi_pospi(phase: list):
     return phase
 
 def phase_zero_twopi(phase: list):
-    """return phase in [-pi, pi)"""
+    """return input phase in [0, 2pi)"""
     phase = np.array(phase)
     phase = phase%(2*PI)
     return phase

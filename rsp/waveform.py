@@ -78,7 +78,7 @@ def makeBarkerCodedPulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, n
 
 
 def makeRandomCodedPulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
-    """baseband Barker coded pulse"""
+    """baseband random bi-phase coded pulse"""
     code_rand = np.random.choice([1,-1], size=nChips)
     return makeCodedPulse(sampleRate, BW, code_rand, output_length_T=output_length_T,
                           t_start=t_start, normalize=normalize)
@@ -100,6 +100,7 @@ def makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, n
     return t, mag
 
 
+## see /tests/function_tests/process_waveform.py for test of this function
 def process_waveform_dict(wvf : dict, radar : dict):
     """Fill in wvf dict with "pulse", "time_BW_product", "pulse_width" """
     if wvf["type"] == "uncoded":

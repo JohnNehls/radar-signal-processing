@@ -9,6 +9,7 @@ from .vbm import create_VBM_slowtime_noise
 from .utilities import phase_negpi_pospi
 
 def firstEchoBin(range, PRF):
+    """Find the te slowtime bin the first target return will arrive in """
     return int(range/range_unambiguous(PRF))
 
 def plotRTM (r_axis, data, title):
@@ -28,7 +29,8 @@ def plotRTM (r_axis, data, title):
     fig.tight_layout ()
 
 
-def setZeroToSmallestNumber (array):
+def setZeroToSmallestNumber(array):
+    """set all elements of input array to smallest float32"""
     smallest_float32= sys.float_info.min + sys.float_info.epsilon
     indxs = np.where(array==0)
     array[indxs] = smallest_float32
@@ -57,7 +59,10 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
 
 
 def addSkin_old(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, tgt_range_ar, r_axis, SNR_volt):
-    """asdfadsf"""
+    """DEPRICATED
+    Old way of adding skin reaturn based on range
+    This method does not alias correctly in the fast-time/range dimension
+    """
 
     firstEchoIndex = firstEchoBin(tgt_range_ar[0], radar["PRF"])
 
@@ -75,7 +80,7 @@ def addSkin_old(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, tgt_range_ar, r_a
         addWvfAtIndex(signal_dc[:,i+firstEchoIndex], pulse, rangeIndex) # add in place
 
 def addSkin(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, SNR_volt):
-    """asdfadsf"""
+    """Add skin return to the input datacube in place"""
 
     # time and range arrays
     time_ar = np.arange(signal_dc.size)*1/radar["sampRate"]  # time of all samples in CPI
@@ -197,6 +202,7 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, r_axis,
         addWvfAtIndex(signal_dc[:,i+firstEchoIndex], pulse, rangeIndex) # add in place
 
 def noiseChecks(signal_dc, noise_dc, total_dc):
+    """Print out some noise checks"""
     print(f"\nnoise check:")
     noise_var = np.var (total_dc, 1)
     print(f"\t{np.mean (noise_var)=: .4f}")
@@ -209,6 +215,7 @@ def noiseChecks(signal_dc, noise_dc, total_dc):
     print (f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
 
 def createWindow(inShape:tuple, plot=True):
+    """Create windowing function"""
     chwin = signal.windows.chebwin(inShape[1], 60)
     chwin_norm = chwin/np.mean(chwin)
     chwin_norm = chwin_norm.reshape((1, chwin.size))

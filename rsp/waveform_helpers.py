@@ -5,6 +5,7 @@ from scipy.interpolate import interp1d
 from scipy import signal
 
 def moving_average(waveform, elements):
+    """moving average of input waveform over number of elements specified"""
     kernel = np.ones(elements)/elements
     av = np.convolve(waveform, kernel, mode='same')
     return av
@@ -43,8 +44,8 @@ def find_width(x, y,  interp_max=5, interp_count=0,interp_scale=2, debug=False):
         return find_width(newx, newy, interp_max, interp_count+1)
 
 
-## problem 1 ###########################################
 def plotPulseAndSpectrum(t, mag, title=None, printBandwidth=True):
+    """plotPulseAndSpectrum"""
     dt = t[1] - t[0]
     N = mag.size
 

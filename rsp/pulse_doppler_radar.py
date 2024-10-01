@@ -1,11 +1,11 @@
 from .constants import C
 
 def range_unambiguous(PRF):
-    "maximum unambigious range"
+    """maximum unambigious range"""
     return C/(2*PRF)
 
 def frequency_doppler(rangeRate, f0):
-    "frequnce of light recieved after reflection off target with the given rangeRate"
+    """frequnce of light recieved after reflection off target with the given rangeRate"""
     return f0*(-2*rangeRate/C)
 
 def frequency_aliased(freq, freq_sample):

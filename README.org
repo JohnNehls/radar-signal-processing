@@ -12,9 +12,6 @@ export PYTHONPATH=<path to rsp repo>:$PYTHONPATH
 *** =tests=: scripts to test the components used in the RDM generation
 
 * General Notes
-- [ ] Inspect each python file and turn each main function into a test
-   - example: [[file:rsp/pulse_doppler_radar.py]]
-
 - Need to decide if radar parameters are added in dB and when to convert
    - Volts -> dB: 10+ log10( abs (Volts) **2 )
 - Why does noise have SNR > 1 in final noise RDM?
