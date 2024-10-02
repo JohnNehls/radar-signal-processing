@@ -63,7 +63,6 @@ def addSkin_old(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, tgt_range_ar, r_a
     Old way of adding skin reaturn based on range
     This method does not alias correctly in the fast-time/range dimension
     """
-
     firstEchoIndex = firstEchoBin(tgt_range_ar[0], radar["PRF"])
 
     ## pulses timed from their start not their center, we compensate with pw/2 range offset
@@ -81,7 +80,6 @@ def addSkin_old(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, tgt_range_ar, r_a
 
 def addSkin(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, SNR_volt):
     """Add skin return to the input datacube in place"""
-
     # time and range arrays
     time_ar = np.arange(signal_dc.size)*1/radar["sampRate"]  # time of all samples in CPI
     t_slow_axis = np.arange(radar["Npulses"])*1/radar["PRF"] # time when pulses sent

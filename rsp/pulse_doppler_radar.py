@@ -18,7 +18,7 @@ def frequency_aliased(freq, freq_sample):
         return f
 
 def rangeRate_pm_unambiguous(PRF, f0):
-    "+/- bounds of the unambgeous velocity"
+    """+/- bounds of the unambgeous velocity"""
     return PRF*C/(4*f0)
 
 def rangeRate_aliased_rrmax(rangeRate, rangeRate_max):

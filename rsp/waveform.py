@@ -130,4 +130,4 @@ def process_waveform_dict(wvf : dict, radar : dict):
         wvf["pulse_width"] = wvf["T"]
 
     else:
-        raise Exception(f"wvf type {wvf["type"]} not found.")
+        raise Exception(f"wvf type {wvf['type']} not found.")
