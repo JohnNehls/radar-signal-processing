@@ -1,2 +1,4 @@
 /rsp/__pycache__/
 /.vscode/
+/build/
+*.egg-info

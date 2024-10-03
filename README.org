@@ -1,69 +1,36 @@
-* Radar Signal Processing (RSP)
-Range-Doppler Map (RDM) engine including each of the components: waveform generation, match filtering, windowing, and Doppler processing. Furthermore, the returns can be either "skin" or "memory" to demonstrate both simple RCS returns and modulated recorded returns.
+* Radar Signal Processing
+Range Doppler map (RDM) and radar signal processing module.
+
+** Description
+This Python module provides tools for creating range Doppler maps and includes a variety of functions useful for radar signal processing. It is designed to help researchers and engineers gain an intuition on how RDMs are made.
+
+** Features
+- Generate range Doppler maps
+- Radar signal processing functions including:
+   - Radar range equation
+   - Waveform generation
+   - Match filtering
+   - Radar datacube
+   - Doppler processing
+   - Skin returns
+   - Modulated memory returns
 
 ** Installation
-Must add this directory to your python path. On Linux, this is accomplished by adding the following to your =~/.bashrc=:
-#+begin_src shell
-export PYTHONPATH=<path to rsp repo>:$PYTHONPATH
-#+end_src
-** Directory Structure
-*** =examples=: holds example RDM scripts, each can be run =./<example_name>.py=
-*** =rsp=: source code for the project
-*** =tests=: scripts to test the components used in the RDM generation
+To install the module, clone this repository and install with pip:
+#+BEGIN_SRC shell
+git clone https://github.com/JohnNehls/radar-signal-processing
+cd radar-signal-processing
+pip install .
+#+END_SRC
 
-* General Notes
-- Need to decide if radar parameters are added in dB and when to convert
-   - Volts -> dB: 10+ log10( abs (Volts) **2 )
-- Why does noise have SNR > 1 in final noise RDM?
-- Pedantic direct match filter is cleaner in phase (zeros where there is no signal)
-   - a more efficient one is also implemented but not used (see padantic parameter)
-- Make pulsewidth/2 range offset clearer
-- range bins are A/D samples
-- Could make wvf class with BW, pulse_length, time_BW_product attributes
-- make non-skin returns range and range/rate agnostic
-   - should be abstract and each method gives parameters
+** Usage
+For examples of basic usage, see the examples in [[file:examples][examples]]. To see a script with all  waveform options and contains all supported returns, check out [[file:examples/kitchen_sink.py][kitchen_sink.py]].
 
-**  Future
-- need to fill in all function doc strings with input explanations
- - may move pw/2 offset out of kernel and rtm placement
- - add flag to modify freq due to doppler using frequence_doppler function.
- - make VBM guassian normalization work and make sense (all mags !=1) (method 1.5)
- - setup tests and a CDCI
+** Tests
+Scripts displaying the individual components used to create the RDMs are located in [[file:tests][tests]].
 
-** Radar PDF
-*** Comparison to MATLAB solutions
- - solution SNR does not depend on time-BW product-- assumes it is 1 for all wvfms
- - solution does not account for pulseWidth/2 range offest
+** Contributing
+Contributions are welcome! Please fork the repository and submit a pull request.
 
-*** Section 1 : Range Equation
-Exercise figures are displayed with
-#+begin_src shell
-./range_quation.py
-#+end_src
-**** Errors
-- problem 1 solution: uses 1 foot diameter (not 1.5) for antenna.
-- problem 1 question: does not make clear that the antenna parameter is radius, diameter, or circumference.
-
-**** Things to cleanup
-- [ ] [[file:./range_equation.py]] : make duty factor a latex /tau in legend of figure 2
-
-*** Section 2 : Doppler Radar Overview
-Exercise figures are displayed with
-#+begin_src shell
-./pulse_doppler_radar.py
-#+end_src
-**** Errors
-
-**** Things to cleanup
-
-*** Section 3 : Waveforms
-Due to the length of the code and the number of figures, the exercises were placed into the [[file:exercises]] directory.
-=cd exercises=
-#+begin_src shell
-cd exercises; ./s3p1.py
-#+end_src
-
-#+RESULTS:
-
-*** Section 5: RDMs
-Currently for "stop and hop method"
+** License
+This project is licensed under the GPL-3.0 License - see the LICENSE file for details.
