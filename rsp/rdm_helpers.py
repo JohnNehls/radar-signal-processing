@@ -1,9 +1,10 @@
 import sys
 import numpy as np
+from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from scipy import signal
 from .pulse_doppler_radar import range_unambiguous
-from .constants import PI, C
+from . import constants as c
 from .waveform_helpers import addWvfAtIndex
 from .vbm import create_VBM_slowtime_noise
 from .utilities import phase_negpi_pospi
@@ -66,9 +67,9 @@ def addSkin_old(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, tgt_range_ar, r_a
     firstEchoIndex = firstEchoBin(tgt_range_ar[0], radar["PRF"])
 
     ## pulses timed from their start not their center, we compensate with pw/2 range offset
-    range_pw_offset = wvf["pulse_width"]/2*C/2
+    range_pw_offset = wvf["pulse_width"]/2*c.C/2
     aliasedRange_ar = tgt_range_ar%range_unambiguous(radar["PRF"])
-    phase_ar = -4*PI*radar["fcar"]/C*tgt_range_ar
+    phase_ar = -4*c.PI*radar["fcar"]/c.C*tgt_range_ar
 
     for i in range(radar["Npulses"] - firstEchoIndex):
         # TODO is this how these should be binned? Should they be interpolated onto grid?
@@ -85,9 +86,9 @@ def addSkin(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, SNR_volt):
     t_slow_axis = np.arange(radar["Npulses"])*1/radar["PRF"] # time when pulses sent
 
     tgt_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis # tgt range at pulse send
-    twoWay_time_delay_ar = 2*tgt_range_ar/C # time of travel from radar to tgt and back
+    twoWay_time_delay_ar = 2*tgt_range_ar/c.C # time of travel from radar to tgt and back
     pulse_return_time = t_slow_axis + twoWay_time_delay_ar # time pulses return to radar
-    twoWay_phase_ar = -2*PI*radar["fcar"]*twoWay_time_delay_ar # Phase added due to
+    twoWay_phase_ar = -2*c.PI*radar["fcar"]*twoWay_time_delay_ar # Phase added due to
 
     ## pulses timed from their start not their center, we compensate with pw/2 range offset
     time_pw_offset = wvf["pulse_width"]/2
@@ -118,15 +119,15 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, r_axis,
          interface for returnInfo: rdot_offset, rdot_delta, delay
     """
     t_slow_axis = np.arange(radar["Npulses"])*1/radar["PRF"]
-    t_fast_axis = 2*r_axis/C
+    t_fast_axis = 2*r_axis/c.C
     firstEchoIndex = firstEchoBin(tgtInfo["range"], radar["PRF"])
     time_pw_offset = wvf["pulse_width"]/2
-    oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis)/C
-    oneWay_phase_ar = -2*PI*radar["fcar"]*oneWay_time_ar
+    oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"]*t_slow_axis)/c.C
+    oneWay_phase_ar = -2*c.PI*radar["fcar"]*oneWay_time_ar
 
     #Make output offset from skin return #############################################
     if "rdot_offset" in returnInfo.keys():
-        f_rdot = 2*radar["fcar"]/C*returnInfo["rdot_offset"] # remove x2 for absolute rdot
+        f_rdot = 2*radar["fcar"]/c.C*returnInfo["rdot_offset"] # remove x2 for absolute rdot
         rdot_offset_flag = True
     else:
         rdot_offset_flag = False
@@ -152,7 +153,7 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, r_axis,
         delay = 0
 
     if "range_offset" in returnInfo.keys():
-        delay = 2*returnInfo["range_offset"]/C
+        delay = 2*returnInfo["range_offset"]/c.C
     else:
         delay = 0
 
@@ -186,7 +187,7 @@ def addMemory(signal_dc, wvf:dict, tgtInfo:dict, radar:dict, returnInfo, r_axis,
 
         # add prescirbed rdot offset
         if rdot_offset_flag:
-            pulse = pulse*(np.exp(-1j*i*2*PI*f_rdot/radar["PRF"]))
+            pulse = pulse*(np.exp(-1j*i*2*c.PI*f_rdot/radar["PRF"]))
 
         # add 1-way propagation phase back to radar
         # echo may be incorrect in line below
@@ -228,3 +229,16 @@ def createWindow(inShape:tuple, plot=True):
         plt.colorbar()
 
     return chwin_norm_mat
+
+def calc_range_and_rangeRate(plat_pos : list, plat_vel : list, tgt_pos : list, tgt_vel : list):
+    """Calculated te range vector, range, and range-rate of a target relative to a platform"""
+
+    R_vec = np.array([tgt_pos[0] - plat_pos[0], tgt_pos[1] - plat_pos[1], tgt_pos[2] - plat_pos[2]])
+
+    R_unit_vec = R_vec/norm(R_vec)
+
+    R_mag = np.sqrt(R_vec[0]**2 + R_vec[1]**2 + R_vec[2]**2)
+
+    R_dot = np.dot(tgt_vel, R_unit_vec) - np.dot(plat_vel, R_unit_vec)
+
+    return R_vec, R_mag, R_dot

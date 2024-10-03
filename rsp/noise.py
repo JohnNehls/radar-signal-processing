@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import fft
-from .constants import PI, C
+from . import constants as c
 
 def band_limited_complex_noise(min_freq, max_freq, samples, sampleRate, normalize=False):
     freqs = fft.fftfreq(samples, 1/sampleRate)
@@ -23,10 +23,10 @@ def band_limited_complex_noise(min_freq, max_freq, samples, sampleRate, normaliz
 def guassian_complex_noise(mu, sigma, p, samples, sampleRate, normalize=False):
     freqs = fft.fftfreq(samples, 1/sampleRate)
     f = np.zeros(samples, np.complex64)
-    f = 1/(sigma*np.sqrt(2*PI))*np.exp(-((freqs-mu)**2/(2*sigma**2))**p) + 0j
+    f = 1/(sigma*np.sqrt(2*c.PI))*np.exp(-((freqs-mu)**2/(2*sigma**2))**p) + 0j
 
     for i in range(f.size):
-        f[i] *= np.exp(1j*2*PI*np.random.rand())
+        f[i] *= np.exp(1j*2*c.PI*np.random.rand())
 
     noise = fft.ifft(f)*np.sqrt(samples)
 

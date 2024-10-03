@@ -1,6 +1,6 @@
 import numpy as np
 from scipy import fft
-from .constants import C
+from . import constants as c
 from .rdm_helpers import plotRDM, plotRTM
 from .rf_datacube import calc_number_range_bins, calc_range_axis, create_dataCube
 from .rf_datacube import applyMatchFilterToDataCube, dopplerProcess_dataCube
@@ -52,7 +52,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
 
     # SNR for one pulse
     SNR1 = snr_rangeEquation(radar["txPower"], radar["txGain"], radar["rxGain"],
-                             tgtInfo["rcs"], C/radar["fcar"], tgtInfo["range"],
+                             tgtInfo["rcs"], c.C/radar["fcar"], tgtInfo["range"],
                              wvf["bw"], radar["noiseFig"], radar["totalLosses"],
                              radar["opTemp"], wvf["time_BW_product"])
 
@@ -61,7 +61,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
     # calculate the expected SNR
     SNR_expected = snr_rangeEquation_CP(radar["txPower"], radar["txGain"],
                                         radar["rxGain"], tgtInfo["rcs"],
-                                        C/radar["fcar"], tgtInfo["range"], wvf["bw"],
+                                        c.C/radar["fcar"], tgtInfo["range"], wvf["bw"],
                                         radar["noiseFig"], radar["totalLosses"],
                                         radar["opTemp"], radar["Npulses"], wvf["time_BW_product"])
     if plotSteps:
@@ -108,7 +108,7 @@ def rdm_gen(tgtInfo: dict, radar: dict, wvf: dict, returnInfo_list: list,
 
     # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
     #TODO WHY PRF/fs ratio at end??!?!
-    rdot_axis = -C*f_axis/(2*radar["fcar"])*radar["PRF"]/radar["sampRate"]
+    rdot_axis = -c.C*f_axis/(2*radar["fcar"])*radar["PRF"]/radar["sampRate"]
 
     #Verify SNR and noise
     if plotSteps:

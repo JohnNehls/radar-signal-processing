@@ -1,7 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 from scipy import fft
-from .constants import PI, C, K_BOLTZ
+from . import constants as c
 
 BARKER_DICT = {2 : [ 1,-1],  # could also be [ 1, 1]
                3 : [ 1, 1,-1],
@@ -92,7 +92,7 @@ def makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, n
     f = chirpUpDown*(-BW*t+BW*t**2/T)/2
     mag = np.zeros(t.size,dtype=np.complex64)
     i_ar = np.where((t >= t_start) & (t <= (t_start + T)))
-    mag[i_ar] = np.exp(1j*2*PI*f[i_ar])
+    mag[i_ar] = np.exp(1j*2*c.PI*f[i_ar])
 
     if normalize:
         mag = mag/norm(mag)

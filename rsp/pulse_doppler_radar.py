@@ -1,12 +1,12 @@
-from .constants import C
+from . import constants as c
 
 def range_unambiguous(PRF):
     """maximum unambigious range"""
-    return C/(2*PRF)
+    return c.C/(2*PRF)
 
 def frequency_doppler(rangeRate, f0):
     """frequnce of light recieved after reflection off target with the given rangeRate"""
-    return f0*(-2*rangeRate/C)
+    return f0*(-2*rangeRate/c.C)
 
 def frequency_aliased(freq, freq_sample):
     """Place freq in [-freq_sample/2, freq_sample/2]
@@ -19,7 +19,7 @@ def frequency_aliased(freq, freq_sample):
 
 def rangeRate_pm_unambiguous(PRF, f0):
     """+/- bounds of the unambgeous velocity"""
-    return PRF*C/(4*f0)
+    return PRF*c.C/(4*f0)
 
 def rangeRate_aliased_rrmax(rangeRate, rangeRate_max):
     """Place freq in [-rangeRate_max, rangeRate_max]

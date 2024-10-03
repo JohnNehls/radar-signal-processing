@@ -1,6 +1,6 @@
 import numpy as np
 from numpy.linalg import norm
-from .constants import PI, C, K_BOLTZ
+from . import constants as c
 from .noise import band_limited_complex_noise, guassian_complex_noise
 from .waveform import makeLFMPulse
 
@@ -9,7 +9,7 @@ from .waveform import makeLFMPulse
 
 def calc_f_delta(fcar, rdot_delta):
     """"convert rdot_delta to a frequency delta"""
-    return 2*fcar/C*rdot_delta
+    return 2*fcar/c.C*rdot_delta
 
 def print_noise_stats(slowtime_noise):
     """Print some noise stats"""
@@ -24,7 +24,7 @@ def print_noise_stats(slowtime_noise):
 ### Start: noise techniques to achieve VBM in order of complexity ###
 def random_VBM(Npulses):
     """"Method 0 : random phase in all frequencies"""
-    rand_phase = 2*PI*np.random.rand(Npulses)
+    rand_phase = 2*c.PI*np.random.rand(Npulses)
     return np.exp(1j*rand_phase)
 
 def uniform_bandwidth_VBM(Npulses, f_delta, PRF):

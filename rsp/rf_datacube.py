@@ -1,12 +1,11 @@
 import numpy as np
-from numpy.linalg import norm
 from scipy import fft
-from .constants import PI, C, K_BOLTZ
+from . import constants as c
 from .waveform_helpers import matchFilterPulse
 
 def calc_range_axis(fs, Nr):
     """Create range labels for the fast-time axis"""
-    dR_grid = C/(2*fs)
+    dR_grid = c.C/(2*fs)
     R_axis = np.arange(1,Nr+1)*dR_grid # Process fast time
     return R_axis
 
@@ -41,7 +40,7 @@ def dopplerProcess_dataCube(dc, fs, PRF):
     """
     Np = dc.shape[1]
 
-    dR_grid = C/(2*fs)
+    dR_grid = c.C/(2*fs)
     Nr = round(fs/PRF)
     R_axis = np.arange(1,Nr+1)*dR_grid # Process fast time
     f_axis = fft.fftshift(fft.fftfreq(Np,1/fs)) # process slow time
@@ -73,17 +72,3 @@ def applyMatchFilterToDataCube(dataCube, pulse_wvf, pedantic=True):
         PulseM = Kernel@np.ones((1, dataCube.shape[1]))
         DataCube = fft.fft(dataCube, axis=0)
         dataCube[:] = fft.ifft(PulseM * DataCube, axis=0, overwrite_x=True, workers=2)
-
-
-def R_pf_tgt(plat_pos : list, plat_vel : list, tgt_pos : list, tgt_vel : list):
-    """Calculated te range vector, range, and range-rate of a target relative to a platform"""
-
-    R_vec = np.array([tgt_pos[0] - plat_pos[0], tgt_pos[1] - plat_pos[1], tgt_pos[2] - plat_pos[2]])
-
-    R_unit_vec = R_vec/norm(R_vec)
-
-    R_mag = np.sqrt(R_vec[0]**2 + R_vec[1]**2 + R_vec[2]**2)
-
-    R_dot = np.dot(tgt_vel, R_unit_vec) - np.dot(plat_vel, R_unit_vec)
-
-    return R_vec, R_mag, R_dot

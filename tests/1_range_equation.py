@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.constants import PI, C, K_BOLTZ
+from rsp.constants import PI, C
 import rsp.range_equation as re
 
 ## problem 1 #############################################################
