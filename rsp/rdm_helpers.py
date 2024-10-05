@@ -39,7 +39,7 @@ def setZeroToSmallestNumber(array):
     array[indxs] = smallest_float32
 
 
-def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
+def plotRDM(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
     """Plot range-Doppler matrix"""
     data = abs(data)
     fig, ax = plt.subplots(1, 1)
@@ -51,14 +51,14 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarRange=30, volt2db=True):
     ax.set_xlabel("range rate [km/s]")
     ax.set_ylabel("range [km]")
     ax.set_title("magnitude squared")
-    if cbarRange:
-        p.set_clim((data.max() - cbarRange, data.max()))
+    p.set_clim(cbarMin, data.max())
     cbar = fig.colorbar(p)
     if volt2db:
         cbar.set_label("SNR [dB]")
     else:
         cbar.set_label("SNR")
     fig.tight_layout()
+    return fig, ax
 
 
 def addSkin_old(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, tgt_range_ar, r_axis, SNR_volt):

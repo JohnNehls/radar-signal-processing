@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 from rsp import rdm
+from rsp.rdm_helpers import plotRDM
 
 ################################################################################
 # Kitchen sink: script showing a sample of all of the options available
@@ -9,7 +10,7 @@ from rsp import rdm
 
 bw = 10e6
 
-tgtInfo = {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}
+tgt = {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}
 
 radar = {
     "fcar": 10e9,
@@ -34,7 +35,7 @@ wvf = {"type": "random", "nchips": 13, "bw": bw}
 
 wvf = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}
 
-returnInfo_list = [
+return_list = [
     {
         "type": "memory",
         "rdot_delta": 0.5e3,
@@ -44,19 +45,10 @@ returnInfo_list = [
     {"type": "skin"},
 ]
 
-rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm.rdm_gen(
-    tgtInfo, radar, wvf, returnInfo_list, seed=0, plotSteps=True
+rdot_axis, r_axis, total_dc, _, _ = rdm.rdm_gen(
+    tgt, radar, wvf, return_list, seed=0, plotSteps=True
 )
 
-rdm.plotRDM(
-    rdot_axis, r_axis, signal_dc, f"SIGNAL: dB doppler processed match filtered {wvf['type']}"
-)
-rdm.plotRDM(
-    rdot_axis,
-    r_axis,
-    total_dc,
-    f"TOTAL: dB doppler processed match filtered {wvf['type']}",
-    cbarRange=False,
-)
+plotRDM(rdot_axis, r_axis, total_dc, f"Total RDM for {wvf['type']}")
 
 plt.show()

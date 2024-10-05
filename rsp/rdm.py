@@ -10,7 +10,7 @@ from .rdm_helpers import addSkin, addMemory, noiseChecks, createWindow
 
 
 def rdm_gen(
-    tgtInfo: dict,
+    tgt: dict,
     radar: dict,
     wvf: dict,
     returnInfo_list: list,
@@ -18,14 +18,14 @@ def rdm_gen(
     plotSteps: bool = False,
 ):
     """
-    Genearat a CPI RDM for single target moving at a constant range rate.
+    Genearat a single CPI RDM for one target moving at a constant range rate.
 
     Parameters
     ----------
-    tgtInfo: dict holding range, rangeRate, and rcs (range rate and rcs constant for CPI)
-    radar: dict holding fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFig, totalLosses, PRF
-    wvf: string for wvform types : "uncoded" "barker" "random" "lfm"
-    returnInfo_list: list of return types to place in the RDM.
+    tgt: dict with keys range, "rangeRate, rcs (all constant over the CPI)
+    radar: dict with keys fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFig, totalLosses, PRF
+    wvf: dict with for wvform key types in ["uncoded", "barker", "random", "lfm"]
+    returnInfo_list: list of dicts containing return types to place in the RDM, in ["skin", "memory"]
 
     Optional parameters
     seed: int random seed for random module
@@ -61,9 +61,9 @@ def rdm_gen(
         radar["txPower"],
         radar["txGain"],
         radar["rxGain"],
-        tgtInfo["rcs"],
+        tgt["rcs"],
         c.C / radar["fcar"],
-        tgtInfo["range"],
+        tgt["range"],
         wvf["bw"],
         radar["noiseFig"],
         radar["totalLosses"],
@@ -78,9 +78,9 @@ def rdm_gen(
         radar["txPower"],
         radar["txGain"],
         radar["rxGain"],
-        tgtInfo["rcs"],
+        tgt["rcs"],
         c.C / radar["fcar"],
-        tgtInfo["range"],
+        tgt["range"],
         wvf["bw"],
         radar["noiseFig"],
         radar["totalLosses"],
@@ -99,11 +99,11 @@ def rdm_gen(
     for returnItem in returnInfo_list:
         ## Skin : place pulse at range index and apply phase ###########################
         if returnItem["type"] == "skin":
-            addSkin(signal_dc, wvf, tgtInfo, radar, SNR_volt)
+            addSkin(signal_dc, wvf, tgt, radar, SNR_volt)
             # addSkin_old(signal_dc, wvf, tgtInfo, radar, tgt_range_ar, r_axis, SNR_volt)
         ## Memory : place pulse at range index and apply phase #############################
         elif returnItem["type"] == "memory":
-            addMemory(signal_dc, wvf, tgtInfo, radar, returnItem, r_axis, SNR_volt)
+            addMemory(signal_dc, wvf, tgt, radar, returnItem, r_axis, SNR_volt)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 
@@ -113,14 +113,14 @@ def rdm_gen(
 
     if plotSteps:
         print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
-        plotRTM(r_axis, signal_dc, f"SIGNAL: unprocessed {wvf['type']}")
+        plotRTM(r_axis, signal_dc, f"Signal Only: unprocessed {wvf['type']}")
 
     ### Apply the match filter #############################
     for dc in [signal_dc, noise_dc, total_dc]:
-        applyMatchFilterToDataCube(dc, wvf["pulse"])
+        applyMatchFilterToDataCube(dc, wvf["pulse"], pedantic=False)
 
     if plotSteps:
-        plotRTM(r_axis, signal_dc, f"SIGNAL: match filtered {wvf['type']}")
+        plotRTM(r_axis, signal_dc, f"Signal Only: match filtered {wvf['type']}")
 
     ### Doppler process ####################################
     # create filter window and apply it

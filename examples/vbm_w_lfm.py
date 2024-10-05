@@ -2,13 +2,14 @@
 
 import matplotlib.pyplot as plt
 from rsp import rdm
+from rsp.rdm_helpers import plotRDM
 
 ################################################################################
 # Doppler noise is LFM in slow time
 ################################################################################
 # - cleanest to see when target's rangeRate = 0
 
-tgtInfo = {"range": 0.5e3, "rangeRate": 0.0e3, "rcs": 10}
+tgt = {"range": 0.5e3, "rangeRate": 0.0e3, "rcs": 10}
 
 bw = 10e6
 
@@ -27,21 +28,12 @@ radar = {
 
 wvf = {"type": "lfm", "bw": bw, "T": 1.5e-6, "chirpUpDown": 1}
 
-returnInfo_list = [{"type": "memory", "rdot_delta": 0.5e3, "method": 2, "rdot_offset": 0.0e3}]
+return_list = [{"type": "memory", "rdot_delta": 0.5e3, "method": 2, "rdot_offset": 0.0e3}]
 
-rdot_axis, r_axis, total_dc, signal_dc, noise_dc = rdm.rdm_gen(
-    tgtInfo, radar, wvf, returnInfo_list, seed=0, plotSteps=True
+rdot_axis, r_axis, total_dc, _, _ = rdm.rdm_gen(
+    tgt, radar, wvf, return_list, seed=0, plotSteps=True
 )
 
-rdm.plotRDM(
-    rdot_axis, r_axis, signal_dc, f"SIGNAL: dB doppler processed match filtered {wvf['type']}"
-)
-rdm.plotRDM(
-    rdot_axis,
-    r_axis,
-    total_dc,
-    f"TOTAL: dB doppler processed match filtered {wvf['type']}",
-    cbarRange=False,
-)
+plotRDM(rdot_axis, r_axis, total_dc, f"Total RDM for {wvf['type']}")
 
 plt.show()
