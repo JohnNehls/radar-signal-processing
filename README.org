@@ -24,7 +24,7 @@ pip install .
 #+END_SRC
 
 ** Usage
-For examples of basic usage, see the examples in [[file:examples][examples]]. To see a script with all  waveform options and contains all supported returns, check out [[file:examples/kitchen_sink.py][kitchen_sink.py]].
+For examples of basic usage, see the [[file:examples][examples]]. To see a script with all waveform and return options written out, check out [[file:examples/kitchen_sink.py][kitchen_sink.py]].
 
 ** Tests
 Scripts displaying the individual components used to create the RDMs are located in [[file:tests][tests]].

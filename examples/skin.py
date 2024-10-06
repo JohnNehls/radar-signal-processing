@@ -2,7 +2,6 @@
 
 import matplotlib.pyplot as plt
 from rsp import rdm
-from rsp.rdm_helpers import plotRDM
 
 ################################################################################
 # skin example
@@ -10,7 +9,7 @@ from rsp.rdm_helpers import plotRDM
 # - Matlab solution is incorrect due to not accounting for time-bandwidth prod in SNR
 # - Matlab solution neglects range walk off, our SNR may be off when rangeRate>>0
 
-tgt = {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}
+target = {"range": 3.5e3, "rangeRate": 0.0e3, "rcs": 10}
 
 bw = 10e6
 
@@ -27,15 +26,10 @@ radar = {
     "dwell_time": 2e-3,
 }
 
-wvf = {"type": "lfm", "bw": bw, "T": 1.0e-6, "chirpUpDown": 1}
-
+waveform = {"type": "lfm", "bw": bw, "T": 1.0e-6, "chirpUpDown": 1}
 
 return_list = [{"type": "skin"}]
 
-rdot_axis, r_axis, total_dc, _, _ = rdm.rdm_gen(
-    tgt, radar, wvf, return_list, seed=0, plotSteps=True
-)
-
-plotRDM(rdot_axis, r_axis, total_dc, f"Total RDM for {wvf['type']}")
+rdm.rdm_gen(target, radar, waveform, return_list, debug=True)
 
 plt.show()

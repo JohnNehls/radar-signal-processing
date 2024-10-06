@@ -2,12 +2,13 @@ import sys
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
-from scipy import signal
+from scipy import signal, fft
 from .pulse_doppler_radar import range_unambiguous
 from . import constants as c
 from .waveform_helpers import addWvfAtIndex
 from .vbm import create_VBM_slowtime_noise
 from .utilities import phase_negpi_pospi
+from .range_equation import snr_rangeEquation_CP
 
 
 def firstEchoBin(range, PRF):
@@ -61,7 +62,7 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
     return fig, ax
 
 
-def addSkin_old(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, tgt_range_ar, r_axis, SNR_volt):
+def addSkin_range(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, tgt_range_ar, r_axis, SNR_volt):
     """DEPRICATED
     Old way of adding skin reaturn based on range
     This method does not alias correctly in the fast-time/range dimension
@@ -122,6 +123,8 @@ def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, r_ax
      - ? x2 diff f_delta and f_rdot calc?
      interface for returnInfo: rdot_offset, rdot_delta, delay
     """
+    print("Note: memory return amplitudes are notional.")
+
     t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]
     t_fast_axis = 2 * r_axis / c.C
     firstEchoIndex = firstEchoBin(tgtInfo["range"], radar["PRF"])
@@ -205,6 +208,7 @@ def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, r_ax
 
 def noiseChecks(signal_dc, noise_dc, total_dc):
     """Print out some noise checks"""
+    print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
     print("\nnoise check:")
     noise_var = np.var(total_dc, 1)
     print(f"\t{np.mean (noise_var)=: .4f}")
@@ -215,6 +219,29 @@ def noiseChecks(signal_dc, noise_dc, total_dc):
     print(f"\t{20*np.log10(np.max(abs(signal_dc)))=:.2f}")
     print(f"\t{20*np.log10(np.max(abs(noise_dc)))=:.2f}")
     print(f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
+
+
+def checkExpectedSNR(radar, target, waveform, SNR1, SNR_volt):
+    SNR_expected = snr_rangeEquation_CP(
+        radar["txPower"],
+        radar["txGain"],
+        radar["rxGain"],
+        target["rcs"],
+        c.C / radar["fcar"],
+        target["range"],
+        waveform["bw"],
+        radar["noiseFig"],
+        radar["totalLosses"],
+        radar["opTemp"],
+        radar["Npulses"],
+        waveform["time_BW_product"],
+    )
+
+    print("SNR Check:")
+    print(f"\t{10*np.log10(SNR1)=:.2f}")
+    print(f"\t{SNR_volt=:.1e}")
+    print(f"\t{SNR_expected=:.1e}")
+    print(f"\t{10*np.log10(SNR_expected)=:.2f}")
 
 
 def createWindow(inShape: tuple, plot=True):
@@ -233,6 +260,18 @@ def createWindow(inShape: tuple, plot=True):
         plt.colorbar()
 
     return chwin_norm_mat
+
+
+def addReturns(dc, wvf, target, return_list, radar, r_axis, amp_volt):
+    """Add returns from the return_list to the data cube
+    Note: memory return amplitude is not physical"""
+    for returnItem in return_list:
+        if returnItem["type"] == "skin":
+            addSkin(dc, wvf, target, radar, amp_volt)
+        elif returnItem["type"] == "memory":
+            addMemory(dc, wvf, target, radar, returnItem, r_axis, amp_volt)
+        else:
+            print(f"{returnItem['type']=} not known, no return added.")
 
 
 def calc_range_and_rangeRate(plat_pos: list, plat_vel: list, tgt_pos: list, tgt_vel: list):

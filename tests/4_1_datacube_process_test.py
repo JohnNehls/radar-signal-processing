@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.rf_datacube import create_dataCube, dopplerProcess_dataCube
+from rsp.rf_datacube import dataCube, dopplerProcess
 from rsp.constants import PI
 
 print("##########################")
@@ -15,7 +15,7 @@ PRF = 100e3  # Hz
 Np = 256  # number of pulses
 
 # calc
-dc = create_dataCube(fs, PRF, Np)
+dc = dataCube(fs, PRF, Np)
 dtPulse = 1 / PRF
 t_ar = np.arange(Np) * dtPulse
 dc[98, :] = np.exp(2j * PI * PRF / 4 * t_ar)
@@ -28,7 +28,7 @@ ax[0].set_xlabel("slow time [PRI]")
 ax[0].set_ylabel("fast time [fs]")
 
 # process datacube in place
-f_ax, r_ax = dopplerProcess_dataCube(dc, fs, PRF)
+f_ax, r_ax = dopplerProcess(dc, fs, PRF)
 
 ax[1].set_title("processed datacube")
 ax[1].pcolormesh(f_ax * 1e-6, r_ax, abs(dc))

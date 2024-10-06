@@ -2,14 +2,13 @@
 
 import matplotlib.pyplot as plt
 from rsp import rdm
-from rsp.rdm_helpers import plotRDM
 
 ################################################################################
 # Doppler noise is LFM in slow time
 ################################################################################
 # - cleanest to see when target's rangeRate = 0
 
-tgt = {"range": 0.5e3, "rangeRate": 0.0e3, "rcs": 10}
+target = {"range": 0.5e3, "rangeRate": 0.0e3, "rcs": 10}
 
 bw = 10e6
 
@@ -26,14 +25,10 @@ radar = {
     "dwell_time": 2e-3,
 }
 
-wvf = {"type": "lfm", "bw": bw, "T": 1.5e-6, "chirpUpDown": 1}
+waveform = {"type": "lfm", "bw": bw, "T": 1.5e-6, "chirpUpDown": 1}
 
 return_list = [{"type": "memory", "rdot_delta": 0.5e3, "method": 2, "rdot_offset": 0.0e3}]
 
-rdot_axis, r_axis, total_dc, _, _ = rdm.rdm_gen(
-    tgt, radar, wvf, return_list, seed=0, plotSteps=True
-)
-
-plotRDM(rdot_axis, r_axis, total_dc, f"Total RDM for {wvf['type']}")
+rdm.rdm_gen(target, radar, waveform, return_list)
 
 plt.show()

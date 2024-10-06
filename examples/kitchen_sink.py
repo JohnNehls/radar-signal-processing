@@ -2,7 +2,6 @@
 
 import matplotlib.pyplot as plt
 from rsp import rdm
-from rsp.rdm_helpers import plotRDM
 
 ################################################################################
 # Kitchen sink: script showing a sample of all of the options available
@@ -10,7 +9,7 @@ from rsp.rdm_helpers import plotRDM
 
 bw = 10e6
 
-tgt = {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}
+target = {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}
 
 radar = {
     "fcar": 10e9,
@@ -25,15 +24,15 @@ radar = {
     "dwell_time": 2e-3,
 }
 
-wvf = {"type": None}  # noise test
+waveform = {"type": None}  # noise test
 
-wvf = {"type": "uncoded", "bw": bw}
+waveform = {"type": "uncoded", "bw": bw}
 
-wvf = {"type": "barker", "nchips": 13, "bw": bw}
+waveform = {"type": "barker", "nchips": 13, "bw": bw}
 
-wvf = {"type": "random", "nchips": 13, "bw": bw}
+waveform = {"type": "random", "nchips": 13, "bw": bw}
 
-wvf = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}
+waveform = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}
 
 return_list = [
     {
@@ -45,10 +44,6 @@ return_list = [
     {"type": "skin"},
 ]
 
-rdot_axis, r_axis, total_dc, _, _ = rdm.rdm_gen(
-    tgt, radar, wvf, return_list, seed=0, plotSteps=True
-)
-
-plotRDM(rdot_axis, r_axis, total_dc, f"Total RDM for {wvf['type']}")
+rdm.rdm_gen(target, radar, waveform, return_list)
 
 plt.show()

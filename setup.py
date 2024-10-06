@@ -7,7 +7,7 @@ setup(
     description="A module for creating range Doppler maps and general radar signal processing",
     long_description=open("README.org").read(),
     long_description_content_type="text/orgfile",
-    url="https://github.com/JohnNehls/RadarSignalProcessing",
+    url="https://github.com/JohnNehls/radar-signal-processing",
     packages=find_packages(),
     classifiers=[
         "Programming Language :: Python :: 3",
