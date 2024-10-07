@@ -28,7 +28,7 @@ ax[0].set_xlabel("slow time [PRI]")
 ax[0].set_ylabel("fast time [fs]")
 
 # process datacube in place
-f_ax, r_ax = dopplerProcess(dc, fs, PRF)
+f_ax, r_ax = dopplerProcess(dc, fs)
 
 ax[1].set_title("processed datacube")
 ax[1].pcolormesh(f_ax * 1e-6, r_ax, abs(dc))

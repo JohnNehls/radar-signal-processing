@@ -37,7 +37,7 @@ def dataCube(fs: float, prf: float, Np: int, noise: bool = False):
     return dc
 
 
-def dopplerProcess(dc, fs, PRF):
+def dopplerProcess(dc, fs):
     """Process data cube in place
     ouputs:\n
     dataCube : \n

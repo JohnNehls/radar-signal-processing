@@ -8,14 +8,14 @@ from .range_equation import snr_rangeEquation
 from .rdm_helpers import addReturns, noiseChecks, createWindow, checkExpectedSNR
 
 
-def rdm_gen(
+def gen(
     target: dict,
     radar: dict,
     waveform: dict,
     return_list: list,
     seed: int = 0,
-    plot=True,
-    debug=False,
+    plot: bool = True,
+    debug: bool = False,
 ):
     """
     Genearat a single CPI RDM for one target moving at a constant range rate.
@@ -40,6 +40,7 @@ def rdm_gen(
     signal_dc: RDM in Volts for signal
     """
 
+    # TODO: do I need to pass this seed to each function using random?
     np.random.seed(seed)
 
     ### Compute waveform and radar parameters ##############
@@ -93,10 +94,10 @@ def rdm_gen(
 
     # Doppler process datacubes
     for dc in [signal_dc, total_dc]:
-        f_axis, r_axis = dopplerProcess(dc, radar["sampRate"], radar["PRF"])
+        f_axis, r_axis = dopplerProcess(dc, radar["sampRate"])
 
     # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
-    print("TODO Why PRF/fs ratio at end?")
+    print("TODO: why PRF/fs ratio at end?")
     rdot_axis = -c.C * f_axis / (2 * radar["fcar"]) * radar["PRF"] / radar["sampRate"]
 
     if debug:

@@ -33,11 +33,10 @@ def plotRTM(r_axis, data, title):
     fig.tight_layout()
 
 
-def setZeroToSmallestNumber(array):
+def setZeroToSmallestFloat(array):
     """set all elements of input array to smallest float32"""
-    smallest_float32 = sys.float_info.min + sys.float_info.epsilon
     indxs = np.where(array == 0)
-    array[indxs] = smallest_float32
+    array[indxs] = sys.float_info.min
 
 
 def plotRDM(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
@@ -46,12 +45,11 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
     fig, ax = plt.subplots(1, 1)
     fig.suptitle(title)
     if volt2db:
-        setZeroToSmallestNumber(data)
+        setZeroToSmallestFloat(data)  # needed for signal_dc plots
         data = 20 * np.log10(data)
     p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
     ax.set_xlabel("range rate [km/s]")
     ax.set_ylabel("range [km]")
-    ax.set_title("magnitude squared")
     p.set_clim(cbarMin, data.max())
     cbar = fig.colorbar(p)
     if volt2db:
@@ -127,7 +125,6 @@ def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR_
     # - can be negative, default is zero
     delay = returnInfo.get("delay", 0)
     delay += 2 * returnInfo.get("range_offset", 0) / c.C
-    print(f"{delay=}")
 
     stored_pulse = 0
     stored_angle = 0  # initialize to stop lsp from complaining

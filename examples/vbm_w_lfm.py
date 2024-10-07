@@ -29,6 +29,6 @@ waveform = {"type": "lfm", "bw": bw, "T": 1.5e-6, "chirpUpDown": 1}
 
 return_list = [{"type": "memory", "rdot_delta": 0.5e3, "method": 2, "rdot_offset": 0.0e3}]
 
-rdm.rdm_gen(target, radar, waveform, return_list)
+rdm.gen(target, radar, waveform, return_list)
 
 plt.show()

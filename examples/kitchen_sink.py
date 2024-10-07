@@ -45,6 +45,6 @@ return_list = [
     {"type": "skin"},
 ]
 
-rdm.rdm_gen(target, radar, waveform, return_list)
+rdm.gen(target, radar, waveform, return_list)
 
 plt.show()
