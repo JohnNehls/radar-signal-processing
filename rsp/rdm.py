@@ -47,16 +47,13 @@ def rdm_gen(
     process_waveform_dict(waveform, radar)
     radar["Npulses"] = int(np.ceil(radar["dwell_time"] * radar["PRF"]))
 
-    ### Create range axes #########################
-    NrangeBins = number_range_bins(radar["sampRate"], radar["PRF"])
-    r_axis = range_axis(radar["sampRate"], NrangeBins)
+    ### Create range axis for plotting #####################
+    r_axis = range_axis(radar["sampRate"], number_range_bins(radar["sampRate"], radar["PRF"]))
 
     ### Determin scaling factor for SNR ####################
-    # Motivation: direclty plot the RDM in SNR by way of the range equation
+    # - Motivation is to  direclty plot the RDM in SNR by way of the range equation
     # - The SNR is calculated at the initial range and does not change in time
-
-    # SNR for one pulse
-    SNR1 = snr_rangeEquation(
+    SNR_onepulse = snr_rangeEquation(
         radar["txPower"],
         radar["txGain"],
         radar["rxGain"],
@@ -70,14 +67,13 @@ def rdm_gen(
         waveform["time_BW_product"],
     )
 
-    SNR_volt = np.sqrt(SNR1 / radar["Npulses"])
+    SNR_volt = np.sqrt(SNR_onepulse / radar["Npulses"])
 
     ### Return  ##########################################
     signal_dc = dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"])
     noise_dc = dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"], noise=True)
-    addReturns(signal_dc, waveform, target, return_list, radar, r_axis, SNR_volt)
-    # noise added after return to keep a clean version for debug plots
-    total_dc = signal_dc + noise_dc
+    addReturns(signal_dc, waveform, target, return_list, radar, SNR_volt)
+    total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
 
     if debug:
         plotRTM(r_axis, signal_dc, "Noiseless RTM: unprocessed")
@@ -90,25 +86,23 @@ def rdm_gen(
         plotRTM(r_axis, signal_dc, "Noiseless RTM: match filtered")
 
     ### Doppler process ####################################
-    # create filter window and apply it
+    # first create filter window and apply it
     chwin_norm_mat = createWindow(signal_dc.shape, plot=False)
     total_dc = total_dc * chwin_norm_mat
     signal_dc = signal_dc * chwin_norm_mat
 
-    # doppler process datacubes
+    # Doppler process datacubes
     for dc in [signal_dc, total_dc]:
         f_axis, r_axis = dopplerProcess(dc, radar["sampRate"], radar["PRF"])
 
     # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
-    # TODO WHY PRF/fs ratio at end??!?!
+    print("TODO Why PRF/fs ratio at end?")
     rdot_axis = -c.C * f_axis / (2 * radar["fcar"]) * radar["PRF"] / radar["sampRate"]
 
     if debug:
         plotRDM(rdot_axis, r_axis, signal_dc, "Noiseless RDM")
-
-    # SNR and noise checks
-    if debug:
-        checkExpectedSNR(radar, target, waveform, SNR1, SNR_volt)
+        # SNR and noise checks
+        checkExpectedSNR(radar, target, waveform, SNR_onepulse, SNR_volt)
         noiseChecks(signal_dc, noise_dc, total_dc)
 
     if plot or debug:

@@ -62,29 +62,8 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
     return fig, ax
 
 
-def addSkin_range(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, tgt_range_ar, r_axis, SNR_volt):
-    """DEPRICATED
-    Old way of adding skin reaturn based on range
-    This method does not alias correctly in the fast-time/range dimension
-    """
-    firstEchoIndex = firstEchoBin(tgt_range_ar[0], radar["PRF"])
-
-    ## pulses timed from their start not their center, we compensate with pw/2 range offset
-    range_pw_offset = wvf["pulse_width"] / 2 * c.C / 2
-    aliasedRange_ar = tgt_range_ar % range_unambiguous(radar["PRF"])
-    phase_ar = -4 * c.PI * radar["fcar"] / c.C * tgt_range_ar
-
-    for i in range(radar["Npulses"] - firstEchoIndex):
-        # TODO is this how these should be binned? Should they be interpolated onto grid?
-        rangeIndex = np.argmin(abs(r_axis - aliasedRange_ar[i] + range_pw_offset))
-
-        pulse = SNR_volt * wvf["pulse"] * np.exp(1j * phase_ar[i])
-
-        addWvfAtIndex(signal_dc[:, i + firstEchoIndex], pulse, rangeIndex)  # add in place
-
-
 def addSkin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
-    """Add skin return to the input datacube in place"""
+    """Add skin return to the datacube"""
     # time and range arrays
     time_ar = np.arange(signal_dc.size) * 1 / radar["sampRate"]  # time of all samples in CPI
     t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]  # time when pulses sent
@@ -113,59 +92,50 @@ def addSkin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
     signal_dc[:] = tmpSignal[:]
 
 
-def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, r_axis, SNR_volt):
-    """ "Place pulse at range index and apply phase
-     - this should be generalized to per-pulse phase and delay on first recorded waveform
-    ## pulses timed from their start not their center, we compensate with pw/2 range offset
-    - should EA compensate for this?
-     - radar -> pod technique (time, freq) -> radar
-     - change the amplitude to not be connected to SNR/rcs/target
-     - ? x2 diff f_delta and f_rdot calc?
-     interface for returnInfo: rdot_offset, rdot_delta, delay
-    """
-    print("Note: memory return amplitudes are notional.")
+def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR_volt):
+    """Add notional memory return to datacube"""
+    print("Note: memory return amplitudes are notional")
 
-    t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]
-    t_fast_axis = 2 * r_axis / c.C
-    firstEchoIndex = firstEchoBin(tgtInfo["range"], radar["PRF"])
+    # time and range arrays
+    time_ar = np.arange(signal_dc.size) * 1 / radar["sampRate"]  # time of all samples in CPI
+    t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]  # time when pulses sent
+
+    tgt_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"] * t_slow_axis  # tgt range at pulse send
+    oneWay_time_delay_ar = tgt_range_ar / c.C  # time of travel from radar to tgt
+    # TODO this should be changed to when pod transmits, not when pulse was transmitted
+    pulse_return_time = t_slow_axis + 2 * oneWay_time_delay_ar  # time pulses return to radar
+    oneWay_phase_ar = -2 * c.PI * radar["fcar"] * oneWay_time_delay_ar  # Phase added due to
+
+    ## pulses timed from their start not their center, we compensate with pw/2 range offset
     time_pw_offset = wvf["pulse_width"] / 2
-    oneWay_time_ar = (tgtInfo["range"] + tgtInfo["rangeRate"] * t_slow_axis) / c.C
-    oneWay_phase_ar = -2 * c.PI * radar["fcar"] * oneWay_time_ar
 
     # Make output offset from skin return #############################################
-    if "rdot_offset" in returnInfo.keys():
-        f_rdot = 2 * radar["fcar"] / c.C * returnInfo["rdot_offset"]  # remove x2 for absolute rdot
-        rdot_offset_flag = True
-    else:
-        rdot_offset_flag = False
+    # - remove x2 for absolute rdot
+    f_rdot = 2 * radar["fcar"] / c.C * returnInfo.get("rdot_offset", 0)
 
     # Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #################
     # - want to add phase so wvfm will sill pass radar's match filter
     # - there are several methods see vbm.py
     if "rdot_delta" in returnInfo.keys():
         slowtime_noise = create_VBM_slowtime_noise(
-            radar["Npulses"], radar["fcar"], returnInfo["rdot_delta"], radar["PRF"], debug=False
+            radar["Npulses"], radar["fcar"], returnInfo["rdot_delta"], radar["PRF"]
         )
     else:
         slowtime_noise = np.ones(radar["Npulses"])  # default if no VBM
 
     # Delay the return ################################################################
-    # - can be negative
-    # - can make a range interface which converts range to time
-    if "delay" in returnInfo.keys():
-        delay = returnInfo["delay"]
-    else:
-        delay = 0
-
-    if "range_offset" in returnInfo.keys():
-        delay = 2 * returnInfo["range_offset"] / c.C
-    else:
-        delay = 0
+    # - can be negative, default is zero
+    delay = returnInfo.get("delay", 0)
+    delay += 2 * returnInfo.get("range_offset", 0) / c.C
+    print(f"{delay=}")
 
     stored_pulse = 0
     stored_angle = 0  # initialize to stop lsp from complaining
 
-    for i in range(radar["Npulses"] - firstEchoIndex):
+    # Due to the time axis being the non-continuous (slow) axis, we most do some transposing
+    tmpSignal = signal_dc.T.flatten()
+
+    for i in range(radar["Npulses"]):
         # pulse recieved by the EW system
         recieved_pulse = wvf["pulse"] * np.exp(1j * oneWay_phase_ar[i])
 
@@ -175,12 +145,13 @@ def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, r_ax
             continue
 
         # Calculate 1-way phase difference between first two pulses
+        # - in a more complicated system, we'd look at the phase diff of max of match filter
         if i == 1:
             stored_angle = np.angle(recieved_pulse) - np.angle(stored_pulse)
             stored_angle = phase_negpi_pospi(stored_angle)
             stored_angle = np.mean(stored_angle)
 
-        # create base pulse
+        # Create base pulse
         # - TODO set amplitude base on pod parameters
         pulse = SNR_volt * stored_pulse
 
@@ -190,20 +161,20 @@ def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, r_ax
         # add stored pulse difference rdot
         pulse = pulse * (np.exp(1j * i * stored_angle))
 
-        # add prescirbed rdot offset
-        if rdot_offset_flag:
-            pulse = pulse * (np.exp(-1j * i * 2 * c.PI * f_rdot / radar["PRF"]))
+        # add rdot offset
+        pulse = pulse * (np.exp(-1j * i * 2 * c.PI * f_rdot / radar["PRF"]))
 
         # add 1-way propagation phase back to radar
-        # echo may be incorrect in line below
-        pulse = pulse * (np.exp(1j * oneWay_phase_ar[i + firstEchoIndex]))  # CLEAN UP echo piece!
-
-        aliasedTime_ar = (2 * oneWay_time_ar + delay) % (1 / radar["PRF"])
+        pulse = pulse * np.exp(1j * oneWay_phase_ar[i])
 
         # TODO is this how these should be binned? Should they be interpolated onto grid?
-        rangeIndex = np.argmin(abs(t_fast_axis - aliasedTime_ar[i] + time_pw_offset))
+        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] - delay + time_pw_offset))
+        if timeIndex < signal_dc.size:  # else pulse is in next CPI
+            addWvfAtIndex(tmpSignal, pulse, timeIndex)
 
-        addWvfAtIndex(signal_dc[:, i + firstEchoIndex], pulse, rangeIndex)  # add in place
+    tmpSignal = tmpSignal.reshape(tuple(reversed(signal_dc.shape))).T
+
+    signal_dc[:] = tmpSignal[:]
 
 
 def noiseChecks(signal_dc, noise_dc, total_dc):
@@ -262,14 +233,14 @@ def createWindow(inShape: tuple, plot=True):
     return chwin_norm_mat
 
 
-def addReturns(dc, wvf, target, return_list, radar, r_axis, amp_volt):
+def addReturns(dc, wvf, target, return_list, radar, amp_volt):
     """Add returns from the return_list to the data cube
     Note: memory return amplitude is not physical"""
     for returnItem in return_list:
         if returnItem["type"] == "skin":
             addSkin(dc, wvf, target, radar, amp_volt)
         elif returnItem["type"] == "memory":
-            addMemory(dc, wvf, target, radar, returnItem, r_axis, amp_volt)
+            addMemory(dc, wvf, target, radar, returnItem, amp_volt)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 
