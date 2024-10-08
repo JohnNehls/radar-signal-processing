@@ -18,17 +18,17 @@ def gen(
     debug: bool = False,
 ):
     """
-    Genearat a single CPI RDM for one target moving at a constant range rate.
+    Generate a single CPI RDM for one target moving at a constant range rate.
 
     Parameters
     ----------
     target: dict with keys range, "rangeRate, rcs (all constant over the CPI)
     radar: dict with keys fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFig, totalLosses, PRF
-    waveform: dict with for wvform key types in ["uncoded", "barker", "random", "lfm"]
+    waveform: dict with for waveform key types in ["uncoded", "barker", "random", "lfm"]
     returnInfo_list: list of dicts containing return types to place in the RDM, in ["skin", "memory"]
 
-    Optional parameters
-    seed: int random seed for random module
+    Optional parameters:
+    seed: int random seed
     plot: boolean to plot the final RDM
     debug: boolean to plot each step in building the RDM and print out statistics
 

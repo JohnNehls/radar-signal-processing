@@ -2,7 +2,7 @@ import numpy as np
 from scipy import fft
 from . import constants as c
 from .waveform_helpers import matchFilterPulse
-
+from .noise import unityVarianceComplexNoise
 
 def range_axis(fs: float, Nr: int):
     """Create range labels for the fast-time axis"""
@@ -29,8 +29,7 @@ def dataCube(fs: float, prf: float, Np: int, noise: bool = False):
     """
     Nr = number_range_bins(fs, prf)
     if noise:
-        # TODO investiate why the noise has this eqn
-        dc = (np.random.randn(Nr, Np) + 1j * np.random.randn(Nr, Np)) / np.sqrt(2 * Np)
+        dc = unityVarianceComplexNoise((Nr,Np))/np.sqrt(Np)  # divide sqrt(Np) because upcomming DFT?
     else:
         dc = np.zeros((Nr, Np), dtype=np.complex64)
 

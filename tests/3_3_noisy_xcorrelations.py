@@ -2,12 +2,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.waveform_helpers import (
-    matchFilterPulse,
-    unityVarianceComplexNoise,
-    addWvfAtIndex,
-    plotPulseAndSpectrum,
-)
+from rsp.waveform_helpers import  matchFilterPulse, addWvfAtIndex, plotPulseAndSpectrum
+from rsp.noise import unityVarianceComplexNoise
 from rsp.waveform import makeUncodedPulse, makeBarkerCodedPulse, makeLFMPulse
 
 plt.close("all")
