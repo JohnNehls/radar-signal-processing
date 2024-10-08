@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-from rsp.waveform_helpers import matchFilterPulse
-from rsp.waveform import makeUncodedPulse, makeBarkerCodedPulse
+from rsp.waveform_helpers import matchfilter_with_waveform
+from rsp.waveform import uncoded_pulse, barker_coded_pulse
 
 plt.close("all")
 print("##############################")
@@ -14,9 +14,9 @@ BW = 4e6  # Hz
 SNR = 20
 
 sampleRate = 16e6  # Hz
-tb, mag_b = makeBarkerCodedPulse(sampleRate, BW, 13, output_length_T=1, normalize=True)
+tb, mag_b = barker_coded_pulse(sampleRate, BW, 13, output_length_T=1, normalize=True)
 mag_b_s = 10 ** (SNR / 20) * mag_b
-tu, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=13, normalize=True)
+tu, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=13, normalize=True)
 mag_u_s = 10 ** (SNR / 20) * mag_u
 
 fig, ax = plt.subplots(1, 2)
@@ -27,8 +27,8 @@ ax[0].set_xlabel("time [s]")
 ax[0].set_ylabel("pulse amplitude [v]")
 ax[0].legend()
 
-conv_u, iu = matchFilterPulse(mag_u_s, mag_u)
-conv_b, ib = matchFilterPulse(mag_b_s, mag_b)
+conv_u, iu = matchfilter_with_waveform(mag_u_s, mag_u)
+conv_b, ib = matchfilter_with_waveform(mag_b_s, mag_b)
 ax[1].plot(iu, conv_u, "-o", label="uncoded")
 ax[1].plot(ib, conv_b, "-x", label="barker13")
 ax[1].set_xlabel("index shift")

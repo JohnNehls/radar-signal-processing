@@ -5,18 +5,18 @@ import matplotlib.pyplot as plt
 from scipy import signal, fft
 from .pulse_doppler_radar import range_unambiguous
 from . import constants as c
-from .waveform_helpers import addWvfAtIndex
-from .vbm import create_VBM_slowtime_noise
+from .waveform_helpers import add_waveform_at_index
 from .utilities import phase_negpi_pospi
-from .range_equation import snr_rangeEquation_CP
+from .range_equation import snr_range_eqn_cp
+from . import vbm
 
 
-def firstEchoBin(range, PRF):
+def first_echo_pulse_bin(range, PRF):
     """Find the te slowtime bin the first target return will arrive in"""
     return int(range / range_unambiguous(PRF))
 
 
-def plotRTM(r_axis, data, title):
+def plot_rtm(r_axis, data, title):
     """Plot range-time matrix"""
     pulses = range(data.shape[1])
     fig, ax = plt.subplots(1, 2)
@@ -33,19 +33,19 @@ def plotRTM(r_axis, data, title):
     fig.tight_layout()
 
 
-def setZeroToSmallestFloat(array):
+def zero_to_smallest_float(array):
     """set all elements of input array to smallest float32"""
     indxs = np.where(array == 0)
     array[indxs] = sys.float_info.min
 
 
-def plotRDM(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
+def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
     """Plot range-Doppler matrix"""
     data = abs(data)
     fig, ax = plt.subplots(1, 1)
     fig.suptitle(title)
     if volt2db:
-        setZeroToSmallestFloat(data)  # needed for signal_dc plots
+        zero_to_smallest_float(data)  # needed for signal_dc plots
         data = 20 * np.log10(data)
     p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
     ax.set_xlabel("range rate [km/s]")
@@ -60,7 +60,7 @@ def plotRDM(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
     return fig, ax
 
 
-def addSkin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
+def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
     """Add skin return to the datacube"""
     # time and range arrays
     time_ar = np.arange(signal_dc.size) * 1 / radar["sampRate"]  # time of all samples in CPI
@@ -83,14 +83,14 @@ def addSkin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
         pulse = SNR_volt * wvf["pulse"] * np.exp(1j * twoWay_phase_ar[i])
 
         if timeIndex < signal_dc.size:  # else pulse is in next CPI
-            addWvfAtIndex(tmpSignal, pulse, timeIndex)
+            add_waveform_at_index(tmpSignal, pulse, timeIndex)
 
     tmpSignal = tmpSignal.reshape(tuple(reversed(signal_dc.shape))).T
 
     signal_dc[:] = tmpSignal[:]
 
 
-def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR_volt):
+def add_memory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR_volt):
     """Add notional memory return to datacube"""
     print("Note: memory return amplitudes are notional")
 
@@ -115,7 +115,7 @@ def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR_
     # - want to add phase so wvfm will sill pass radar's match filter
     # - there are several methods see vbm.py
     if "rdot_delta" in returnInfo.keys():
-        slowtime_noise = create_VBM_slowtime_noise(
+        slowtime_noise = vbm.slowtime_noise(
             radar["Npulses"], radar["fcar"], returnInfo["rdot_delta"], radar["PRF"]
         )
     else:
@@ -167,14 +167,14 @@ def addMemory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR_
         # TODO is this how these should be binned? Should they be interpolated onto grid?
         timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] - delay + time_pw_offset))
         if timeIndex < signal_dc.size:  # else pulse is in next CPI
-            addWvfAtIndex(tmpSignal, pulse, timeIndex)
+            add_waveform_at_index(tmpSignal, pulse, timeIndex)
 
     tmpSignal = tmpSignal.reshape(tuple(reversed(signal_dc.shape))).T
 
     signal_dc[:] = tmpSignal[:]
 
 
-def noiseChecks(signal_dc, noise_dc, total_dc):
+def noise_checks(signal_dc, noise_dc, total_dc):
     """Print out some noise checks"""
     print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
     print("\nnoise check:")
@@ -189,8 +189,8 @@ def noiseChecks(signal_dc, noise_dc, total_dc):
     print(f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
 
 
-def checkExpectedSNR(radar, target, waveform, SNR1, SNR_volt):
-    SNR_expected = snr_rangeEquation_CP(
+def check_expected_snr(radar, target, waveform, SNR1, SNR_volt):
+    SNR_expected = snr_range_eqn_cp(
         radar["txPower"],
         radar["txGain"],
         radar["rxGain"],
@@ -212,7 +212,7 @@ def checkExpectedSNR(radar, target, waveform, SNR1, SNR_volt):
     print(f"\t{10*np.log10(SNR_expected)=:.2f}")
 
 
-def createWindow(inShape: tuple, plot=True):
+def create_window(inShape: tuple, plot=True):
     """Create windowing function"""
     chwin = signal.windows.chebwin(inShape[1], 60)
     chwin_norm = chwin / np.mean(chwin)
@@ -230,20 +230,20 @@ def createWindow(inShape: tuple, plot=True):
     return chwin_norm_mat
 
 
-def addReturns(dc, wvf, target, return_list, radar, amp_volt):
+def add_returns(dc, wvf, target, return_list, radar, amp_volt):
     """Add returns from the return_list to the data cube
     Note: memory return amplitude is not physical"""
     for returnItem in return_list:
         if returnItem["type"] == "skin":
-            addSkin(dc, wvf, target, radar, amp_volt)
+            add_skin(dc, wvf, target, radar, amp_volt)
         elif returnItem["type"] == "memory":
-            addMemory(dc, wvf, target, radar, returnItem, amp_volt)
+            add_memory(dc, wvf, target, radar, returnItem, amp_volt)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 
 
-def calc_range_and_rangeRate(plat_pos: list, plat_vel: list, tgt_pos: list, tgt_vel: list):
-    """Calculated te range vector, range, and range-rate of a target relative to a platform"""
+def range_and_rangerate(plat_pos: list, plat_vel: list, tgt_pos: list, tgt_vel: list):
+    """Calculate the range vector, range, and range-rate of a target relative to a platform"""
 
     R_vec = np.array([tgt_pos[0] - plat_pos[0], tgt_pos[1] - plat_pos[1], tgt_pos[2] - plat_pos[2]])
 

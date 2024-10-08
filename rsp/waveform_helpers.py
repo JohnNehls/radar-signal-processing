@@ -46,7 +46,7 @@ def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2, debug=False):
         return find_width(newx, newy, interp_max, interp_count + 1)
 
 
-def plotPulseAndSpectrum(t, mag, title=None, printBandwidth=True):
+def plot_pulse_and_spectrum(t, mag, title=None, printBandwidth=True):
     """plotPulseAndSpectrum"""
     dt = t[1] - t[0]
     N = mag.size
@@ -100,7 +100,7 @@ def autocorrolate_waveform(waveform):
     return val, index_shift
 
 
-def plotPulseAndCrossCorrelation(t, mag, title=None, printWidth=True):
+def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
     dt = t[1] - t[0]
 
     fig, ax = plt.subplots(1, 2)
@@ -141,7 +141,7 @@ def plotPulseAndCrossCorrelation(t, mag, title=None, printWidth=True):
     return fig, ax
 
 
-def addWvfAtIndex(ar, waveform, index, debug=False):
+def add_waveform_at_index(ar, waveform, index, debug=False):
     """In place add wvf to current array"""
     Nar = ar.size
     Nwv = waveform.size
@@ -160,30 +160,7 @@ def addWvfAtIndex(ar, waveform, index, debug=False):
     return ar
 
 
-def _centered(arr, newshape):
-    "taken from scipy.signal"
-    # Return the center newshape portion of the array.
-    newshape = np.asarray(newshape)
-    currshape = np.array(arr.shape)
-    startind = (currshape - newshape) // 2
-    endind = startind + newshape
-    myslice = [slice(startind[k], endind[k]) for k in range(len(endind))]
-    return arr[tuple(myslice)]
-
-
-def _matchFilterPulse(ar, waveform):
-    """Just use signal.convolve"""
-    Nar = ar.size
-    Nwf = waveform.size
-    Nfft = Nar + Nwf  # add some padding
-    AR = fft.fft(ar, Nfft)
-    WF = fft.fft(waveform, Nfft)
-    val = fft.ifft(WF * np.conj(AR))
-    val = _centered(val, Nar)
-    return val
-
-
-def matchFilterPulse(ar, waveform):
+def matchfilter_with_waveform(ar, waveform):
     """Just use signal.convolve"""
     Nar = ar.size
     kernel = np.conj(waveform)[::-1]

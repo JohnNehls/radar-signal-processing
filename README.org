@@ -2,7 +2,7 @@
 Range Doppler map (RDM) and radar signal processing module.
 
 ** Description
-This Python module provides tools for creating range Doppler maps and includes a variety of functions useful for radar signal processing. It is designed to help researchers and engineers gain an intuition on how RDMs are made.
+This Python module provides tools for creating range Doppler maps and includes a variety of functions useful for radar signal processing. It is designed to be a simple tool, useful for gaining intuition on how RDMs are made.
 
 ** Features
 - Generate range Doppler maps

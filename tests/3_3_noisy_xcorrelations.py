@@ -2,9 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.waveform_helpers import  matchFilterPulse, addWvfAtIndex, plotPulseAndSpectrum
-from rsp.noise import unityVarianceComplexNoise
-from rsp.waveform import makeUncodedPulse, makeBarkerCodedPulse, makeLFMPulse
+from rsp.waveform_helpers import  matchfilter_with_waveform, add_waveform_at_index, plot_pulse_and_spectrum
+from rsp.noise import unity_var_complex_noise
+from rsp.waveform import uncoded_pulse, barker_coded_pulse, lfm_pulse
 
 plt.close("all")
 print("##############################")
@@ -17,23 +17,23 @@ BW = 4e6  # Hz
 
 print("## Case 1: add uncoded pulse ######")
 print("\tcreate noise")
-noise_1 = unityVarianceComplexNoise(1000)
+noise_1 = unity_var_complex_noise(1000)
 
 print("verify uncoded pulse BW")
-t_u, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=100, normalize=True)
-plotPulseAndSpectrum(t_u, mag_u, "uncoded BW check", True)
+t_u, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=100, normalize=True)
+plot_pulse_and_spectrum(t_u, mag_u, "uncoded BW check", True)
 
 # make pulse without extra points
-t_u, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
+t_u, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=1, normalize=True)
 indx_1 = 200
 SNR = 20  # noise is at 0dB
 mag_u_s = 10 ** (SNR / 20) * mag_u
 
-addWvfAtIndex(noise_1, mag_u_s, indx_1)  # add in place
+add_waveform_at_index(noise_1, mag_u_s, indx_1)  # add in place
 print("verify noise is at ~ 0dB")
 print(f"\t{10*np.log10(np.var(noise_1))=}")
 
-mf, m_index_shift = matchFilterPulse(noise_1, mag_u)
+mf, m_index_shift = matchfilter_with_waveform(noise_1, mag_u)
 
 fig, ax = plt.subplots(1, 3)
 fig.suptitle(f"S3P3 case 1: uncoded pulse at index{indx_1}")
@@ -54,30 +54,30 @@ for a in ax:
     a.grid()
 
 print("## Case 2: three uncoded pulse ####")
-noise_2 = unityVarianceComplexNoise(1000)
+noise_2 = unity_var_complex_noise(1000)
 
 # first pulse
 indx_1 = 128
 SNR = 15  # noise is at 0dB
-_, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
+_, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=1, normalize=True)
 mag_u_s = 10 ** (SNR / 20) * mag_u
-addWvfAtIndex(noise_2, mag_u_s, indx_1)  # add in place
+add_waveform_at_index(noise_2, mag_u_s, indx_1)  # add in place
 
 # second pulse
 indx_2 = 200
 SNR = 30  # noise is at 0dB
-_, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
+_, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=1, normalize=True)
 mag_u_s = 10 ** (SNR / 20) * mag_u
-addWvfAtIndex(noise_2, mag_u_s, indx_2)  # add in place
+add_waveform_at_index(noise_2, mag_u_s, indx_2)  # add in place
 
 # third pulse
 indx_3 = 950
 SNR = 20  # noise is at 0dB
-_, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=1, normalize=True)
+_, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=1, normalize=True)
 mag_u_s = 10 ** (SNR / 20) * mag_u
-addWvfAtIndex(noise_2, mag_u_s, indx_3)  # add in place
+add_waveform_at_index(noise_2, mag_u_s, indx_3)  # add in place
 
-mf, _ = matchFilterPulse(noise_2, mag_u)
+mf, _ = matchfilter_with_waveform(noise_2, mag_u)
 
 fig, ax = plt.subplots(1, 4)
 fig.suptitle("S3P3 case 2: three uncoded pulses, check SNR")
@@ -103,7 +103,7 @@ for a in ax:
 
 
 print("## Case 3: LFM and BPSK pulses ####")
-noise_3 = unityVarianceComplexNoise(1000)
+noise_3 = unity_var_complex_noise(1000)
 
 print(f"{10*np.log10(np.var(noise_3))=}")  # verify noise is at 0dB
 # LFM
@@ -111,16 +111,16 @@ lfm_idx = 300
 SNR = 20
 T = 2e-6
 chirpUpDown = 1
-_, mag_lfm = makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, normalize=True)
+_, mag_lfm = lfm_pulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, normalize=True)
 mag_lfm_s = 10 ** (SNR / 20) * mag_lfm
-addWvfAtIndex(noise_3, mag_lfm_s, lfm_idx)  # add in place
+add_waveform_at_index(noise_3, mag_lfm_s, lfm_idx)  # add in place
 
 # BPSK
 bpsk_idx = 600
 SNR = 20
-_, mag_b = makeBarkerCodedPulse(sampleRate, BW, 13, output_length_T=1, normalize=True)
+_, mag_b = barker_coded_pulse(sampleRate, BW, 13, output_length_T=1, normalize=True)
 mag_b_s = 10 ** (SNR / 20) * mag_b
-addWvfAtIndex(noise_3, mag_b_s, bpsk_idx)  # add in place
+add_waveform_at_index(noise_3, mag_b_s, bpsk_idx)  # add in place
 
 fig, ax = plt.subplots(1, 5)
 fig.suptitle("S3P3 case 3")
@@ -136,10 +136,10 @@ ax[1].set_xlabel("sample")
 ax[2].plot(abs(mag_b_s), "-o")
 ax[2].set_title(f"bpsk pulse, index={bpsk_idx}")
 ax[2].set_xlabel("sample")
-ax[3].plot(abs(matchFilterPulse(noise_3, mag_lfm)[0]))
+ax[3].plot(abs(matchfilter_with_waveform(noise_3, mag_lfm)[0]))
 ax[3].set_title("lfm match")
 ax[3].set_xlabel("sample")
-ax[4].plot(abs(matchFilterPulse(noise_3, mag_b)[0]))
+ax[4].plot(abs(matchfilter_with_waveform(noise_3, mag_b)[0]))
 ax[4].set_title("bpsk match")
 ax[4].set_xlabel("sample")
 plt.tight_layout()
@@ -152,9 +152,9 @@ BW = 4e6  # Hz
 SNR = 20
 
 sampleRate = 16e6  # Hz
-tb, mag_b = makeBarkerCodedPulse(sampleRate, BW, 13, output_length_T=1, normalize=True)
+tb, mag_b = barker_coded_pulse(sampleRate, BW, 13, output_length_T=1, normalize=True)
 mag_b_s = 10 ** (SNR / 20) * mag_b
-tu, mag_u = makeUncodedPulse(sampleRate, BW, output_length_T=13, normalize=True)
+tu, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=13, normalize=True)
 mag_u_s = 10 ** (SNR / 20) * mag_u
 
 fig, ax = plt.subplots(1, 2)
@@ -165,8 +165,8 @@ ax[0].set_xlabel("time [s]")
 ax[0].set_ylabel("pulse amplitude [v]")
 ax[0].legend()
 
-conv_u, iu = matchFilterPulse(mag_u_s, mag_u)
-conv_b, ib = matchFilterPulse(mag_b_s, mag_b)
+conv_u, iu = matchfilter_with_waveform(mag_u_s, mag_u)
+conv_b, ib = matchfilter_with_waveform(mag_b_s, mag_b)
 ax[1].plot(iu, conv_u, "-o", label="uncoded")
 ax[1].plot(ib, conv_b, "-x", label="barker13")
 ax[1].set_xlabel("index shift")

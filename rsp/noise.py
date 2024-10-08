@@ -5,7 +5,7 @@ from typing import Union
 from . import constants as c
 
 
-def unityVarianceComplexNoise(inSize: Union[tuple,int]):
+def unity_var_complex_noise(inSize: Union[tuple,int]):
     """Create complex noise with unity variance"""
     return (standard_normal(size=inSize) + 1j * standard_normal(size=inSize)) / np.sqrt(2)
 

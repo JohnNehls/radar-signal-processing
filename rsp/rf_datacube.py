@@ -1,8 +1,8 @@
 import numpy as np
 from scipy import fft
 from . import constants as c
-from .waveform_helpers import matchFilterPulse
-from .noise import unityVarianceComplexNoise
+from .waveform_helpers import matchfilter_with_waveform
+from .noise import unity_var_complex_noise
 
 def range_axis(fs: float, Nr: int):
     """Create range labels for the fast-time axis"""
@@ -29,14 +29,14 @@ def dataCube(fs: float, prf: float, Np: int, noise: bool = False):
     """
     Nr = number_range_bins(fs, prf)
     if noise:
-        dc = unityVarianceComplexNoise((Nr,Np))/np.sqrt(Np)  # divide sqrt(Np) because upcomming DFT?
+        dc = unity_var_complex_noise((Nr,Np))/np.sqrt(Np)  # divide sqrt(Np) because upcomming DFT?
     else:
         dc = np.zeros((Nr, Np), dtype=np.complex64)
 
     return dc
 
 
-def dopplerProcess(dc, fs):
+def doppler_process(dc, fs):
     """Process data cube in place
     ouputs:\n
     dataCube : \n
@@ -55,11 +55,11 @@ def dopplerProcess(dc, fs):
     return f_axis, R_axis
 
 
-def matchFilter(dataCube, pulse_wvf, pedantic=True):
+def matchfilter(dataCube, pulse_wvf, pedantic=True):
     """Inplace match filter on data cube"""
     if pedantic:
         for j in range(dataCube.shape[1]):
-            mf, _ = matchFilterPulse(dataCube[:, j], pulse_wvf)
+            mf, _ = matchfilter_with_waveform(dataCube[:, j], pulse_wvf)
             dataCube[:, j] = mf
     else:
         # Take FFT convolution directly

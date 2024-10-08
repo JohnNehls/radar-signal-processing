@@ -34,7 +34,7 @@ fig, ax = plt.subplots(1, len(Pt_ar), sharex="all", sharey="all")
 fig.suptitle("BPSK SNR")
 for index, Pt in enumerate(Pt_ar):
     for sig_index, sig in enumerate(sig_ar):
-        y = re.snr_rangeEquation_BPSK_pulses(
+        y = re.snr_range_eqn_bpsk_cp(
             Pt, Gt, Gr, sig, wavelength, R_ar, B, F, L, T, n_p, Ncode
         )
         y = 10 * np.log10(y)  # convert to dB
@@ -85,7 +85,7 @@ min_det_range_sigmaPt = np.zeros((len(Pt_ar), len(sigma_ar)))
 
 for i, Pt in enumerate(Pt_ar):
     for j, sigma in enumerate(sigma_ar):
-        val = re.minTargetDetectionRange_dutyFactor_pulses(
+        val = re.min_target_detection_range_dutyfactor_cp(
             Pt, Gt, Gr, sigma, wavelength, SNR_thresh, F, L, T, Tcpi, dutyFactor
         )
         min_det_range_sigmaPt[i, j] = val
@@ -108,7 +108,7 @@ min_det_range_sigmaTcpi = np.zeros((len(Tcpi_ar), len(sigma_ar)))
 
 for i, Tcpi in enumerate(Tcpi_ar):
     for j, sigma in enumerate(sigma_ar):
-        val = re.minTargetDetectionRange_dutyFactor_pulses(
+        val = re.min_target_detection_range_dutyfactor_cp(
             Pt, Gt, Gr, sigma, wavelength, SNR_thresh, F, L, T, Tcpi, dutyFactor
         )
         min_det_range_sigmaTcpi[i, j] = val

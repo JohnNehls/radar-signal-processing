@@ -14,7 +14,7 @@ BARKER_DICT = {
 }
 
 
-def makeUncodedPulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=True, centered=False):
+def uncoded_pulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=True, centered=False):
     """baseband uncoded pulse"""
     assert output_length_T >= 1, "Error: must output a full pulse"
     assert sampleRate / BW >= 2, "Error: sample rate below Nyquist"
@@ -35,7 +35,7 @@ def makeUncodedPulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=Tru
     return t, mag
 
 
-def makeCodedPulse(
+def coded_pulse(
     sampleRate, BW, code, output_length_T=1, t_start=0, normalize=True, centered=False
 ):
     """baseband coded pulse"""
@@ -72,11 +72,11 @@ def makeCodedPulse(
     return t, mag
 
 
-def makeBarkerCodedPulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
+def barker_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
     """baseband Barker coded pulse"""
     assert nChips in BARKER_DICT, f"Error: {nChips=} is not a valid Barker code."
     assert nChips == len(BARKER_DICT[nChips]), "Error: Barker dict is incorrect"
-    return makeCodedPulse(
+    return coded_pulse(
         sampleRate,
         BW,
         BARKER_DICT[nChips],
@@ -86,10 +86,10 @@ def makeBarkerCodedPulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, n
     )
 
 
-def makeRandomCodedPulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
+def randome_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
     """baseband random bi-phase coded pulse"""
     code_rand = np.random.choice([1, -1], size=nChips)
-    return makeCodedPulse(
+    return coded_pulse(
         sampleRate,
         BW,
         code_rand,
@@ -99,7 +99,7 @@ def makeRandomCodedPulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, n
     )
 
 
-def makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, normalize=True):
+def lfm_pulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, normalize=True):
     """baseband LFM pulse"""
     assert output_length_T >= 1, "Error: must output a full pulse"
     dt = 1 / sampleRate
@@ -119,25 +119,25 @@ def makeLFMPulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, n
 def process_waveform_dict(wvf: dict, radar: dict):
     """Fill in wvf dict with "pulse", "time_BW_product", "pulse_width" """
     if wvf["type"] == "uncoded":
-        _, pulse_wvf = makeUncodedPulse(radar["sampRate"], wvf["bw"])
+        _, pulse_wvf = uncoded_pulse(radar["sampRate"], wvf["bw"])
         wvf["pulse"] = pulse_wvf
         wvf["time_BW_product"] = 1
         wvf["pulse_width"] = 1 / wvf["bw"]
 
     elif wvf["type"] == "barker":
-        _, pulse_wvf = makeBarkerCodedPulse(radar["sampRate"], wvf["bw"], wvf["nchips"])
+        _, pulse_wvf = barker_coded_pulse(radar["sampRate"], wvf["bw"], wvf["nchips"])
         wvf["pulse"] = pulse_wvf
         wvf["time_BW_product"] = wvf["nchips"]
         wvf["pulse_width"] = 1 / wvf["bw"] * wvf["nchips"]
 
     elif wvf["type"] == "random":
-        _, pulse_wvf = makeRandomCodedPulse(radar["sampRate"], wvf["bw"], wvf["nchips"])
+        _, pulse_wvf = randome_coded_pulse(radar["sampRate"], wvf["bw"], wvf["nchips"])
         wvf["pulse"] = pulse_wvf
         wvf["time_BW_product"] = wvf["nchips"]
         wvf["pulse_width"] = 1 / wvf["bw"] * wvf["nchips"]
 
     elif wvf["type"] == "lfm":
-        _, pulse_wvf = makeLFMPulse(radar["sampRate"], wvf["bw"], wvf["T"], wvf["chirpUpDown"])
+        _, pulse_wvf = lfm_pulse(radar["sampRate"], wvf["bw"], wvf["T"], wvf["chirpUpDown"])
         wvf["pulse"] = pulse_wvf
         wvf["time_BW_product"] = wvf["bw"] * wvf["T"]
         wvf["pulse_width"] = wvf["T"]
