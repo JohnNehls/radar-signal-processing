@@ -4,6 +4,7 @@ from . import constants as c
 from .waveform_helpers import matchfilter_with_waveform
 from .noise import unity_var_complex_noise
 
+
 def range_axis(fs: float, Nr: int):
     """Create range labels for the fast-time axis"""
     dR_grid = c.C / (2 * fs)
@@ -29,7 +30,8 @@ def dataCube(fs: float, prf: float, Np: int, noise: bool = False):
     """
     Nr = number_range_bins(fs, prf)
     if noise:
-        dc = unity_var_complex_noise((Nr,Np))/np.sqrt(Np)  # divide sqrt(Np) because upcomming DFT?
+        # divide sqrt(Np) because upcomming DFT?
+        dc = unity_var_complex_noise((Nr, Np)) / np.sqrt(Np)
     else:
         dc = np.zeros((Nr, Np), dtype=np.complex64)
 

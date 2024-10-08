@@ -30,6 +30,6 @@ waveform = {"type": "lfm", "bw": bw, "T": 1.0e-6, "chirpUpDown": 1}
 
 return_list = [{"type": "skin"}]
 
-rdm.gen(target, radar, waveform, return_list, debug=True)
+rdm.gen(target, radar, waveform, return_list, debug=False)
 
 plt.show()

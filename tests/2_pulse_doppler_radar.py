@@ -1,7 +1,15 @@
 #!/usr/bin/env python
+
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from rsp import pulse_doppler_radar as pdr
+
+# Can turn blocking plot off in the commandline
+if sys.argv[-1].lower() == "--no-block":
+    BLOCK = False
+else:
+    BLOCK = True
 
 ## problem 1 ######################################
 PRF_ar = np.arange(1e3, 200.5e3, 500)
@@ -110,4 +118,4 @@ plt.ylabel("apparent rangeRate [m/s]")
 plt.legend()
 plt.grid()
 
-plt.show()
+plt.show(block=BLOCK)

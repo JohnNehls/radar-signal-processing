@@ -1,13 +1,13 @@
 import numpy as np
-from numpy.random import standard_normal
+import numpy.random as nr
 from scipy import fft
 from typing import Union
 from . import constants as c
 
 
-def unity_var_complex_noise(inSize: Union[tuple,int]):
+def unity_var_complex_noise(inSize: Union[tuple, int]):
     """Create complex noise with unity variance"""
-    return (standard_normal(size=inSize) + 1j * standard_normal(size=inSize)) / np.sqrt(2)
+    return (nr.standard_normal(size=inSize) + 1j * nr.standard_normal(size=inSize)) / np.sqrt(2)
 
 
 def band_limited_complex_noise(min_freq, max_freq, samples, sampleRate, normalize=False):

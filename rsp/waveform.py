@@ -35,9 +35,7 @@ def uncoded_pulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=True, 
     return t, mag
 
 
-def coded_pulse(
-    sampleRate, BW, code, output_length_T=1, t_start=0, normalize=True, centered=False
-):
+def coded_pulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize=True, centered=False):
     """baseband coded pulse"""
     assert output_length_T >= 1, "Error: must output a full pulse"
 
@@ -86,7 +84,7 @@ def barker_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, nor
     )
 
 
-def randome_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
+def random_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
     """baseband random bi-phase coded pulse"""
     code_rand = np.random.choice([1, -1], size=nChips)
     return coded_pulse(
@@ -131,7 +129,7 @@ def process_waveform_dict(wvf: dict, radar: dict):
         wvf["pulse_width"] = 1 / wvf["bw"] * wvf["nchips"]
 
     elif wvf["type"] == "random":
-        _, pulse_wvf = randome_coded_pulse(radar["sampRate"], wvf["bw"], wvf["nchips"])
+        _, pulse_wvf = random_coded_pulse(radar["sampRate"], wvf["bw"], wvf["nchips"])
         wvf["pulse"] = pulse_wvf
         wvf["time_BW_product"] = wvf["nchips"]
         wvf["pulse_width"] = 1 / wvf["bw"] * wvf["nchips"]

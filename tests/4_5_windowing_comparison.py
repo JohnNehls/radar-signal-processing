@@ -1,11 +1,18 @@
 #!/usr/bin/env python
 
+import sys
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 from rsp.constants import PI
 from rsp.waveform import uncoded_pulse
 from rsp.waveform_helpers import plot_pulse_and_spectrum
+
+# Can turn blocking plot off in the commandline
+if sys.argv[-1].lower() == "--no-block":
+    BLOCK = False
+else:
+    BLOCK = True
 
 print("##########################")
 print("TEST windowing")
@@ -42,4 +49,4 @@ mag_s = np.exp(2j * PI * fs / 8 * t_s) * mag_u
 plot_pulse_and_spectrum(t_s, mag_s, "complex tone w/o filter")
 plot_pulse_and_spectrum(t_s, chwin * mag_s, "complex tone w ch filter")
 
-plt.show()
+plt.show(block=BLOCK)

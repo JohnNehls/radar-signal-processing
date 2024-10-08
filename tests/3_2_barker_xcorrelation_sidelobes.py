@@ -1,8 +1,15 @@
 #!/usr/bin/env python
 
+import sys
 import matplotlib.pyplot as plt
 from rsp.waveform_helpers import matchfilter_with_waveform
 from rsp.waveform import uncoded_pulse, barker_coded_pulse, BARKER_DICT
+
+# Can turn blocking plot off in the commandline
+if sys.argv[-1].lower() == "--no-block":
+    BLOCK = False
+else:
+    BLOCK = True
 
 print("#############################################")
 print("Problem 2: Barker sidelobe check code example")
@@ -45,4 +52,5 @@ for nChip in BARKER_DICT.keys():
 for a in ax:
     a.grid()
     a.legend()
-plt.show()
+
+plt.show(block=BLOCK)

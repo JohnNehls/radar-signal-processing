@@ -1,10 +1,21 @@
 #!/usr/bin/env python
 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.waveform_helpers import  matchfilter_with_waveform, add_waveform_at_index, plot_pulse_and_spectrum
+from rsp.waveform_helpers import (
+    matchfilter_with_waveform,
+    add_waveform_at_index,
+    plot_pulse_and_spectrum,
+)
 from rsp.noise import unity_var_complex_noise
 from rsp.waveform import uncoded_pulse, barker_coded_pulse, lfm_pulse
+
+# Can turn blocking plot off in the commandline
+if sys.argv[-1].lower() == "--no-block":
+    BLOCK = False
+else:
+    BLOCK = True
 
 plt.close("all")
 print("##############################")
@@ -176,4 +187,4 @@ plt.tight_layout()
 for a in ax:
     a.grid()
 
-plt.show()
+plt.show(block=BLOCK)

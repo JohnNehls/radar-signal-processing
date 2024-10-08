@@ -23,6 +23,9 @@ cd radar-signal-processing
 pip install .
 #+END_SRC
 
+*** requirements
+Python >= 3.11
+
 ** Usage
 For examples of basic usage, see the [[file:examples][examples]]. To see a script with all waveform and return options written out, check out [[file:examples/kitchen_sink.py][kitchen_sink.py]].
 

@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from rsp.rf_datacube import dataCube, doppler_process
 from rsp.constants import PI
+
+# Can turn blocking plot off in the commandline
+if sys.argv[-1].lower() == "--no-block":
+    BLOCK = False
+else:
+    BLOCK = True
 
 print("##########################")
 print("TEST datacube processing")
@@ -36,4 +43,4 @@ ax[1].set_xlabel("frequency [MHz]")
 ax[1].set_ylabel("range [m]")
 plt.tight_layout()
 
-plt.show(block=False)
+plt.show(block=BLOCK)

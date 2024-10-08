@@ -23,6 +23,7 @@ def print_noise_stats(slowtime_noise):
     print(f"\t{np.mean(np.angle(slowtime_noise))=}")
     print(f"\t{np.sqrt(np.var(np.angle(slowtime_noise)))=}")
 
+
 ####################################################################################################
 ### Start: noise techniques to achieve VBM in order of complexity ###
 ####################################################################################################
@@ -62,9 +63,12 @@ def _lfm_phase(Npulses, f_delta, PRF):
     """ "Method 2 : use LFM in slow time"""
     _, slowtime_noise = lfm_pulse(PRF, f_delta, Npulses / PRF, 1, normalize=False)
     return slowtime_noise
+
+
 ####################################################################################################
 ### End: noise techniques to achieve VBM in order of complexity ###
 ####################################################################################################
+
 
 def slowtime_noise(Npulses, fcar, rdot_delta, PRF, noiseFun=_lfm_phase, debug=False):
     """Create noise in slowtime for VBM

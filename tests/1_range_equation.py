@@ -1,9 +1,16 @@
 #!/usr/bin/env python
 
+import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from rsp.constants import PI, C
 import rsp.range_equation as re
+
+# Can turn blocking plot off in the commandline
+if sys.argv[-1].lower() == "--no-block":
+    BLOCK = False
+else:
+    BLOCK = True
 
 ## problem 1 #############################################################
 # given
@@ -34,9 +41,7 @@ fig, ax = plt.subplots(1, len(Pt_ar), sharex="all", sharey="all")
 fig.suptitle("BPSK SNR")
 for index, Pt in enumerate(Pt_ar):
     for sig_index, sig in enumerate(sig_ar):
-        y = re.snr_range_eqn_bpsk_cp(
-            Pt, Gt, Gr, sig, wavelength, R_ar, B, F, L, T, n_p, Ncode
-        )
+        y = re.snr_range_eqn_bpsk_cp(Pt, Gt, Gr, sig, wavelength, R_ar, B, F, L, T, n_p, Ncode)
         y = 10 * np.log10(y)  # convert to dB
         ax[index].plot(R_ar / 1e3, y, label=f"RCS={sig_db_ar[sig_index]}[dBsm]")
     ax[index].plot(R_ar / 1e3, SNR_thresh_db * np.ones(R_ar.shape), "--k", label="threshold")
@@ -121,4 +126,4 @@ c.set_label("minimum detectable target range [km]")
 plt.xlabel("target RCS [dBsm]")
 plt.ylabel("CPI time [ms]")
 
-plt.show()
+plt.show(block=BLOCK)
