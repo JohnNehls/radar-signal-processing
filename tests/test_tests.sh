@@ -15,6 +15,7 @@ run_python_files() {
     for file in "$dir_path"/*.py
     do
         echo "Running $file..."
+	# no block check is added to files int ./tests
         python "$file" "--no-block" > /dev/null 2>&1
 
         # Check if the last command was successful
@@ -28,14 +29,14 @@ run_python_files() {
     fi
 }
 
-echo "################################################################################"
-echo "##################### Tests in ./tests #########################################"
-echo "################################################################################"
+echo "################## test files in ./tests #############################################"
 run_python_files .
 
 echo ""
-echo ""
-echo "################################################################################"
-echo "##################### Tests in ./examples ######################################"
-echo "################################################################################"
+echo "################## inspect plots in ./examples #######################################"
 run_python_files ../examples
+
+# Studies take a relativly long time to run, check less frequently
+echo ""
+echo "################## inspect plots in ./studies ########################################"
+run_python_files ../studies

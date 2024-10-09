@@ -112,12 +112,17 @@ def add_memory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR
     f_rdot = 2 * radar["fcar"] / c.C * returnInfo.get("rdot_offset", 0)
 
     # Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #################
-    # - want to add phase so wvfm will sill pass radar's match filter
-    # - there are several methods see vbm.py
     if "rdot_delta" in returnInfo.keys():
+        # there are several methods implemented, lfm is best, see vbm.py
+        vbm_noise_function = returnInfo.get("vbm_noise_function", vbm._lfm_phase)
         slowtime_noise = vbm.slowtime_noise(
-            radar["Npulses"], radar["fcar"], returnInfo["rdot_delta"], radar["PRF"]
+            radar["Npulses"],
+            radar["fcar"],
+            returnInfo["rdot_delta"],
+            radar["PRF"],
+            noiseFun=vbm_noise_function,
         )
+
     else:
         slowtime_noise = np.ones(radar["Npulses"])  # default if no VBM
 
@@ -152,7 +157,7 @@ def add_memory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR
         # - TODO set amplitude base on pod parameters
         pulse = SNR_volt * stored_pulse
 
-        # add noise (VBM)
+        # add slowtime noise (VBM)
         pulse = pulse * slowtime_noise[i]
 
         # add stored pulse difference rdot

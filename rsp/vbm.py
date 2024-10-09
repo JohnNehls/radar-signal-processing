@@ -27,22 +27,23 @@ def print_noise_stats(slowtime_noise):
 ####################################################################################################
 ### Start: noise techniques to achieve VBM in order of complexity ###
 ####################################################################################################
-def _random_phase(Npulses):
-    """ "Method 0 : random phase in all frequencies"""
+def _random_phase(Npulses, *args):
+    """Random phase, placing energy in all frequencies"""
     rand_phase = 2 * c.PI * np.random.rand(Npulses)
     return np.exp(1j * rand_phase)
 
 
 def _uniform_bandwidth_phase(Npulses, f_delta, PRF):
-    """ "Method 1 : random phase in a band width"""
+    """Random phase within in a bandwidth"""
     # - does not require assumption on processing interval
     # - dirty result if each element is made magnitude = 1
     # - un-normalized (normalized over interval) only makes sense if possible on hardware
+    # - adds much of the engery in the f_delta, but also lots of energy in other freqs
     return band_limited_complex_noise(-f_delta / 2, +f_delta / 2, Npulses, PRF, normalize=True)
 
 
 def _gaussian_bandwidth_phase(Npulses, f_delta, PRF):
-    """ "Method 1 : random phase in a band width"""
+    """Random phase in a bandwidth using a gaussian distribution"""
     # - does not require assumption on processing interval
     # - dirty result if each element is made magnitude = 1
     # - un-normalized (normalized over interval) only makes sense if possible on hardware
@@ -50,7 +51,7 @@ def _gaussian_bandwidth_phase(Npulses, f_delta, PRF):
 
 
 def _gaussian_bandwidth_phase_normalized(Npulses, f_delta, PRF):
-    """ "Method 1.5 : random phase normalized over a period-- WIP"""
+    """Random phase normalized over a period"""
     # - A way to make the random noise cleaner is to normalize over a an interval
     # - use with un-normalized noise
     # - requires knowledge of number of pulses? (maybe)
@@ -60,7 +61,8 @@ def _gaussian_bandwidth_phase_normalized(Npulses, f_delta, PRF):
 
 
 def _lfm_phase(Npulses, f_delta, PRF):
-    """ "Method 2 : use LFM in slow time"""
+    """Phase created from LFM-- an LFM in slowtime"""
+    # - cleanest VBM method
     _, slowtime_noise = lfm_pulse(PRF, f_delta, Npulses / PRF, 1, normalize=False)
     return slowtime_noise
 
