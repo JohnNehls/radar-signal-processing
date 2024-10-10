@@ -34,7 +34,7 @@ vbm_name_function_dict = {
     "uniform bandwidth phase VBM": vbm._uniform_bandwidth_phase,
     "gaussian bandwidth phase VBM": vbm._gaussian_bandwidth_phase,
     "uniform bandwidth phase normalized VBM": vbm._gaussian_bandwidth_phase_normalized,
-    "LFM phase VBM": vbm._lfm_phase
+    "LFM phase VBM": vbm._lfm_phase,
 }
 
 for name, func in vbm_name_function_dict.items():

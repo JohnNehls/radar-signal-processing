@@ -6,14 +6,14 @@ import matplotlib.pyplot as plt
 from rsp.rf_datacube import dataCube, doppler_process
 from rsp.constants import PI
 
-# Can turn blocking plot off in the commandline
+# Can make plotting non-blocking with an input flag
 if sys.argv[-1].lower() == "--no-block":
     BLOCK = False
 else:
     BLOCK = True
 
 print("##########################")
-print("TEST datacube processing")
+print("Test datacube processing")
 print("##########################")
 
 # given
@@ -42,5 +42,9 @@ ax[1].pcolormesh(f_ax * 1e-6, r_ax, abs(dc))
 ax[1].set_xlabel("frequency [MHz]")
 ax[1].set_ylabel("range [m]")
 plt.tight_layout()
+
+print("TODO: create a test that checks the max of RDM is in the correct bin")
+# if maxBin != [x,y]:
+#     raise Exception("RDM processed incorrectly")
 
 plt.show(block=BLOCK)

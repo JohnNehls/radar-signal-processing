@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from rsp.waveform_helpers import matchfilter_with_waveform
 from rsp.waveform import uncoded_pulse, barker_coded_pulse, BARKER_DICT
 
-# Can turn blocking plot off in the commandline
+# Can make plotting non-blocking with an input flag
 if sys.argv[-1].lower() == "--no-block":
     BLOCK = False
 else:

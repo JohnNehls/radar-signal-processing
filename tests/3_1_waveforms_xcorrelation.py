@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 from rsp.waveform_helpers import plot_pulse_and_spectrum, plot_pulse_and_xcorrelation
 from rsp.waveform import uncoded_pulse, barker_coded_pulse, random_coded_pulse, lfm_pulse
 
-# Can turn blocking plot off in the commandline
+# Can make plotting non-blocking with an input flag
 if sys.argv[-1].lower() == "--no-block":
     BLOCK = False
 else:

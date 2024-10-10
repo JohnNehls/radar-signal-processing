@@ -6,7 +6,7 @@ import matplotlib.pyplot as plt
 from rsp.constants import PI, C
 import rsp.range_equation as re
 
-# Can turn blocking plot off in the commandline
+# Can make plotting non-blocking with an input flag
 if sys.argv[-1].lower() == "--no-block":
     BLOCK = False
 else:
@@ -32,6 +32,7 @@ SNR_thresh = 10 ** (SNR_thresh_db / 10)
 wavelength = C / fc
 theta_3db = wavelength / antenna_diameter  # for a circular apature radar
 Gt = 4 * PI / (theta_3db) ** 2  # az and el are the same
+
 # assumptions
 Gr = Gt  # simpilifying assumption
 T = 290  # Kelvin
@@ -44,7 +45,12 @@ for index, Pt in enumerate(Pt_ar):
         y = re.snr_range_eqn_bpsk_cp(Pt, Gt, Gr, sig, wavelength, R_ar, B, F, L, T, n_p, Ncode)
         y = 10 * np.log10(y)  # convert to dB
         ax[index].plot(R_ar / 1e3, y, label=f"RCS={sig_db_ar[sig_index]}[dBsm]")
-    ax[index].plot(R_ar / 1e3, SNR_thresh_db * np.ones(R_ar.shape), "--k", label="threshold")
+    ax[index].plot(
+        R_ar / 1e3,
+        SNR_thresh_db * np.ones(R_ar.shape),
+        "--k",
+        label=f"{SNR_thresh_db} dB threshold",
+    )
     ax[index].set_title(f"Pt={Pt*1e-3:.1f}[kW]")
     ax[index].set_xlabel("target distance [km]")
     ax[index].set_ylabel("SNR dB")
@@ -52,6 +58,7 @@ for index, Pt in enumerate(Pt_ar):
     ax[index].legend(loc="upper right")
 
 ## problem 2 #############################################################
+# given
 sigma = 10 ** (0 / 10)  # 0 dBsm
 Pt = 5e3  # Watts
 Tcpi_ar = [2e-3, 5e-3, 10e-3]  # seconds
@@ -67,7 +74,12 @@ for index, Tcpi in enumerate(Tcpi_ar):
         )
         y = 10 * np.log10(y)  # convert to dB
         ax[index].plot(R_ar / 1e3, y, label=f"DF={dutyFactor}")
-    ax[index].plot(R_ar / 1e3, SNR_thresh_db * np.ones(R_ar.shape), "--k", label="threshold")
+    ax[index].plot(
+        R_ar / 1e3,
+        SNR_thresh_db * np.ones(R_ar.shape),
+        "--k",
+        label=f"{SNR_thresh_db} dB threshold",
+    )
     ax[index].set_title(f"CPI={Tcpi*1e3:.1f}[ms]")
     ax[index].set_xlabel("target distance [km]")
     ax[index].set_ylabel("SNR dB")
@@ -75,6 +87,7 @@ for index, Tcpi in enumerate(Tcpi_ar):
     ax[index].legend(loc="upper right")
 
 ## problem 3 #############################################################
+# given
 SNR_thresh_db = 15
 SNR_thresh = 10 ** (SNR_thresh_db / 10)
 dutyFactor = 0.1  # 10%
@@ -85,7 +98,6 @@ Tcpi = 2e-3  # seconds
 Pt_ar = np.arange(500, 10.1e3, 100)
 sigma_db_ar = np.arange(-5, 26, 1)
 sigma_ar = [10 ** (x / 10) for x in sigma_db_ar]
-# min_det_range_sigmaPt = np.zeros((len(sigma_ar),len(Pt_ar)))
 min_det_range_sigmaPt = np.zeros((len(Pt_ar), len(sigma_ar)))
 
 for i, Pt in enumerate(Pt_ar):
@@ -96,7 +108,7 @@ for i, Pt in enumerate(Pt_ar):
         min_det_range_sigmaPt[i, j] = val
 
 plt.figure()
-plt.title(f"Tcpi={Tcpi*1e3}[ms] DF={dutyFactor}  SNR_thresh={SNR_thresh_db}[dBsm]")
+plt.title(f"Tcpi={Tcpi*1e3}[ms] DF={dutyFactor}  SNR_thresh={SNR_thresh_db}[dB]")
 plt.pcolormesh(sigma_db_ar, Pt_ar * 1e-3, min_det_range_sigmaPt * 1e-3)
 c = plt.colorbar()
 c.set_label("minimum detectable target range [km]")
@@ -108,7 +120,6 @@ plt.ylabel("transmit power [kW]")
 # y-axis Tcpi, x-axis target RCS
 Pt = 5e3  # Watts
 Tcpi_ar = np.arange(1e-3, 50.2e-3, 200e-6)
-# min_det_range_sigmaTcpi = np.zeros((len(sigma_ar),len(Tcpi_ar)))
 min_det_range_sigmaTcpi = np.zeros((len(Tcpi_ar), len(sigma_ar)))
 
 for i, Tcpi in enumerate(Tcpi_ar):
@@ -119,7 +130,7 @@ for i, Tcpi in enumerate(Tcpi_ar):
         min_det_range_sigmaTcpi[i, j] = val
 
 plt.figure()
-plt.title(f"Pt={Pt*1e-3:.1f}kW  DF={dutyFactor}  SNR_thresh={SNR_thresh_db}[dBsm]")
+plt.title(f"Pt={Pt*1e-3:.1f}kW  DF={dutyFactor}  SNR_thresh={SNR_thresh_db}[dB]")
 plt.pcolormesh(sigma_db_ar, Tcpi_ar * 1e3, min_det_range_sigmaTcpi * 1e-3)
 c = plt.colorbar()
 c.set_label("minimum detectable target range [km]")

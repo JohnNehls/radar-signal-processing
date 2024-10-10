@@ -5,11 +5,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from rsp import pulse_doppler_radar as pdr
 
-# Can turn blocking plot off in the commandline
+# Can make plotting non-blocking with an input flag
 if sys.argv[-1].lower() == "--no-block":
     BLOCK = False
 else:
     BLOCK = True
+
+plt.rcParams["text.usetex"] = True
 
 ## problem 1 ######################################
 PRF_ar = np.arange(1e3, 200.5e3, 500)
@@ -25,14 +27,17 @@ plt.grid(which="both")
 ## problem 2 ######################################
 f0_ar = np.array([1, 2, 3, 4, 12, 16, 35, 95]) * 1e9
 plt.figure()
-for f0 in f0_ar:
-    plt.plot(PRF_ar * 1e-3, pdr.rangeRate_pm_unambiguous(PRF_ar, f0) * 1e-3, label=f"{f0=:.1e}")
-plt.title("unambiguous +/- range rate vs PRF")
+plt.title(r"unambiguous $\pm$ range rate vs PRF")
 plt.xlabel("PRF [kHz]")
-plt.ylabel("+/- max range rate [km/s]")
+plt.ylabel(r"$\pm$ max range rate [km/s]")
+for f0 in f0_ar:
+    plt.plot(
+        PRF_ar * 1e-3, pdr.rangeRate_pm_unambiguous(PRF_ar, f0) * 1e-3, label=f"$f_0=${f0:.1e}"
+    )
 plt.yscale("log")
 plt.legend()
-plt.grid(which="both")
+plt.grid()
+
 
 ## problem 3 ######################################
 # target is 15.5km away. plot apparent range for
@@ -50,18 +55,16 @@ for PRF in PRF_ar:
 apparent_range_ar = np.array(apparent_range_ar)
 range_max_ar = np.array(range_max_ar)
 
-fig, ax = plt.subplots(1, 2)
-fig.suptitle(f"aliased range vs PRF: R_tgt = {R_tgt*1e-3:.1f} [km]")
-ax[0].set_title("aliased range")
-ax[0].plot(PRF_ar * 1e-3, apparent_range_ar * 1e-3, "o")
-ax[0].set_xlabel("PRF [kHz]")
-ax[0].set_ylabel("apparent range [km]")
-ax[0].grid()
-ax[1].set_title("unambiguous range [km]")
-ax[1].plot(PRF_ar * 1e-3, range_max_ar * 1e-3)
-ax[1].set_xlabel("PRF [kHz]")
-ax[1].set_ylabel("unambiguous range [km]")
-ax[1].grid()
+plt.figure()
+plt.title(f"range aliasing vs PRF: target range = {R_tgt*1e-3:.1f} [km]")
+plt.plot(PRF_ar * 1e-3, apparent_range_ar * 1e-3, "o", label="apparent range")
+plt.plot(PRF_ar * 1e-3, range_max_ar * 1e-3, "--r", label="unambiguous range")
+plt.xlabel("PRF [kHz]")
+plt.ylabel("range [km]")
+plt.ylim((0, 20))
+plt.legend()
+plt.grid()
+
 
 ## problem 4 ######################################
 rangeRate_tgt = -750  # m/s
@@ -78,18 +81,22 @@ apparent_doppler_ar = np.array(apparent_doppler_ar)
 apparent_rangeRate_ar = np.array(apparent_rangeRate_ar)
 
 fig, ax = plt.subplots(1, 2)
-fig.suptitle(f"Rdot_tgt = {rangeRate_tgt} [m/s]")
-ax[0].set_title("aliased Doppler freq")
-ax[0].plot(PRF_ar * 1e-3, apparent_doppler_ar * 1e-3, "-o")
+fig.suptitle(f"target range rate = {rangeRate_tgt} [m/s]")
+ax[0].set_title("Doppler frequency aliasing")
+ax[0].plot(PRF_ar * 1e-3, apparent_doppler_ar * 1e-3, "-o", label="apparent $f_D$")
+ax[0].plot(PRF_ar * 1e-3, PRF_ar / 2 * 1e-3, "--r", label="unambiguous $f_D$")
 ax[0].set_xlabel("PRF [kHz]")
 ax[0].set_ylabel("apparent Doppler freq [kHz]")
+ax[0].legend()
 ax[0].grid()
-ax[1].set_title("aliased range rate")
-ax[1].plot(PRF_ar * 1e-3, apparent_rangeRate_ar, "-o", label="apparentRdot")
-ax[1].plot(PRF_ar * 1e-3, pdr.rangeRate_pm_unambiguous(PRF_ar, f0), "--r", label="unamb_Rdot")
+ax[1].set_title("range rate aliasing")
+ax[1].plot(PRF_ar * 1e-3, apparent_rangeRate_ar, "-o", label=r"apparent $\dot{r}$")
+ax[1].plot(
+    PRF_ar * 1e-3, pdr.rangeRate_pm_unambiguous(PRF_ar, f0), "--r", label=r"unambiguous $\dot{r}$"
+)
 ax[1].plot(PRF_ar * 1e-3, -pdr.rangeRate_pm_unambiguous(PRF_ar, f0), "--r")
 ax[1].set_xlabel("PRF [kHz]")
-ax[1].set_ylabel("apparent rangeRate [m/s]")
+ax[1].set_ylabel("apparent range rate [m/s]")
 ax[1].legend()
 ax[1].grid()
 
@@ -109,13 +116,16 @@ apparent_rangeRate_ar = np.array(apparent_rangeRate_ar)
 rangeRate_max_ar = np.array(rangeRate_max_ar)
 
 plt.figure()
-plt.title(f"aliased range rate vs freq: Rdot_tgt = {rangeRate_tgt} [m/s] PRF={PRF*1e-3:.1f}[km]")
-plt.plot(f0_ar * 1e-9, apparent_rangeRate_ar, "o", label="apparentRdot")
-plt.plot(f0_ar * 1e-9, rangeRate_max_ar, "--r", label="unamb_Rdot")
+plt.title(
+    rf"range rate vs freq: $\dot{{r}}_{{target}}$ = {rangeRate_tgt} [m/s], PRF={PRF*1e-3:.1f}[km]"
+)
+plt.plot(f0_ar * 1e-9, apparent_rangeRate_ar, "o", label=r"apparent $\dot{r}$")
+plt.plot(f0_ar * 1e-9, rangeRate_max_ar, "--r", label=r"unambiguous $\dot{r}$")
 plt.plot(f0_ar * 1e-9, -rangeRate_max_ar, "--r")
 plt.xlabel("operation frequency [GHz]")
 plt.ylabel("apparent rangeRate [m/s]")
 plt.legend()
 plt.grid()
 
+plt.tight_layout()
 plt.show(block=BLOCK)
