@@ -46,7 +46,7 @@ def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2, debug=False):
         return find_width(newx, newy, interp_max, interp_count + 1)
 
 
-def plot_pulse_and_spectrum(t, mag, title=None, printBandwidth=True):
+def plot_pulse_and_spectrum(t, mag, title=None, printBandwidth=True, spec_dec=False):
     """plotPulseAndSpectrum"""
     dt = t[1] - t[0]
     N = mag.size
@@ -69,9 +69,14 @@ def plot_pulse_and_spectrum(t, mag, title=None, printBandwidth=True):
 
     val = abs(MAG)
     val = val / val.max()
+    if spec_dec:
+        val = 10 * np.log10(val)
+        ax[1].set_ylabel("baseband magnitude dB")
+    else:
+        ax[1].set_ylabel("baseband magnitude")
     ax[1].plot(f, val, "-o")
     ax[1].set_xlabel("freqency [Hz]")
-    ax[1].set_ylabel("baseband magnitude")
+
     ax[1].grid()
 
     if title:
