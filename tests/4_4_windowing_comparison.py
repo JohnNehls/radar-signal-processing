@@ -22,7 +22,7 @@ BW = 11e6
 outLength = 1
 
 # make pulse
-t_u, mag_u = uncoded_pulse(fs, BW, output_length_T=outLength)
+t_u, mag_u = uncoded_pulse(fs, BW)
 
 idx = np.where(mag_u != 0)[0].shape[0]
 

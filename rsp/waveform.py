@@ -31,6 +31,13 @@ def uncoded_pulse(sampleRate, BW, t_start=0, normalize=True):
     return t, mag
 
 
+def complex_tone_pulse(sampleRate, BW, fc, t_start=0, normalize=True):
+    """complex tone pulse"""
+    t, mag = uncoded_pulse(sampleRate, BW, t_start=t_start, normalize=True)
+    mag_c = np.exp(2j * c.PI * fc * t) * mag
+    return t, mag_c
+
+
 def coded_pulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize=True):
     """baseband coded pulse"""
     assert output_length_T >= 1, "Error: must output a full pulse"

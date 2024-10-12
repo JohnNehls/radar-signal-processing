@@ -83,7 +83,7 @@ add_waveform_at_index(noise_2, mag_u_s, indx_2)  # add in place
 # third pulse
 indx_3 = 950
 SNR = 20  # noise is at 0dB
-_, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=1, normalize=True)
+_, mag_u = uncoded_pulse(sampleRate, BW)
 mag_u_s = 10 ** (SNR / 20) * mag_u
 add_waveform_at_index(noise_2, mag_u_s, indx_3)  # add in place
 

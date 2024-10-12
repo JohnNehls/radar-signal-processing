@@ -5,6 +5,13 @@ from scipy.interpolate import interp1d
 from scipy import signal
 
 
+def zeropad_waveform(t, mag, Npad):
+    """Zeropad waveform with Npad"""
+    mag = np.append(mag, np.zeros(Npad))
+    t = np.arange(mag.size) * (t[1] - t[0])
+    return t, mag
+
+
 def moving_average(waveform, elements):
     """moving average of input waveform over number of elements specified"""
     kernel = np.ones(elements) / elements
@@ -57,7 +64,7 @@ def plot_pulse_and_spectrum(t, mag, title=None, Npad=0, printBandwidth=True, spe
         ax[0].legend()
     else:
         ax[0].plot(t, mag, "-o")
-        ax[0].set_ylim((0,mag.max()*1.1))
+        ax[0].set_ylim((min(0, mag.min() * 1.1), mag.max() * 1.1))
 
     ax[0].set_xlabel("time [s]")
     ax[0].set_ylabel("baseband signal")
