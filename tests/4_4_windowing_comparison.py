@@ -4,7 +4,6 @@ import sys
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
-from rsp.constants import PI
 from rsp.waveform import uncoded_pulse
 from rsp.waveform_helpers import plot_pulse_and_spectrum
 
@@ -23,10 +22,7 @@ BW = 11e6
 outLength = 1
 
 # make pulse
-# t_u, mag_u = uncoded_pulse(fs, BW, output_length_T=outLength, centered=True)
-t_u, mag_u = uncoded_pulse(fs, BW, output_length_T=outLength, centered=False)
-print("unfiltered pulse")
-plot_pulse_and_spectrum(t_u, mag_u, "unfiltered pulse", spec_dec=True)
+t_u, mag_u = uncoded_pulse(fs, BW, output_length_T=outLength)
 
 idx = np.where(mag_u != 0)[0].shape[0]
 
@@ -40,15 +36,15 @@ mag_chwin = chwin * mag_u
 mag_bhwin = bhwin * mag_u
 mag_tywin = tywin * mag_u
 
-#zero pad
-Npad = 4*2048
+# zero pad
+Npad = 4001
 
 mag_pulse = np.append(mag_u, np.zeros(Npad))
 mag_chwin = np.append(mag_chwin, np.zeros(Npad))
 mag_bhwin = np.append(mag_bhwin, np.zeros(Npad))
 mag_tywin = np.append(mag_tywin, np.zeros(Npad))
 dt = t_u[1] - t_u[0]
-t_pulse = np.append(t_u, np.arange(Npad)*dt +t_u[-1]+dt)
+t_pulse = np.append(t_u, np.arange(Npad) * dt + t_u[-1] + dt)
 
 print("uncoded")
 plot_pulse_and_spectrum(t_pulse, mag_pulse, "unfiltered pulse", spec_dec=True)
