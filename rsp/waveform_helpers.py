@@ -46,11 +46,9 @@ def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2, debug=False):
         return find_width(newx, newy, interp_max, interp_count + 1)
 
 
-def plot_pulse_and_spectrum(t, mag, title=None, printBandwidth=True, spec_dec=False):
+def plot_pulse_and_spectrum(t, mag, title=None, Npad=0, printBandwidth=True, spec_dec=False):
     """plotPulseAndSpectrum"""
-    dt = t[1] - t[0]
-    N = mag.size
-
+    ## time domain ##
     fig, ax = plt.subplots(1, 2)
     if np.iscomplexobj(mag):
         ax[0].plot(t, np.abs(mag), "-o", label="magnitude")
@@ -59,10 +57,17 @@ def plot_pulse_and_spectrum(t, mag, title=None, printBandwidth=True, spec_dec=Fa
         ax[0].legend()
     else:
         ax[0].plot(t, mag, "-o")
+        ax[0].set_ylim((0,mag.max()*1.1))
 
     ax[0].set_xlabel("time [s]")
     ax[0].set_ylabel("baseband signal")
     ax[0].grid()
+
+    ##  frequency domain ##
+    # pad with zeros for greater freq resolution
+    mag = np.append(mag, np.zeros(Npad))
+    dt = t[1] - t[0]
+    N = mag.size
 
     MAG = fft.fftshift(fft.fft(mag)) / N
     f = fft.fftshift(fft.fftfreq(N, dt))
@@ -70,11 +75,11 @@ def plot_pulse_and_spectrum(t, mag, title=None, printBandwidth=True, spec_dec=Fa
     val = abs(MAG)
     val = val / val.max()
     if spec_dec:
-        val = 10 * np.log10(val)
+        val = 20 * np.log10(val)
         ax[1].set_ylabel("baseband magnitude dB")
     else:
         ax[1].set_ylabel("baseband magnitude")
-    ax[1].plot(f, val, "-o")
+    ax[1].plot(f, val, "-")
     ax[1].set_xlabel("freqency [Hz]")
 
     ax[1].grid()

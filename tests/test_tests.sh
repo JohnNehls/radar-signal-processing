@@ -21,7 +21,7 @@ run_python_files() {
         # Check if the last command was successful
         if [ $? -ne 0 ]; then
             echo "Error: $file failed to run successfully."
-            # return 1
+            success=0
         fi
     done
     if [ $success -eq 1 ]; then

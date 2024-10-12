@@ -39,20 +39,13 @@ mag_tywin = tywin * mag_u
 # zero pad
 Npad = 4001
 
-mag_pulse = np.append(mag_u, np.zeros(Npad))
-mag_chwin = np.append(mag_chwin, np.zeros(Npad))
-mag_bhwin = np.append(mag_bhwin, np.zeros(Npad))
-mag_tywin = np.append(mag_tywin, np.zeros(Npad))
-dt = t_u[1] - t_u[0]
-t_pulse = np.append(t_u, np.arange(Npad) * dt + t_u[-1] + dt)
-
 print("uncoded")
-plot_pulse_and_spectrum(t_pulse, mag_pulse, "unfiltered pulse", spec_dec=True)
+plot_pulse_and_spectrum(t_u, mag_u, "unfiltered pulse", Npad, spec_dec=True)
 print("Chebyshev")
-plot_pulse_and_spectrum(t_pulse, mag_chwin, "chwin filtered pulse", spec_dec=True)
+plot_pulse_and_spectrum(t_u, mag_chwin, "chwin filtered pulse", Npad, spec_dec=True)
 print("Blackman-Harris")
-plot_pulse_and_spectrum(t_pulse, mag_bhwin, "bhwin filtered pulse", spec_dec=True)
+plot_pulse_and_spectrum(t_u, mag_bhwin, "bhwin filtered pulse", Npad, spec_dec=True)
 print("Taylor (should be smaller BW)")
-plot_pulse_and_spectrum(t_pulse, mag_tywin, "tywin filtered pulse", spec_dec=True)
+plot_pulse_and_spectrum(t_u, mag_tywin, "tywin filtered pulse", Npad, spec_dec=True)
 
 plt.show(block=BLOCK)

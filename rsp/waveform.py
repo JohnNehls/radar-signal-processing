@@ -13,14 +13,13 @@ BARKER_DICT = {
 }
 
 
-def uncoded_pulse(sampleRate, BW, output_length_T=1, t_start=0, normalize=True):
+def uncoded_pulse(sampleRate, BW, t_start=0, normalize=True):
     """baseband uncoded pulse"""
-    assert output_length_T >= 1, "Error: must output a full pulse"
     assert sampleRate / BW >= 2, "Error: sample rate below Nyquist"
 
     T = 1 / BW
     dt = 1 / sampleRate
-    t_end = t_start + output_length_T * T
+    t_end = t_start + T
     t = np.arange(t_start, t_end, dt)
     mag = np.zeros(t.size)
 

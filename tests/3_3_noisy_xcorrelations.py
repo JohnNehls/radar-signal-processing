@@ -30,11 +30,11 @@ print("\tcreate noise")
 noise_1 = unity_var_complex_noise(1000)
 
 print("verify uncoded pulse BW")
-t_u, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=100, normalize=True)
-plot_pulse_and_spectrum(t_u, mag_u, "uncoded BW check", True)
+t_u, mag_u = uncoded_pulse(sampleRate, BW, normalize=True)
+plot_pulse_and_spectrum(t_u, mag_u, "uncoded BW check", Npad=1000)
 
 # make pulse without extra points
-t_u, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=1, normalize=True)
+t_u, mag_u = uncoded_pulse(sampleRate, BW)
 indx_1 = 200
 SNR = 20  # noise is at 0dB
 mag_u_s = 10 ** (SNR / 20) * mag_u
@@ -69,14 +69,14 @@ noise_2 = unity_var_complex_noise(1000)
 # first pulse
 indx_1 = 128
 SNR = 15  # noise is at 0dB
-_, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=1, normalize=True)
+_, mag_u = uncoded_pulse(sampleRate, BW)
 mag_u_s = 10 ** (SNR / 20) * mag_u
 add_waveform_at_index(noise_2, mag_u_s, indx_1)  # add in place
 
 # second pulse
 indx_2 = 200
 SNR = 30  # noise is at 0dB
-_, mag_u = uncoded_pulse(sampleRate, BW, output_length_T=1, normalize=True)
+_, mag_u = uncoded_pulse(sampleRate, BW)
 mag_u_s = 10 ** (SNR / 20) * mag_u
 add_waveform_at_index(noise_2, mag_u_s, indx_2)  # add in place
 
@@ -121,14 +121,14 @@ lfm_idx = 300
 SNR = 20
 T = 2e-6
 chirpUpDown = 1
-_, mag_lfm = lfm_pulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, normalize=True)
+_, mag_lfm = lfm_pulse(sampleRate, BW, T, chirpUpDown)
 mag_lfm_s = 10 ** (SNR / 20) * mag_lfm
 add_waveform_at_index(noise_3, mag_lfm_s, lfm_idx)  # add in place
 
 # BPSK
 bpsk_idx = 600
 SNR = 20
-_, mag_b = barker_coded_pulse(sampleRate, BW, 13, output_length_T=1, normalize=True)
+_, mag_b = barker_coded_pulse(sampleRate, BW, 13)
 mag_b_s = 10 ** (SNR / 20) * mag_b
 add_waveform_at_index(noise_3, mag_b_s, bpsk_idx)  # add in place
 
