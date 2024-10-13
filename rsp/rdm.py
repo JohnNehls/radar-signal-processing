@@ -23,7 +23,7 @@ def gen(
     Parameters
     ----------
     target: dict with keys range, "rangeRate, rcs (all constant over the CPI)
-    radar: dict with keys fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFig, totalLosses, PRF
+    radar: dict with keys fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFactor, totalLosses, PRF
     waveform: dict with for waveform key types in ["uncoded", "barker", "random", "lfm"]
     returnInfo_list: list of dicts containing return types to place in the RDM, in ["skin", "memory"]
 
@@ -62,7 +62,7 @@ def gen(
         c.C / radar["fcar"],
         target["range"],
         waveform["bw"],
-        radar["noiseFig"],
+        radar["noiseFactor"],
         radar["totalLosses"],
         radar["opTemp"],
         waveform["time_BW_product"],

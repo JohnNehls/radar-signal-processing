@@ -19,7 +19,7 @@ radar = {
     "rxGain": 10 ** (30 / 10),
     "opTemp": 290,
     "sampRate": 2 * bw,
-    "noiseFig": 10 ** (8 / 10),
+    "noiseFactor": 10 ** (8 / 10),
     "totalLosses": 10 ** (8 / 10),
     "PRF": 500e3,
     "dwell_time": 10e-3,
