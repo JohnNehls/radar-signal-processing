@@ -7,7 +7,7 @@ from .pulse_doppler_radar import range_unambiguous
 from . import constants as c
 from .waveform_helpers import add_waveform_at_index
 from .utilities import phase_negpi_pospi
-from .range_equation import snr_range_eqn_cp
+from .range_equation import snr_range_eqn_cp, signal_range_eqn
 from . import vbm
 
 
@@ -39,24 +39,28 @@ def zero_to_smallest_float(array):
     array[indxs] = sys.float_info.min
 
 
-def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
+def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=0, volt2dbm=True):
     """Plot range-Doppler matrix"""
-    data = abs(data)
+
+    data = abs(data)  # complex -> real
+
     fig, ax = plt.subplots(1, 1)
     fig.suptitle(title)
-    if volt2db:
-        zero_to_smallest_float(data)  # needed for signal_dc plots
-        data = 20 * np.log10(data)
-    p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
     ax.set_xlabel("range rate [km/s]")
     ax.set_ylabel("range [km]")
-    p.set_clim(cbarMin, data.max())
-    cbar = fig.colorbar(p)
-    if volt2db:
-        cbar.set_label("SNR [dB]")
+    if volt2dbm:
+        zero_to_smallest_float(data)  # needed for signal_dc plots
+        data = 20 * np.log10(data / np.sqrt(1e-3 * c.RADAR_LOAD))
+        p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
+        cbar = fig.colorbar(p)
+        cbar.set_label("Power [dBm]")
     else:
-        cbar.set_label("SNR")
+        p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
+        cbar = fig.colorbar(p)
+        cbar.set_label("Power [W]")
+
     fig.tight_layout()
+
     return fig, ax
 
 
@@ -203,7 +207,7 @@ def check_expected_snr(radar, target, waveform, SNR1, SNR_volt):
         c.C / radar["fcar"],
         target["range"],
         waveform["bw"],
-        radar["noiseFig"],
+        radar["noiseFactor"],
         radar["totalLosses"],
         radar["opTemp"],
         radar["Npulses"],
@@ -235,7 +239,7 @@ def create_window(inShape: tuple, plot=True):
     return chwin_norm_mat
 
 
-def add_returns(dc, wvf, target, return_list, radar, amp_volt):
+def add_returns_snr(dc, wvf, target, return_list, radar, amp_volt):
     """Add returns from the return_list to the data cube
     Note: memory return amplitude is not physical"""
     for returnItem in return_list:
@@ -243,6 +247,44 @@ def add_returns(dc, wvf, target, return_list, radar, amp_volt):
             add_skin(dc, wvf, target, radar, amp_volt)
         elif returnItem["type"] == "memory":
             add_memory(dc, wvf, target, radar, returnItem, amp_volt)
+        else:
+            print(f"{returnItem['type']=} not known, no return added.")
+
+
+def add_returns(signal_dc, waveform, target, return_list, radar):
+    """Add returns from the return_list to the data cube
+    Note: memory return amplitude is not physical"""
+    for returnItem in return_list:
+        if returnItem["type"] == "skin":
+            rxPower = signal_range_eqn(
+                radar["txPower"],
+                radar["txGain"],
+                radar["rxGain"],
+                target["rcs"],
+                c.C / radar["fcar"],
+                target["range"],
+                radar["totalLosses"],
+            )
+            print(f"{rxPower=: .2e}")
+            rxVolt = np.sqrt(c.RADAR_LOAD * rxPower)
+
+            add_skin(signal_dc, waveform, target, radar, rxVolt)
+        elif returnItem["type"] == "memory":
+            # radar below should should be replaced by EW system
+            platform = returnItem["platform"]
+            rxMemPower = signal_range_eqn(
+                platform["txPower"],
+                platform["txGain"],
+                radar["rxGain"],
+                1,
+                c.C / radar["fcar"],  # same as radar if memory
+                target["range"] / 2,  # only one-way propagation
+                platform["totalLosses"],
+            )
+            print(f"{rxMemPower=: .2e}")
+            rxMemVolt = np.sqrt(c.RADAR_LOAD * rxMemPower)
+
+            add_memory(signal_dc, waveform, target, radar, returnItem, rxMemVolt)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 

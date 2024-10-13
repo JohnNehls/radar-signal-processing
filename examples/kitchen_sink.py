@@ -41,6 +41,11 @@ return_list = [
         "rdot_offset": 0.3e3,
         "range_offset": -0.2e3,
         "delay": 1.33e-6,
+        "platform": {
+            "txPower": 200.0e3,
+            "txGain": 10 ** (30 / 10),
+            "totalLosses": 10 ** (3 / 10),
+        },
     },
     {"type": "skin"},
 ]

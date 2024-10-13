@@ -1,6 +1,34 @@
 from . import constants as c
 
 
+def signal_range_eqn(Pt, Gt, Gr, sigma, wavelength, R, L):
+    """Signal power in Watts considering transmit and recieve gain, RCS, wavelength, range, and losses
+    Args:
+        Pt (float) : Transmit power [W]
+        Gt (float) : Transmit gain [unitless]
+        Gr (float) : Recieve gain [unitless]
+        sigma (float) : Radar cross section [m^2]
+        wavelength (float) : Wavelength [Hz]
+        R (float) : Range [m]
+        L (float) : Loss [unitless]
+    Return:
+        (float) signal power [S]
+    """
+    return (Pt * Gt * Gr * sigma * wavelength**2) / (((4 * c.PI) ** 3) * (R**4) * L)
+
+
+def noise_power(B, F, T):
+    """Single-pulse SNR for uncoded pulse
+    Args:
+        B (float) : Bandwidth of the reciever [Hz]
+        F (float) : Noise factor of the reciever [unitless]
+        T (float) : Temperature of the system [Kelvin]
+    Return:
+        Power of the noise
+    """
+    return c.K_BOLTZ * T * B * F
+
+
 def snr_range_eqn_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T):
     """Single-pulse SNR for uncoded pulse
     Gt, Gr, F, and L can be either unitless or dB, but all must be te same units"""

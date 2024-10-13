@@ -4,8 +4,10 @@ from .rdm_helpers import plot_rtm, plot_rdm
 from .rf_datacube import number_range_bins, range_axis, dataCube
 from .rf_datacube import matchfilter, doppler_process
 from .waveform import process_waveform_dict
-from .range_equation import snr_range_eqn
-from .rdm_helpers import add_returns, noise_checks, create_window, check_expected_snr
+from .range_equation import noise_power, snr_range_eqn
+
+from .rdm_helpers import noise_checks, create_window, check_expected_snr
+from .rdm_helpers import add_returns
 
 
 def gen(
@@ -16,6 +18,7 @@ def gen(
     seed: int = 0,
     plot: bool = True,
     debug: bool = False,
+    SNR: bool = False,
 ):
     """
     Generate a single CPI RDM for one target moving at a constant range rate.
@@ -72,8 +75,14 @@ def gen(
 
     ### Return  ##########################################
     signal_dc = dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"])
-    noise_dc = dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"], noise=True)
-    add_returns(signal_dc, waveform, target, return_list, radar, SNR_volt)
+    rxVolt_noise = np.sqrt(
+        c.RADAR_LOAD * noise_power(waveform["bw"], radar["noiseFactor"], radar["opTemp"])
+    )
+    noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
+
+    add_returns(signal_dc, waveform, target, return_list, radar)
+    # add_returns_snr(signal_dc, waveform, target, return_list, radar, rxVolt)
+
     total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
 
     if debug:

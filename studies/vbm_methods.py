@@ -8,7 +8,7 @@ import rsp.vbm as vbm
 # Display each of the VBM noise methods in order of complexity
 ################################################################################
 
-target = {"range": 0.5e3, "rangeRate": 0.0e3, "rcs": 10}
+target = {"range": 4.7e3, "rangeRate": 0.0e3, "rcs": 10}
 
 bw = 5e6
 
@@ -27,7 +27,18 @@ radar = {
 
 waveform = {"type": "uncoded", "bw": bw}
 
-return_list = [{"type": "memory", "rdot_delta": 1.0e3, "rdot_offset": 0.0e3}]
+return_list = [
+    {
+        "type": "memory",
+        "rdot_delta": 1.0e3,
+        "rdot_offset": 0.0e3,
+        "platform": {
+            "txPower": 2.0e3,
+            "txGain": 10 ** (30 / 10),
+            "totalLosses": 10 ** (3 / 10),
+        },
+    }
+]
 
 vbm_name_function_dict = {
     "random phase VBM": vbm._random_phase,

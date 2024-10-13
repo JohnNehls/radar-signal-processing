@@ -27,7 +27,18 @@ radar = {
 
 waveform = {"type": "uncoded", "bw": bw}
 
-return_list = [{"type": "memory", "rdot_delta": 2.0e3, "rdot_offset": 0.0e3}]
+return_list = [
+    {
+        "type": "memory",
+        "rdot_delta": 2.0e3,
+        "rdot_offset": 0.0e3,
+        "platform": {
+            "txPower": 200.0e3,
+            "txGain": 10 ** (30 / 10),
+            "totalLosses": 10 ** (3 / 10),
+        },
+    }
+]
 
 rdm.gen(target, radar, waveform, return_list, debug=False)
 
