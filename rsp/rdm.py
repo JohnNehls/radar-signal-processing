@@ -5,7 +5,7 @@ from .rf_datacube import number_range_bins, range_axis, dataCube
 from .rf_datacube import matchfilter, doppler_process
 from .waveform import process_waveform_dict
 from .range_equation import noise_power
-from .noise import unity_var_complex_noise
+from .noise import unity_variance_complex_noise
 from .rdm_helpers import noise_checks, create_window, check_expected_snr
 from .rdm_helpers import add_returns, add_returns_snr
 
@@ -59,7 +59,7 @@ def gen(
     if snr:
         ### Direclty plot the RDM in SNR by way of the range equation ###
         # - The SNR is calculated at the initial range and does not change in time
-        noise_dc = unity_var_complex_noise(signal_dc.shape) / np.sqrt(radar["Npulses"])
+        noise_dc = unity_variance_complex_noise(signal_dc.shape) / np.sqrt(radar["Npulses"])
         add_returns_snr(signal_dc, waveform, target, return_list, radar)
     else:
         ### Determin scaling factors for max voltage ###

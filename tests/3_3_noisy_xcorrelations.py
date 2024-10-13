@@ -8,7 +8,7 @@ from rsp.waveform_helpers import (
     add_waveform_at_index,
     plot_pulse_and_spectrum,
 )
-from rsp.noise import unity_var_complex_noise
+from rsp.noise import unity_variance_complex_noise
 from rsp.waveform import uncoded_pulse, barker_coded_pulse, lfm_pulse
 
 # Can make plotting non-blocking with an input flag
@@ -27,7 +27,7 @@ BW = 4e6  # Hz
 
 print("## Case 1: add uncoded pulse ######")
 print("\tcreate noise")
-noise_1 = unity_var_complex_noise(1000)
+noise_1 = unity_variance_complex_noise(1000)
 
 print("verify uncoded pulse BW")
 t_u, mag_u = uncoded_pulse(sampleRate, BW, normalize=True)
@@ -64,7 +64,7 @@ for a in ax:
     a.grid()
 
 print("## Case 2: three uncoded pulse ####")
-noise_2 = unity_var_complex_noise(1000)
+noise_2 = unity_variance_complex_noise(1000)
 
 # first pulse
 indx_1 = 128
@@ -113,7 +113,7 @@ for a in ax:
 
 
 print("## Case 3: LFM and BPSK pulses ####")
-noise_3 = unity_var_complex_noise(1000)
+noise_3 = unity_variance_complex_noise(1000)
 
 print(f"{10*np.log10(np.var(noise_3))=}")  # verify noise is at 0dB
 # LFM

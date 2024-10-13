@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 
-from rsp.rdm_helpers import range_and_rangerate
+from rsp.geometry import range_and_rangerate
 
 print("##########################")
 print("3D radial calcs")
