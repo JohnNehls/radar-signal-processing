@@ -50,6 +50,6 @@ return_list = [
     {"type": "skin"},
 ]
 
-rdm.gen(target, radar, waveform, return_list, debug=False)
+rdm.gen(target, radar, waveform, return_list, seed=0, plot=True, debug=False, snr=False)
 
 plt.show()

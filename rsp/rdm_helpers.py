@@ -1,19 +1,12 @@
-import sys
 import numpy as np
 from numpy.linalg import norm
 import matplotlib.pyplot as plt
 from scipy import signal, fft
-from .pulse_doppler_radar import range_unambiguous
 from . import constants as c
 from .waveform_helpers import add_waveform_at_index
-from .utilities import phase_negpi_pospi
-from .range_equation import snr_range_eqn_cp, signal_range_eqn
+from .utilities import phase_negpi_pospi, zero_to_smallest_float
+from .range_equation import snr_range_eqn, snr_range_eqn_cp, signal_range_eqn
 from . import vbm
-
-
-def first_echo_pulse_bin(range, PRF):
-    """Find the te slowtime bin the first target return will arrive in"""
-    return int(range / range_unambiguous(PRF))
 
 
 def plot_rtm(r_axis, data, title):
@@ -33,13 +26,7 @@ def plot_rtm(r_axis, data, title):
     fig.tight_layout()
 
 
-def zero_to_smallest_float(array):
-    """set all elements of input array to smallest float32"""
-    indxs = np.where(array == 0)
-    array[indxs] = sys.float_info.min
-
-
-def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=0, volt2dbm=True):
+def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=-100, volt2dbm=True):
     """Plot range-Doppler matrix"""
 
     data = abs(data)  # complex -> real
@@ -52,12 +39,39 @@ def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=0, volt2dbm=True):
         zero_to_smallest_float(data)  # needed for signal_dc plots
         data = 20 * np.log10(data / np.sqrt(1e-3 * c.RADAR_LOAD))
         p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
+        p.set_clim(cbarMin, data.max())
         cbar = fig.colorbar(p)
         cbar.set_label("Power [dBm]")
     else:
         p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
+        p.set_clim(cbarMin, data.max())
         cbar = fig.colorbar(p)
         cbar.set_label("Power [W]")
+
+    fig.tight_layout()
+
+    return fig, ax
+
+
+def plot_rdm_snr(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
+    """Plot range-Doppler matrix"""
+    data = abs(data)  # complex -> real
+
+    fig, ax = plt.subplots(1, 1)
+    fig.suptitle(title)
+    ax.set_xlabel("range rate [km/s]")
+    ax.set_ylabel("range [km]")
+    if volt2db:
+        zero_to_smallest_float(data)  # needed for signal_dc plots
+        data = 20 * np.log10(data)
+    p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
+    print("cbarmin")
+    p.set_clim(cbarMin, data.max())
+    cbar = fig.colorbar(p)
+    if volt2db:
+        cbar.set_label("SNR [dB]")
+    else:
+        cbar.set_label("SNR")
 
     fig.tight_layout()
 
@@ -198,7 +212,8 @@ def noise_checks(signal_dc, noise_dc, total_dc):
     print(f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
 
 
-def check_expected_snr(radar, target, waveform, SNR1, SNR_volt):
+def check_expected_snr(radar, target, waveform):
+    ## expected
     SNR_expected = snr_range_eqn_cp(
         radar["txPower"],
         radar["txGain"],
@@ -213,9 +228,24 @@ def check_expected_snr(radar, target, waveform, SNR1, SNR_volt):
         radar["Npulses"],
         waveform["time_BW_product"],
     )
+    ## volatge used in return (recalculated)
+    SNR_onepulse = snr_range_eqn(
+        radar["txPower"],
+        radar["txGain"],
+        radar["rxGain"],
+        target["rcs"],
+        c.C / radar["fcar"],
+        target["range"],
+        waveform["bw"],
+        radar["noiseFactor"],
+        radar["totalLosses"],
+        radar["opTemp"],
+        waveform["time_BW_product"],
+    )
+    SNR_volt = np.sqrt(SNR_onepulse / radar["Npulses"])
 
     print("SNR Check:")
-    print(f"\t{10*np.log10(SNR1)=:.2f}")
+    print(f"\t{10*np.log10(SNR_onepulse)=:.2f}")
     print(f"\t{SNR_volt=:.1e}")
     print(f"\t{SNR_expected=:.1e}")
     print(f"\t{10*np.log10(SNR_expected)=:.2f}")
@@ -223,6 +253,7 @@ def check_expected_snr(radar, target, waveform, SNR1, SNR_volt):
 
 def create_window(inShape: tuple, plot=True):
     """Create windowing function"""
+    # see wondow comparison example for more window examples
     chwin = signal.windows.chebwin(inShape[1], 60)
     chwin_norm = chwin / np.mean(chwin)
     chwin_norm = chwin_norm.reshape((1, chwin.size))
@@ -239,16 +270,64 @@ def create_window(inShape: tuple, plot=True):
     return chwin_norm_mat
 
 
-def add_returns_snr(dc, wvf, target, return_list, radar, amp_volt):
+def skin_snr_amplitude(radar, target, waveform):
+    SNR_onepulse = snr_range_eqn(
+        radar["txPower"],
+        radar["txGain"],
+        radar["rxGain"],
+        target["rcs"],
+        c.C / radar["fcar"],
+        target["range"],
+        waveform["bw"],
+        radar["noiseFactor"],
+        radar["totalLosses"],
+        radar["opTemp"],
+        waveform["time_BW_product"],
+    )
+    print("Is skin_snr calculated correctly?")
+    return np.sqrt(SNR_onepulse / radar["Npulses"])
+
+
+def add_returns_snr(dc, wvf, target, return_list, radar):
     """Add returns from the return_list to the data cube
     Note: memory return amplitude is not physical"""
+    snr_volt_amp = skin_snr_amplitude(radar, target, wvf)
     for returnItem in return_list:
         if returnItem["type"] == "skin":
-            add_skin(dc, wvf, target, radar, amp_volt)
+            add_skin(dc, wvf, target, radar, snr_volt_amp)
         elif returnItem["type"] == "memory":
-            add_memory(dc, wvf, target, radar, returnItem, amp_volt)
+            print("Note: Memory return SNR amplitudes are notional!")
+            add_memory(dc, wvf, target, radar, returnItem, snr_volt_amp)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
+
+
+def skin_voltage_amplitude(radar, target):
+    rxPower = signal_range_eqn(
+        radar["txPower"],
+        radar["txGain"],
+        radar["rxGain"],
+        target["rcs"],
+        c.C / radar["fcar"],
+        target["range"],
+        radar["totalLosses"],
+    )
+    print(f"{rxPower=: .2e}")
+    return np.sqrt(c.RADAR_LOAD * rxPower)
+
+
+def memory_voltage_amplitude(platform, radar, target):
+    rxMemPower = signal_range_eqn(
+        platform["txPower"],
+        platform["txGain"],
+        radar["rxGain"],
+        1,
+        c.C / radar["fcar"],  # same as radar if memory
+        target["range"] / 2,  # only one-way propagation
+        platform["totalLosses"],
+    )
+    print(f"{rxMemPower=: .2e}")
+    return np.sqrt(c.RADAR_LOAD * rxMemPower)
 
 
 def add_returns(signal_dc, waveform, target, return_list, radar):
@@ -256,35 +335,12 @@ def add_returns(signal_dc, waveform, target, return_list, radar):
     Note: memory return amplitude is not physical"""
     for returnItem in return_list:
         if returnItem["type"] == "skin":
-            rxPower = signal_range_eqn(
-                radar["txPower"],
-                radar["txGain"],
-                radar["rxGain"],
-                target["rcs"],
-                c.C / radar["fcar"],
-                target["range"],
-                radar["totalLosses"],
-            )
-            print(f"{rxPower=: .2e}")
-            rxVolt = np.sqrt(c.RADAR_LOAD * rxPower)
-
-            add_skin(signal_dc, waveform, target, radar, rxVolt)
+            rx_skin_amp = skin_voltage_amplitude(radar, target)
+            add_skin(signal_dc, waveform, target, radar, rx_skin_amp)
         elif returnItem["type"] == "memory":
             # radar below should should be replaced by EW system
-            platform = returnItem["platform"]
-            rxMemPower = signal_range_eqn(
-                platform["txPower"],
-                platform["txGain"],
-                radar["rxGain"],
-                1,
-                c.C / radar["fcar"],  # same as radar if memory
-                target["range"] / 2,  # only one-way propagation
-                platform["totalLosses"],
-            )
-            print(f"{rxMemPower=: .2e}")
-            rxMemVolt = np.sqrt(c.RADAR_LOAD * rxMemPower)
-
-            add_memory(signal_dc, waveform, target, radar, returnItem, rxMemVolt)
+            rx_mem_amp = memory_voltage_amplitude(returnItem["platform"], radar, target)
+            add_memory(signal_dc, waveform, target, radar, returnItem, rx_mem_amp)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 

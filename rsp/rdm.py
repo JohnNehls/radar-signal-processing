@@ -1,13 +1,13 @@
 import numpy as np
 from . import constants as c
-from .rdm_helpers import plot_rtm, plot_rdm
+from .rdm_helpers import plot_rtm, plot_rdm, plot_rdm_snr
 from .rf_datacube import number_range_bins, range_axis, dataCube
 from .rf_datacube import matchfilter, doppler_process
 from .waveform import process_waveform_dict
-from .range_equation import noise_power, snr_range_eqn
-
+from .range_equation import noise_power
+from .noise import unity_var_complex_noise
 from .rdm_helpers import noise_checks, create_window, check_expected_snr
-from .rdm_helpers import add_returns
+from .rdm_helpers import add_returns, add_returns_snr
 
 
 def gen(
@@ -18,7 +18,7 @@ def gen(
     seed: int = 0,
     plot: bool = True,
     debug: bool = False,
-    SNR: bool = False,
+    snr: bool = False,
 ):
     """
     Generate a single CPI RDM for one target moving at a constant range rate.
@@ -32,8 +32,9 @@ def gen(
 
     Optional parameters:
     seed: int random seed
-    plot: boolean to plot the final RDM
-    debug: boolean to plot each step in building the RDM and print out statistics
+    plot: boolean plot the final RDM
+    debug: boolean plot each step in building the RDM and print out statistics
+    snr: boolean create the RDM in SNR for the skin retrun (memory return is then notional)
 
     Returns
     -------
@@ -42,61 +43,46 @@ def gen(
     total_dc: RDM in Volts for noise + signal
     signal_dc: RDM in Volts for signal
     """
-
-    # TODO: do I need to pass this seed to each function using random?
     np.random.seed(seed)
 
-    ### Compute waveform and radar parameters ##############
+    ########## Compute waveform and radar parameters ################################################
     # Use normalized pulses, the time-bandwidth poduct is used for amp scaling
     process_waveform_dict(waveform, radar)
     radar["Npulses"] = int(np.ceil(radar["dwell_time"] * radar["PRF"]))
 
-    ### Create range axis for plotting #####################
+    ########## Create range axis for plotting #######################################################
     r_axis = range_axis(radar["sampRate"], number_range_bins(radar["sampRate"], radar["PRF"]))
 
-    ### Determin scaling factor for SNR ####################
-    # - Motivation is to  direclty plot the RDM in SNR by way of the range equation
-    # - The SNR is calculated at the initial range and does not change in time
-    SNR_onepulse = snr_range_eqn(
-        radar["txPower"],
-        radar["txGain"],
-        radar["rxGain"],
-        target["rcs"],
-        c.C / radar["fcar"],
-        target["range"],
-        waveform["bw"],
-        radar["noiseFactor"],
-        radar["totalLosses"],
-        radar["opTemp"],
-        waveform["time_BW_product"],
-    )
-
-    SNR_volt = np.sqrt(SNR_onepulse / radar["Npulses"])
-
-    ### Return  ##########################################
+    ########## Return ###############################################################################
     signal_dc = dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"])
-    rxVolt_noise = np.sqrt(
-        c.RADAR_LOAD * noise_power(waveform["bw"], radar["noiseFactor"], radar["opTemp"])
-    )
-    noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
 
-    add_returns(signal_dc, waveform, target, return_list, radar)
-    # add_returns_snr(signal_dc, waveform, target, return_list, radar, rxVolt)
+    if snr:
+        ### Direclty plot the RDM in SNR by way of the range equation ###
+        # - The SNR is calculated at the initial range and does not change in time
+        noise_dc = unity_var_complex_noise(signal_dc.shape) / np.sqrt(radar["Npulses"])
+        add_returns_snr(signal_dc, waveform, target, return_list, radar)
+    else:
+        ### Determin scaling factors for max voltage ###
+        rxVolt_noise = np.sqrt(
+            c.RADAR_LOAD * noise_power(waveform["bw"], radar["noiseFactor"], radar["opTemp"])
+        )
+        noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
+        add_returns(signal_dc, waveform, target, return_list, radar)
 
     total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
 
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: unprocessed")
 
-    ### Apply the match filter #############################
+    ########## Apply the match filter ###############################################################
     for dc in [signal_dc, total_dc]:
         matchfilter(dc, waveform["pulse"], pedantic=True)
 
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: match filtered")
 
-    ### Doppler process ####################################
-    # first create filter window and apply it
+    ########### Doppler process #####################################################################
+    # First create filter window and apply it
     chwin_norm_mat = create_window(signal_dc.shape, plot=False)
     total_dc = total_dc * chwin_norm_mat
     signal_dc = signal_dc * chwin_norm_mat
@@ -105,17 +91,25 @@ def gen(
     for dc in [signal_dc, total_dc]:
         f_axis, r_axis = doppler_process(dc, radar["sampRate"])
 
+    ########## Plots and checks #####################################################################
     # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
     print("TODO: why PRF/fs ratio at end?")
     rdot_axis = -c.C * f_axis / (2 * radar["fcar"]) * radar["PRF"] / radar["sampRate"]
 
     if debug:
-        plot_rdm(rdot_axis, r_axis, signal_dc, "Noiseless RDM")
-        # SNR and noise checks
-        check_expected_snr(radar, target, waveform, SNR_onepulse, SNR_volt)
-        noise_checks(signal_dc, noise_dc, total_dc)
-
+        if snr:
+            plot_rdm_snr(rdot_axis, r_axis, signal_dc, "Noiseless RDM", cbarMin=0)
+            noise_checks(signal_dc, noise_dc, total_dc)
+        else:
+            plot_rdm(rdot_axis, r_axis, signal_dc, "Noiseless RDM")
     if plot or debug:
-        plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform['type']}", cbarMin=0)
+        if snr:
+            plot_rdm_snr(
+                rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform['type']}", cbarMin=0
+            )
+            # if debug:
+            check_expected_snr(radar, target, waveform)
+        else:
+            plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform['type']}")
 
     return rdot_axis, r_axis, total_dc, signal_dc

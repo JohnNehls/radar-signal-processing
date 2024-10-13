@@ -2,7 +2,6 @@ import numpy as np
 from scipy import fft
 from . import constants as c
 from .waveform_helpers import matchfilter_with_waveform
-from .noise import unity_var_complex_noise
 
 
 def range_axis(fs: float, Nr: int):
@@ -18,7 +17,7 @@ def number_range_bins(fs: float, prf: float):
     return int(fs / prf)
 
 
-def dataCube(fs: float, prf: float, Np: int, noise: bool = False):
+def dataCube(fs: float, prf: float, Np: int):
     """Create an empty or noise datacube
     Outputs unprocessed datacube, both in fast and slow time
     inputs:
@@ -29,12 +28,7 @@ def dataCube(fs: float, prf: float, Np: int, noise: bool = False):
       datacube of size (Nrange_bins, Np)
     """
     Nr = number_range_bins(fs, prf)
-    if noise:
-        # divide sqrt(Np) because upcomming DFT?
-        dc = unity_var_complex_noise((Nr, Np)) / np.sqrt(Np)
-    else:
-        dc = np.zeros((Nr, Np), dtype=np.complex64)
-
+    dc = np.zeros((Nr, Np), dtype=np.complex64)
     return dc
 
 

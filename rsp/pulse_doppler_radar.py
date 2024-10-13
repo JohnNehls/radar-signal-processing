@@ -40,3 +40,8 @@ def rangeRate_aliased_prf_f0(rangeRate, PRF, f0):
     """Place freq in [-rangeRate_max, rangeRate_max]
     Usefull for finding aliasing of real signals"""
     return rangeRate_aliased_rrmax(rangeRate, rangeRate_pm_unambiguous(PRF, f0))
+
+
+def first_echo_pulse_bin(range, PRF):
+    """Find the te slowtime bin the first target return will arrive in"""
+    return int(range / range_unambiguous(PRF))
