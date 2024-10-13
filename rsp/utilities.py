@@ -2,6 +2,22 @@ import numpy as np
 from . import constants as c
 
 
+def power2db(power):
+    return 10 * np.log10(power)
+
+
+def db2power(db):
+    return 10 ** (db / 10)
+
+
+def volt2db(voltage):
+    return 20 * np.log10(voltage)
+
+
+def db2volt(db):
+    return 10 ** (db / 20)
+
+
 def phase_negpi_pospi(phase: list):
     """return input phase in [-pi, pi)"""
 
