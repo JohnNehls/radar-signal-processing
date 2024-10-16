@@ -6,7 +6,7 @@ from scipy import signal
 
 
 def zeropad_waveform(t, mag, Npad):
-    """Zeropad waveform with Npad"""
+    """Zeropad waveform with Npad zeros at the end of the pulse. Output time starts at 0 seconds"""
     mag = np.append(mag, np.zeros(Npad))
     t = np.arange(mag.size) * (t[1] - t[0])
     return t, mag
@@ -20,7 +20,7 @@ def moving_average(waveform, elements):
 
 
 def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2, debug=False):
-    """find the width in x of the real signal y written for recreation"""
+    """find the width in x of the real signal y written for as a recursive algorithm for recreation"""
     # Step 1: Find the maximum amplitude of the signal
     max_amplitude = np.max(y)
 
