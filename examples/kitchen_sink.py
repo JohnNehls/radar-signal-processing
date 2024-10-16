@@ -42,7 +42,7 @@ return_list = [
         "range_offset": -0.2e3,
         "delay": 1.33e-6,
         "platform": {
-            "txPower": 200.0e3,
+            "txPower": 5.0e3,
             "txGain": 10 ** (30 / 10),
             "totalLosses": 10 ** (3 / 10),
         },
@@ -50,6 +50,8 @@ return_list = [
     {"type": "skin"},
 ]
 
-rdm.gen(target, radar, waveform, return_list, seed=0, plot=True, debug=False, snr=False)
+rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
+    target, radar, waveform, return_list, seed=0, plot=True, debug=False, snr=False
+)
 
 plt.show()

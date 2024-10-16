@@ -40,7 +40,9 @@ def snr_range_eqn_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T):
 def snr_range_eqn(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, time_bandwidth_prod):
     """Single-pulse SNR
     Gt, Gr, F, and L can be either unitless or dB, but all must be te same units"""
-    return snr_range_eqn_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T) * time_bandwidth_prod
+    return (
+        snr_range_eqn_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T) * time_bandwidth_prod
+    )
 
 
 def snr_range_eqn_cp(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, n_p, time_bandwidth_prod):

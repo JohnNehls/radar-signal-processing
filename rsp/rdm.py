@@ -25,9 +25,9 @@ def gen(
 
     Parameters
     ----------
-    target: dict with keys range, "rangeRate, rcs (all constant over the CPI)
-    radar: dict with keys fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFactor, totalLosses, PRF
-    waveform: dict with for waveform key types in ["uncoded", "barker", "random", "lfm"]
+    target: dict with range, rangeRate, rcs (all constant over the CPI)
+    radar: dict with fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFactor, totalLosses, PRF
+    waveform: dict for waveform types in ["uncoded", "barker", "random", "lfm"]
     returnInfo_list: list of dicts containing return types to place in the RDM, in ["skin", "memory"]
 
     Optional parameters:
@@ -45,15 +45,15 @@ def gen(
     """
     np.random.seed(seed)
 
-    ########## Compute waveform and radar parameters ################################################
+    ########## Compute waveform and radar parameters ###############################################
     # Use normalized pulses, the time-bandwidth poduct is used for amp scaling
     process_waveform_dict(waveform, radar)
     radar["Npulses"] = int(np.ceil(radar["dwell_time"] * radar["PRF"]))
 
-    ########## Create range axis for plotting #######################################################
+    ########## Create range axis for plotting ######################################################
     r_axis = range_axis(radar["sampRate"], number_range_bins(radar["sampRate"], radar["PRF"]))
 
-    ########## Return ###############################################################################
+    ########## Return ##############################################################################
     signal_dc = dataCube(radar["sampRate"], radar["PRF"], radar["Npulses"])
 
     if snr:
@@ -74,14 +74,14 @@ def gen(
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: unprocessed")
 
-    ########## Apply the match filter ###############################################################
+    ########## Apply the match filter ##############################################################
     for dc in [signal_dc, total_dc]:
         matchfilter(dc, waveform["pulse"], pedantic=True)
 
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: match filtered")
 
-    ########### Doppler process #####################################################################
+    ########### Doppler process ####################################################################
     # First create filter window and apply it
     chwin_norm_mat = create_window(signal_dc.shape, plot=False)
     total_dc = total_dc * chwin_norm_mat
@@ -91,7 +91,7 @@ def gen(
     for dc in [signal_dc, total_dc]:
         f_axis, r_axis = doppler_process(dc, radar["sampRate"])
 
-    ########## Plots and checks #####################################################################
+    ########## Plots and checks ####################################################################
     # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
     print("TODO: why PRF/fs ratio at end?")
     rdot_axis = -c.C * f_axis / (2 * radar["fcar"]) * radar["PRF"] / radar["sampRate"]

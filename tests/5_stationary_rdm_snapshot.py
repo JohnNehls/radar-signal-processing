@@ -1,13 +1,23 @@
 #!/usr/bin/env python
 
+import sys
 import matplotlib.pyplot as plt
 from rsp import rdm
 
 ################################################################################
 # skin example
 ################################################################################
+# - Matlab solution is incorrect due to not accounting for time-bandwidth prod in SNR
+# - Matlab solution neglects range walk off, our SNR may be off when rangeRate>>0
 
-target = {"range": 3.5e3, "rangeRate": 1.0e3, "rcs": 10}
+# Can make plotting non-blocking with an input flag
+if sys.argv[-1].lower() == "--no-block":
+    BLOCK = False
+else:
+    BLOCK = True
+
+
+target = {"range": 3.5e3, "rangeRate": 0.0e3, "rcs": 10}
 
 bw = 10e6
 
@@ -30,4 +40,4 @@ return_list = [{"type": "skin"}]
 
 rdm.gen(target, radar, waveform, return_list, snr=True, debug=True)
 
-plt.show()
+plt.show(block=BLOCK)
