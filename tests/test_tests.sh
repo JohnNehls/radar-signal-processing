@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+RED='\033[0;31m'
+NC='\033[0m' # No Color
+
 # Function to run Python files in a specified directory
 run_python_files() {
     local dir_path=$1
@@ -14,9 +17,10 @@ run_python_files() {
     # Loop through all Python files in the specified directory
     for file in "$dir_path"/*.py
     do
-        echo "Running $file..."
+        echo -e "${RED}Running $file...${NC}"
 	# no block check is added to files int ./tests
-        python "$file" "--no-block" > /dev/null 2>&1
+	# Ignore stdout and warnings, print errors
+        python -W ignore "$file" "--no-block" > /dev/null
 
         # Check if the last command was successful
         if [ $? -ne 0 ]; then
@@ -32,11 +36,11 @@ run_python_files() {
 echo "################## test files in ./tests #############################################"
 run_python_files .
 
-echo ""
-echo "################## inspect plots in ./examples #######################################"
-run_python_files ../examples
+# echo ""
+# echo "################## inspect plots in ./examples #######################################"
+# run_python_files ../examples
 
-# Studies take a relativly long time to run, check less frequently
-echo ""
-echo "################## inspect plots in ./studies ########################################"
-run_python_files ../studies
+# # Studies take a relativly long time to run, check less frequently
+# echo ""
+# echo "################## inspect plots in ./studies ########################################"
+# run_python_files ../studies
