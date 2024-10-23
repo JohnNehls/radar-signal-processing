@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 RED='\033[0;31m'
-NC='\033[0m' # No Color
+BLUE='\033[0;34m'
+NC='\033[0m' # no color
 
 # Function to run Python files in a specified directory
 run_python_files() {
@@ -33,14 +34,14 @@ run_python_files() {
     fi
 }
 
-echo "################## test files in ./tests #############################################"
+echo -e "${BLUE}################## test files in ./tests #####################################${NC}"
 run_python_files .
 
 # echo ""
-# echo "################## inspect plots in ./examples #######################################"
+# echo -e "${BLUE}################## inspect plots in ./examples ###############################${NC}"
 # run_python_files ../examples
 
 # # Studies take a relativly long time to run, check less frequently
 # echo ""
-# echo "################## inspect plots in ./studies ########################################"
+# echo -e "${BLUE}################## inspect plots in ./studies ################################${NC}"
 # run_python_files ../studies
