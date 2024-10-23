@@ -10,6 +10,15 @@ def a_f(theta, el_positions, weights=None):
     weighted_el = np.multiply(el_positions, weights)
     return np.sum( np.exp(1j * 2 * np.pi * np.sin(theta) * weighted_el) )
 
+def steering_vector(el_pos, theta):
+    """Vandermonde Steering Vector
+    Parameters
+    el_pos : coordinates of array elements in units of wavelength
+    theta : angle of steering in degrees
+    """
+    theta_rad = np.deg2rad(theta)
+    return np.exp(-1j * 2 * np.pi * np.sin(theta_rad) * el_pos)
+
 
 def linear_antenna_gain(Nel, dx, weights=None, Ntheta=10000, steer_angle=0,  plot=False):
     """Create antena gain pattern for linear antenna"""
@@ -24,8 +33,8 @@ def linear_antenna_gain(Nel, dx, weights=None, Ntheta=10000, steer_angle=0,  plo
     # simple way of computing
     # af = np.array( [a_f(tmp, el_pos) for tmp in theta_grid] )
 
-    steer_angle_rad = np.deg2rad(steer_angle)
-    weights = weights*np.exp(-1j * 2 * np.pi * np.sin(steer_angle_rad) * el_pos)
+    steer_vec = steering_vector(el_pos, steer_angle)
+    weights = weights * steer_vec
 
     # more efficent way of computing
     A = np.exp(1j * 2 * np.pi * np.outer(np.sin(theta_grid), el_pos))

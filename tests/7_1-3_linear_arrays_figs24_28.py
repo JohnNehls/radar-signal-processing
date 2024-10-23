@@ -109,7 +109,7 @@ axs[1].set_title(r'Steered to 45 deg')
 
 theta, gain = ula.linear_antenna_gain(Nel, dx, steer_angle=-60, plot=False)
 axs[2].plot(theta, gain - gain.max())
-axs[2].set_title(r'Steered to 60 deg')
+axs[2].set_title(r'Steered to -60 deg')
 
 for ax in axs:
     ax.grid()
