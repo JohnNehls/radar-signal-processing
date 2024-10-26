@@ -7,8 +7,6 @@ from rsp import rdm
 # skin example
 ################################################################################
 
-target = {"range": 3.5e3, "rangeRate": 1.0e3, "rcs": 10}
-
 bw = 10e6
 
 radar = {
@@ -26,8 +24,10 @@ radar = {
 
 waveform = {"type": "lfm", "bw": bw, "T": 1.0e-6, "chirpUpDown": 1}
 
-return_list = [{"type": "skin"}]
+return_list = [{"type": "skin",
+                "target": {"range": 3.5e3, "rangeRate": 1.0e3, "rcs": 10}}
+               ]
 
-rdm.gen(target, radar, waveform, return_list, snr=True, debug=True)
+rdm.gen(radar, waveform, return_list, snr=True, debug=True)
 
 plt.show()

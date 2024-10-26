@@ -8,8 +8,6 @@ from rsp import rdm
 ################################################################################
 # - cleanest to see when target's rangeRate = 0
 
-target = {"range": 0.5e3, "rangeRate": 0.0e3, "rcs": 10}
-
 bw = 10e6
 
 radar = {
@@ -30,6 +28,7 @@ waveform = {"type": "lfm", "bw": bw, "T": 1.5e-6, "chirpUpDown": 1}
 return_list = [
     {
         "type": "memory",
+        "target": {"range": 0.5e3, "rangeRate": 0.0e3, "rcs": 10},
         "rdot_delta": 0.5e3,
         "rdot_offset": 0.0e3,
         "platform": {
@@ -40,6 +39,6 @@ return_list = [
     }
 ]
 
-rdm.gen(target, radar, waveform, return_list, debug=False)
+rdm.gen(radar, waveform, return_list, debug=False)
 
 plt.show()

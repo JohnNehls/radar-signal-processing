@@ -11,7 +11,6 @@ from .rdm_helpers import add_returns, add_returns_snr
 
 
 def gen(
-    target: dict,
     radar: dict,
     waveform: dict,
     return_list: list,
@@ -25,7 +24,6 @@ def gen(
 
     Parameters
     ----------
-    target: dict with range, rangeRate, rcs (all constant over the CPI)
     radar: dict with fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFactor, totalLosses, PRF
     waveform: dict for waveform types in ["uncoded", "barker", "random", "lfm"]
     returnInfo_list: list of dicts containing return types to place in the RDM, in ["skin", "memory"]
@@ -60,14 +58,14 @@ def gen(
         ### Direclty plot the RDM in SNR by way of the range equation ###
         # - The SNR is calculated at the initial range and does not change in time
         noise_dc = unity_variance_complex_noise(signal_dc.shape) / np.sqrt(radar["Npulses"])
-        add_returns_snr(signal_dc, waveform, target, return_list, radar)
+        add_returns_snr(signal_dc, waveform, return_list, radar)
     else:
         ### Determin scaling factors for max voltage ###
         rxVolt_noise = np.sqrt(
             c.RADAR_LOAD * noise_power(waveform["bw"], radar["noiseFactor"], radar["opTemp"])
         )
         noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
-        add_returns(signal_dc, waveform, target, return_list, radar)
+        add_returns(signal_dc, waveform, return_list, radar)
 
     total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
 
@@ -108,7 +106,7 @@ def gen(
                 rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform['type']}", cbarMin=0
             )
             # if debug:
-            check_expected_snr(radar, target, waveform)
+            check_expected_snr(radar, return_list[0]["target"], waveform) # first return item
         else:
             plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform['type']}")
 

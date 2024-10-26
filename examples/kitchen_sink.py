@@ -9,8 +9,6 @@ from rsp import rdm
 
 bw = 10e6
 
-target = {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}
-
 radar = {
     "fcar": 10e9,
     "txPower": 1e3,
@@ -37,6 +35,7 @@ waveform = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}
 return_list = [
     {
         "type": "memory",
+        "target": {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10},
         "rdot_delta": 3.0e3,
         "rdot_offset": 0.3e3,
         "range_offset": -0.2e3,
@@ -47,11 +46,12 @@ return_list = [
             "totalLosses": 10 ** (3 / 10),
         },
     },
-    {"type": "skin"},
+    {"type": "skin",
+     "target": {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}},
 ]
 
 rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
-    target, radar, waveform, return_list, seed=0, plot=True, debug=False, snr=False
+    radar, waveform, return_list, seed=0, plot=True, debug=False, snr=False
 )
 
 plt.show()

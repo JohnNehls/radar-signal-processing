@@ -8,8 +8,6 @@ import rsp.vbm as vbm
 # Display each of the VBM noise methods in order of complexity
 ################################################################################
 
-target = {"range": 4.7e3, "rangeRate": 0.0e3, "rcs": 10}
-
 bw = 5e6
 
 radar = {
@@ -30,6 +28,7 @@ waveform = {"type": "uncoded", "bw": bw}
 return_list = [
     {
         "type": "memory",
+        "target": {"range": 4.7e3, "rangeRate": 0.0e3, "rcs": 10},
         "rdot_delta": 1.0e3,
         "rdot_offset": 0.0e3,
         "platform": {
@@ -50,7 +49,7 @@ vbm_name_function_dict = {
 
 for name, func in vbm_name_function_dict.items():
     return_list[0]["vbm_noise_function"] = func
-    rdm.gen(target, radar, waveform, return_list, debug=False)
+    rdm.gen(radar, waveform, return_list, debug=False)
     ax = plt.gca()
     ax.set_title(name)
 

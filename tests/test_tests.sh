@@ -37,11 +37,11 @@ run_python_files() {
 echo -e "${BLUE}################## test files in ./tests #####################################${NC}"
 run_python_files .
 
-# echo ""
-# echo -e "${BLUE}################## inspect plots in ./examples ###############################${NC}"
-# run_python_files ../examples
+echo ""
+echo -e "${BLUE}################## inspect plots in ./examples ###############################${NC}"
+run_python_files ../examples
 
-# # Studies take a relativly long time to run, check less frequently
-# echo ""
-# echo -e "${BLUE}################## inspect plots in ./studies ################################${NC}"
-# run_python_files ../studies
+# Studies take a relativly long time to run, check less frequently
+echo ""
+echo -e "${BLUE}################## inspect plots in ./studies ################################${NC}"
+run_python_files ../studies

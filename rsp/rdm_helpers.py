@@ -107,7 +107,7 @@ def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
     signal_dc[:] = tmpSignal[:]
 
 
-def add_memory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR_volt):
+def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
     """Add notional memory return to datacube"""
     print("Note: memory return amplitudes are notional")
 
@@ -115,7 +115,8 @@ def add_memory(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, returnInfo, SNR
     time_ar = np.arange(signal_dc.size) * 1 / radar["sampRate"]  # time of all samples in CPI
     t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]  # time when pulses sent
 
-    tgt_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"] * t_slow_axis  # tgt range at pulse send
+    # tgt range at pulse send
+    tgt_range_ar = returnInfo["target"]["range"] + returnInfo["target"]["rangeRate"] * t_slow_axis
     oneWay_time_delay_ar = tgt_range_ar / c.C  # time of travel from radar to tgt
     # TODO this should be changed to when pod transmits, not when pulse was transmitted
     pulse_return_time = t_slow_axis + 2 * oneWay_time_delay_ar  # time pulses return to radar
@@ -287,16 +288,16 @@ def skin_snr_amplitude(radar, target, waveform):
     return np.sqrt(SNR_onepulse / radar["Npulses"])
 
 
-def add_returns_snr(dc, wvf, target, return_list, radar):
+def add_returns_snr(dc, wvf, return_list, radar):
     """Add returns from the return_list to the data cube
     Note: memory return amplitude is not physical"""
-    snr_volt_amp = skin_snr_amplitude(radar, target, wvf)
     for returnItem in return_list:
+        snr_volt_amp = skin_snr_amplitude(radar, returnItem["target"], wvf)
         if returnItem["type"] == "skin":
-            add_skin(dc, wvf, target, radar, snr_volt_amp)
+            add_skin(dc, wvf, returnItem["target"], radar, snr_volt_amp)
         elif returnItem["type"] == "memory":
             print("Note: Memory return SNR amplitudes are notional!")
-            add_memory(dc, wvf, target, radar, returnItem, snr_volt_amp)
+            add_memory(dc, wvf, radar, returnItem, snr_volt_amp)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 
@@ -329,16 +330,17 @@ def memory_voltage_amplitude(platform, radar, target):
     return np.sqrt(c.RADAR_LOAD * rxMemPower)
 
 
-def add_returns(signal_dc, waveform, target, return_list, radar):
+def add_returns(signal_dc, waveform, return_list, radar):
     """Add returns from the return_list to the data cube
     Note: memory return amplitude is not physical"""
     for returnItem in return_list:
         if returnItem["type"] == "skin":
-            rx_skin_amp = skin_voltage_amplitude(radar, target)
-            add_skin(signal_dc, waveform, target, radar, rx_skin_amp)
+            rx_skin_amp = skin_voltage_amplitude(radar, returnItem["target"])
+            add_skin(signal_dc, waveform, returnItem["target"], radar, rx_skin_amp)
         elif returnItem["type"] == "memory":
             # radar below should should be replaced by EW system
-            rx_mem_amp = memory_voltage_amplitude(returnItem["platform"], radar, target)
-            add_memory(signal_dc, waveform, target, radar, returnItem, rx_mem_amp)
+            rx_mem_amp = memory_voltage_amplitude(returnItem["platform"], radar,
+                                                  returnItem["target"])
+            add_memory(signal_dc, waveform, radar, returnItem, rx_mem_amp)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
