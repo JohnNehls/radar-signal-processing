@@ -27,11 +27,11 @@ plt.rcParams["text.usetex"] = True
 fig, axs = plt.subplots(1, 2)
 
 fig.suptitle(r"Unweighted Array Factor for $\lambda/2$ spacing")
-theta, gain = ula.linear_antenna_gain(10, 1 / 2, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(10, 1 / 2, plot=False)
 axs[0].plot(theta, gain)
 axs[0].set_title("10 elements")
 
-theta, gain = ula.linear_antenna_gain(40, 1 / 2, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(40, 1 / 2, plot=False)
 axs[1].plot(theta, gain)
 axs[1].set_title("40 elements")
 
@@ -47,15 +47,15 @@ plt.tight_layout()
 fig, axs = plt.subplots(1, 3)
 
 fig.suptitle("Unweighted Array Factor for 10 Elements")
-theta, gain = ula.linear_antenna_gain(10, 1 / 4, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(10, 1 / 4, plot=False)
 axs[0].plot(theta, gain - gain.max())
 axs[0].set_title(r"$\lambda/4$ spacing")
 
-theta, gain = ula.linear_antenna_gain(10, 1 / 2, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(10, 1 / 2, plot=False)
 axs[1].plot(theta, gain - gain.max())
 axs[1].set_title(r"$\lambda/2$ spacing")
 
-theta, gain = ula.linear_antenna_gain(10, 1, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(10, 1, plot=False)
 axs[2].plot(theta, gain - gain.max())
 axs[2].set_title(r"$\lambda$ spacing")
 
@@ -69,15 +69,17 @@ plt.tight_layout()
 
 ## recreate figure 27  ######
 Nel = 40
+
+# Do the windows need to be normalized to be true weights?
 chebWindow = signal.windows.chebwin(Nel, 30)  # less than 45dB and function reports warning
 tayWindow = signal.windows.taylor(Nel, sll=35)
 
 fig, axs = plt.subplots(1, 2)
 fig.suptitle(r"Array Factor with Different Weights: 40 elements, $\lambda/2$ spacing")
 
-theta, gain = ula.linear_antenna_gain(Nel, 1 / 2, plot=False)
-theta, gain_cheb = ula.linear_antenna_gain(Nel, 1 / 2, weights=chebWindow, plot=False)
-theta, gain_tay = ula.linear_antenna_gain(Nel, 1 / 2, weights=tayWindow, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(Nel, 1 / 2, plot=False)
+theta, gain_cheb = ula.linear_antenna_gain_N_db(Nel, 1 / 2, weights=chebWindow, plot=False)
+theta, gain_tay = ula.linear_antenna_gain_N_db(Nel, 1 / 2, weights=tayWindow, plot=False)
 axs[0].set_xlim((-90, 90))
 axs[1].set_xlim((-8, 8))
 
@@ -99,15 +101,15 @@ fig, axs = plt.subplots(1, 3)
 fig.suptitle(r"Weighted Array Factor: $\lambda/2$ spacing, 20 elements")
 Nel = 20
 dx = 1 / 2
-theta, gain = ula.linear_antenna_gain(Nel, dx, steer_angle=15, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(Nel, dx, steer_angle=15, plot=False)
 axs[0].plot(theta, gain - gain.max())
 axs[0].set_title(r"Steered to 15 deg")
 
-theta, gain = ula.linear_antenna_gain(Nel, dx, steer_angle=45, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(Nel, dx, steer_angle=45, plot=False)
 axs[1].plot(theta, gain - gain.max())
 axs[1].set_title(r"Steered to 45 deg")
 
-theta, gain = ula.linear_antenna_gain(Nel, dx, steer_angle=-60, plot=False)
+theta, gain = ula.linear_antenna_gain_N_db(Nel, dx, steer_angle=-60, plot=False)
 axs[2].plot(theta, gain - gain.max())
 axs[2].set_title(r"Steered to -60 deg")
 

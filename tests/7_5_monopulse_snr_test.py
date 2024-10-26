@@ -12,7 +12,10 @@ if sys.argv[-1].lower() == "--no-block":
 else:
     BLOCK = True
 
+plt.rcParams["text.usetex"] = True
+
 # Notes
+# - Estimation accuracy greatly depends on the target angle
 # - Is there a way to do this for modulated pulses?
 #   - LFM pulses?
 
@@ -51,10 +54,11 @@ for snr_db in snr_db_list:
 
 # plot the results
 fig, axs = plt.subplots(1, 2)
+fig.suptitle("Monopulse Angle Estimation")
 axs[0].plot(snr_db_list, error_mean_list)
-axs[0].set_title("Mean Angle Error vs SNR")
+axs[0].set_title("Mean Angle Error")
 axs[1].plot(snr_db_list, error_std_list)
-axs[1].set_title("Angle Error Standard Deviation vs SNR")
+axs[1].set_title(r"$\sigma$ Angle Error")
 
 for ax in axs:
     ax.grid()
