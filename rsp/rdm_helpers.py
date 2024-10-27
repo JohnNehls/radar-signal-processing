@@ -96,7 +96,9 @@ def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
 
     for i in range(radar["Npulses"]):
         # TODO is this how these should be binned? Should they be interpolated onto grid?
-        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] + time_pw_offset))
+        # - (-1) below added to make return end up in correct range bin (lfm still off)
+        #   - see ../tests/5_1_skin_in_correct_rangedoppler_bin.py for details
+        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] + time_pw_offset)) - 1
         pulse = SNR_volt * wvf["pulse"] * np.exp(1j * twoWay_phase_ar[i])
 
         if timeIndex < signal_dc.size:  # else pulse is in next CPI
@@ -188,7 +190,9 @@ def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
         pulse = pulse * np.exp(1j * oneWay_phase_ar[i])
 
         # TODO is this how these should be binned? Should they be interpolated onto grid?
-        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] - delay + time_pw_offset))
+        # - Like skin index, -1 was added to better match expected results
+        #   - see ../tests/5_2_memory_in_correct_rangedoppler_bin.py for details
+        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] - delay + time_pw_offset)) - 1
         if timeIndex < signal_dc.size:  # else pulse is in next CPI
             add_waveform_at_index(tmpSignal, pulse, timeIndex)
 
@@ -339,8 +343,9 @@ def add_returns(signal_dc, waveform, return_list, radar):
             add_skin(signal_dc, waveform, returnItem["target"], radar, rx_skin_amp)
         elif returnItem["type"] == "memory":
             # radar below should should be replaced by EW system
-            rx_mem_amp = memory_voltage_amplitude(returnItem["platform"], radar,
-                                                  returnItem["target"])
+            rx_mem_amp = memory_voltage_amplitude(
+                returnItem["platform"], radar, returnItem["target"]
+            )
             add_memory(signal_dc, waveform, radar, returnItem, rx_mem_amp)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
