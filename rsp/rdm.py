@@ -106,7 +106,7 @@ def gen(
                 rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform['type']}", cbarMin=0
             )
             # if debug:
-            check_expected_snr(radar, return_list[0]["target"], waveform) # first return item
+            check_expected_snr(radar, return_list[0]["target"], waveform)  # first return item
         else:
             plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform['type']}")
 

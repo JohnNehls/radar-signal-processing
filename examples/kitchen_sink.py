@@ -46,8 +46,7 @@ return_list = [
             "totalLosses": 10 ** (3 / 10),
         },
     },
-    {"type": "skin",
-     "target": {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}},
+    {"type": "skin", "target": {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10}},
 ]
 
 rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(

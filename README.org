@@ -2,18 +2,15 @@
 Range Doppler map (RDM) and radar signal processing module.
 
 ** Description
-This Python module provides tools for creating range Doppler maps and includes a variety of functions useful for radar signal processing. It is designed to be a simple tool, useful for gaining intuition on how RDMs are made.
+This Python module provides tools for creating range Doppler maps and  a variety of functions useful for radar signal processing. It is designed to be a simple tool, useful for gaining intuition on how RDMs are made.
 
-** Features
-- Generate range Doppler maps
-- Radar signal processing functions including:
-   - Radar range equation
-   - Waveform generation
-   - Match filtering
-   - Radar datacube
-   - Doppler processing
-   - Skin returns
-   - Modulated memory returns
+** Libraries
+- [[file:rsp/rdm.py][RDM generation]]
+- [[file:rsp/waveform.py][waveform generation]]
+- [[file:rsp/pulse_doppler_radar.py][pulse doppler]]
+- [[file:rsp/range_equation.py][radar range equation]]
+- [[file:rsp/uniform_linear_arrays.py][uniform linear array antennas]]
+- [[file:rsp/noise.py][noise]]
 
 ** Installation
 To install the module, clone this repository and install with pip:
@@ -27,13 +24,13 @@ pip install .
 Python >= 3.11
 
 ** Usage
+- *RDM generator*
 For examples of basic usage, see the [[file:examples][examples]]. To see a script with all waveform and return options written out, check out [[file:examples/kitchen_sink.py][kitchen_sink.py]].
-
-** Tests
-Scripts displaying the individual components used to create the RDMs are located in [[file:tests][tests]].
+- *Everything else*
+See [[file:tests][tests]] for example of the other functions of the project.
 
 ** Contributing
-Contributions are welcome! Please fork the repository and submit a pull request.
+Contributions are welcome. Please fork the repository and submit a pull request.
 
 ** License
-This project is licensed under the GPL-3.0 License - see the LICENSE file for details.
+This project is licensed under the GPL-3.0 License - see [[file:LICENSE][LICENSE]] for details.

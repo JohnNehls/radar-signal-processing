@@ -24,9 +24,7 @@ radar = {
 
 waveform = {"type": "lfm", "bw": bw, "T": 1.0e-6, "chirpUpDown": 1}
 
-return_list = [{"type": "skin",
-                "target": {"range": 3.5e3, "rangeRate": 1.0e3, "rcs": 10}}
-               ]
+return_list = [{"type": "skin", "target": {"range": 3.5e3, "rangeRate": 1.0e3, "rcs": 10}}]
 
 rdm.gen(radar, waveform, return_list, snr=True, debug=True)
 

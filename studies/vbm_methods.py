@@ -20,7 +20,7 @@ radar = {
     "noiseFactor": 10 ** (8 / 10),
     "totalLosses": 10 ** (8 / 10),
     "PRF": 500e3,
-    "dwell_time": 10e-3,
+    "dwell_time": 5e-3,
 }
 
 waveform = {"type": "uncoded", "bw": bw}
@@ -28,7 +28,7 @@ waveform = {"type": "uncoded", "bw": bw}
 return_list = [
     {
         "type": "memory",
-        "target": {"range": 4.7e3, "rangeRate": 0.0e3, "rcs": 10},
+        "target": {"range": 0.2e3, "rangeRate": 0.0e3, "rcs": 10},
         "rdot_delta": 1.0e3,
         "rdot_offset": 0.0e3,
         "platform": {
