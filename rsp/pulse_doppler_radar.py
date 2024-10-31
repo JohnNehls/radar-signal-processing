@@ -6,6 +6,10 @@ def range_unambiguous(PRF):
     return c.C / (2 * PRF)
 
 
+def range_aliased(range, PRF):
+    return range % range_unambiguous(PRF)
+
+
 def frequency_doppler(rangeRate, f0):
     """frequnce of light recieved after reflection off target with the given rangeRate"""
     return f0 * (-2 * rangeRate / c.C)
