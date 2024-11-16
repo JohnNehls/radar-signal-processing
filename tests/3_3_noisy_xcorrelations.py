@@ -90,7 +90,7 @@ add_waveform_at_index(noise_2, mag_u_s, indx_3)  # add in place
 _, mf = matchfilter_with_waveform(noise_2, mag_u)
 
 fig, ax = plt.subplots(1, 4)
-fig.suptitle("S3P3 case 2: three uncoded pulses, check SNR")
+fig.suptitle(f"S3P3 case 2: uncoded pulses @ index: {indx_1}, {indx_2}, {indx_3} -- check SNR")
 ax[0].plot(np.real(noise_2), "-o")
 ax[0].set_title("noise")
 ax[0].set_xlabel("sample")
