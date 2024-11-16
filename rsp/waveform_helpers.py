@@ -139,7 +139,7 @@ def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
     val = abs(xcor)
     val = val / val.max()
     ax[1].plot(time_shift, val, "-o")
-    ax[1].set_xlabel("time shift")
+    ax[1].set_xlabel("time shift [s]")
     ax[1].set_ylabel("cross correlation mag")
     ax[1].grid()
 
@@ -187,4 +187,4 @@ def matchfilter_with_waveform(ar, waveform):
     else:
         index_shift = np.arange(-int(Nar / 2), int(Nar / 2) + 1)
 
-    return conv, index_shift
+    return index_shift, conv

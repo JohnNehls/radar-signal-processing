@@ -55,7 +55,7 @@ def matchfilter(dataCube, pulse_wvf, pedantic=True):
     """Inplace match filter on data cube"""
     if pedantic:
         for j in range(dataCube.shape[1]):
-            mf, _ = matchfilter_with_waveform(dataCube[:, j], pulse_wvf)
+            _, mf = matchfilter_with_waveform(dataCube[:, j], pulse_wvf)
             dataCube[:, j] = mf
     else:
         # Take FFT convolution directly

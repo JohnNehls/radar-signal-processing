@@ -43,7 +43,7 @@ add_waveform_at_index(noise_1, mag_u_s, indx_1)  # add in place
 print("verify noise is at ~ 0dB")
 print(f"\t{10*np.log10(np.var(noise_1))=}")
 
-mf, m_index_shift = matchfilter_with_waveform(noise_1, mag_u)
+m_index_shift, mf = matchfilter_with_waveform(noise_1, mag_u)
 
 fig, ax = plt.subplots(1, 3)
 fig.suptitle(f"S3P3 case 1: uncoded pulse at index{indx_1}")
@@ -87,7 +87,7 @@ _, mag_u = uncoded_pulse(sampleRate, BW)
 mag_u_s = 10 ** (SNR / 20) * mag_u
 add_waveform_at_index(noise_2, mag_u_s, indx_3)  # add in place
 
-mf, _ = matchfilter_with_waveform(noise_2, mag_u)
+_, mf = matchfilter_with_waveform(noise_2, mag_u)
 
 fig, ax = plt.subplots(1, 4)
 fig.suptitle("S3P3 case 2: three uncoded pulses, check SNR")
@@ -146,10 +146,10 @@ ax[1].set_xlabel("sample")
 ax[2].plot(abs(mag_b_s), "-o")
 ax[2].set_title(f"bpsk pulse, index={bpsk_idx}")
 ax[2].set_xlabel("sample")
-ax[3].plot(abs(matchfilter_with_waveform(noise_3, mag_lfm)[0]))
+ax[3].plot(abs(matchfilter_with_waveform(noise_3, mag_lfm)[1]))
 ax[3].set_title("lfm match")
 ax[3].set_xlabel("sample")
-ax[4].plot(abs(matchfilter_with_waveform(noise_3, mag_b)[0]))
+ax[4].plot(abs(matchfilter_with_waveform(noise_3, mag_b)[1]))
 ax[4].set_title("bpsk match")
 ax[4].set_xlabel("sample")
 plt.tight_layout()
