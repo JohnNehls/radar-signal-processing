@@ -21,6 +21,9 @@ print("##############################")
 print("Problem 3: noisy xcorrelations")
 print("##############################")
 
+# NOTES
+# - Matchfilter peaks show where the center of the pulse is (not the leading edge)
+
 # constants for all waveforms
 sampleRate = 20e6  # Hz
 BW = 4e6  # Hz

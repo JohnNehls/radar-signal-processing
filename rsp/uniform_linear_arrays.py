@@ -14,7 +14,7 @@ def steering_vector(el_pos, theta):
 
 
 def linear_antenna_gain(el_pos, weights=None, Ntheta=10000, steer_angle=0, plot=False):
-    """Antenna voltage gain pattern from element positions in terms of signal wavelength"""
+    """Antenna voltage gain pattern (complex) from element positions in terms of signal wavelength"""
 
     if weights is None:
         weights = np.ones(len(el_pos)).T
@@ -58,7 +58,7 @@ def linear_antenna_gain_N_db(Nel, dx, weights=None, Ntheta=10000, steer_angle=0,
     thetas, gain = linear_antenna_gain(
         el_pos, weights=weights, Ntheta=Ntheta, steer_angle=steer_angle, plot=plot
     )
-    return thetas, 20 * np.log10(gain)
+    return thetas, 20 * np.log10(abs(gain))
 
 
 def array_phase_center(position_ar, weight_ar):

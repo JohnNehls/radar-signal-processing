@@ -38,19 +38,28 @@ error_std_list = []
 for snr_db in snr_db_list:
     snr_volt_scale = 10 ** (snr_db / 20)
 
-    recived_signals = []  # noisey signals with specified snr
+    recieved_signals = []  # noisey signals with specified snr
     for sv in steer_vec:
-        recived_signals.append(snr_volt_scale * sv + unity_variance_complex_noise(N_samples))
+        recieved_signals.append(snr_volt_scale * sv * signal_ar +
+                               unity_variance_complex_noise(N_samples))
+    plt.plot(recieved_signals[0], label=f"snr={snr_db}")
 
     rho = 2 * np.pi * (1 / 2)  # seperation of array elements
-    sum = recived_signals[0] + recived_signals[1]
-    delta = recived_signals[0] - recived_signals[1]
+    sum = recieved_signals[0] + recieved_signals[1]
+    delta = recieved_signals[0] - recieved_signals[1]
     v_theta = np.arctan(2 * (delta / sum).imag) / (rho)  # ALGEBRA ERROR IN DOC
     measured_theta = np.arcsin(v_theta)
 
     measured_error = abs(np.rad2deg(measured_theta) - tgt_angle)
     error_mean_list.append(np.mean(measured_error))
     error_std_list.append(np.std(measured_error))
+
+# signals per db
+plt.legend()
+plt.title("Noisy signal for Each SNR [dB]")
+plt.xlabel("time [s]")
+plt.ylabel("amplitude [v]")
+plt.grid()
 
 # plot the results
 fig, axs = plt.subplots(1, 2)

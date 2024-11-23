@@ -17,6 +17,7 @@ plt.rcParams["text.usetex"] = True
 # Notes
 # - another error in the equation in the document
 #   - missing the normalization of the weights
+
 fc = 10 * 10**9
 wavelength = c.C / fc
 Nel = 20
@@ -38,7 +39,7 @@ for sub_array in sub_arrays:
 sum_gain = sub_array_gain[0] + sub_array_gain[1]
 diff_gain = sub_array_gain[0] - sub_array_gain[1]
 
-
+plt.title("Sum and Difference Gain Profiles")
 plt.plot(thetas, abs(sum_gain), label=r"$\Sigma$")
 plt.plot(thetas, abs(diff_gain), label=r"$\Delta$")
 plt.xlabel(r"Angle $\theta$ [deg]")
