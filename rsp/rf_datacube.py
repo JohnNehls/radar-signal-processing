@@ -32,22 +32,21 @@ def dataCube(fs: float, prf: float, Np: int):
     return dc
 
 
-def doppler_process(dc, fs):
+def doppler_process(data_cube, fs):
     """Process data cube in place
-    ouputs:\n
-    dataCube : \n
-    f_axis : [-fs/2, fs/2)\n
-    r_axis : [delta_r, R_ambigious]\n
+    args:
+        data_cube: time domain data to be Doppler processed
+       fs: sample frequncy of the time domain data
+
+    f_axis : [-PRF/2, PRF/2)
+    r_axis : [delta_r, R_ambigious]
     """
-    Nr, Np = dc.shape
-
+    Nr, Np = data_cube.shape
     dR_grid = c.C / (2 * fs)
-
+    PRF = fs / data_cube.shape[0]
     R_axis = np.arange(1, Nr + 1) * dR_grid  # Process fast time
-    f_axis = fft.fftshift(fft.fftfreq(Np, 1 / fs))  # process slow time
-
-    dc[:] = fft.fftshift(fft.fft(dc, axis=1), axes=1)
-
+    f_axis = fft.fftshift(fft.fftfreq(Np, 1/PRF))  # process slow time
+    data_cube[:] = fft.fftshift(fft.fft(data_cube, axis=1), axes=1)
     return f_axis, R_axis
 
 

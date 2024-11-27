@@ -41,7 +41,9 @@ def compare_max_indices(signal_dc, return_item):
     max_range_index, max_rdot_index = np.unravel_index(max_index_flat, signal_dc.shape)
     # compare to expected
     print(f"\t{max_range_index == i=}")
+    print(f"\t\t{max_range_index=} {i=}")
     print(f"\t{max_rdot_index == j=}")
+    print(f"\t\t{max_rdot_index=} {j=}")
 
 
 print("uncoded")

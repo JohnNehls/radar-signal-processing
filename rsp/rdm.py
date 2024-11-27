@@ -93,8 +93,7 @@ def gen(
 
     ########## Plots and checks ####################################################################
     # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
-    print("TODO: why PRF/fs ratio at end?")
-    rdot_axis = -c.C * f_axis / (2 * radar["fcar"]) * radar["PRF"] / radar["sampRate"]
+    rdot_axis = -c.C * f_axis / (2 * radar["fcar"])
 
     if debug:
         if snr:
