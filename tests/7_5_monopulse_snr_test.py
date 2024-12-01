@@ -44,7 +44,8 @@ for snr_db in snr_db_list:
                                unity_variance_complex_noise(N_samples))
     plt.plot(recieved_signals[0], label=f"snr={snr_db}")
 
-    rho = 2 * np.pi * (1 / 2)  # seperation of array elements
+    dx = array_pos[1] - array_pos[0]  # seperation of array elements
+    rho = 2 * np.pi * dx
     sum = recieved_signals[0] + recieved_signals[1]
     delta = recieved_signals[0] - recieved_signals[1]
     v_theta = np.arctan(2 * (delta / sum).imag) / (rho)  # ALGEBRA ERROR IN DOC
