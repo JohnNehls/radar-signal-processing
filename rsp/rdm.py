@@ -1,4 +1,5 @@
 import numpy as np
+from scipy import interpolate
 from . import constants as c
 from .rdm_helpers import plot_rtm, plot_rdm, plot_rdm_snr
 from .rf_datacube import number_range_bins, range_axis, dataCube
@@ -8,6 +9,8 @@ from .range_equation import noise_power
 from .noise import unity_variance_complex_noise
 from .rdm_helpers import noise_checks, create_window, check_expected_snr
 from .rdm_helpers import add_returns, add_returns_snr
+import rsp.uniform_linear_arrays as ula
+import matplotlib.pyplot as plt
 
 
 def gen(
@@ -18,7 +21,7 @@ def gen(
     plot: bool = True,
     debug: bool = False,
     snr: bool = False,
-    steerVec: float = 1,
+    array_positions: list = 0
 ):
     """
     Generate a single CPI RDM for one target moving at a constant range rate.
@@ -68,14 +71,54 @@ def gen(
         noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
         add_returns(signal_dc, waveform, return_list, radar)
 
-    signal_dc *= steerVec
-    total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
+    ### Alter the signal due to linear array position #####################
+    # - These are experimental at this time
+    tgt_angle = 70
+    assert abs(tgt_angle) < 90
+
+    signal_dc_ula_list = []
+    for pos in array_positions:
+        # apply phase shift from carrier 
+        signal_dc_sv = signal_dc * ula.steering_vector(pos, tgt_angle)
+
+        # apply time shift to baseband signal from array position from zero        
+        tmp_signal = signal_dc_sv.T.flatten() 
+        shifted_signal = ula.apply_timeshift_due_to_element_position(tmp_signal, radar["sampRate"], pos, tgt_angle)
+        signal_dc_shift = shifted_signal.reshape(tuple(reversed(signal_dc_sv.shape))).T
+        
+        signal_dc_ula_list.append(signal_dc_shift)
+        # signal_dc_ar.append(signal_dc_sv)   # IGNORE timeShift
+
+    total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting    
+
+    # plot imaginary since the real parts are identical for symetric linear arrays (Cos)
+    plt.figure()
+    plt.title("Imaginary component of signal")
+    plt.plot(tmp_time, np.imag(signal_dc_ula_list[0].T.flatten()), label="neg position")
+    plt.plot(tmp_time, np.imag(signal_dc_ula_list[1].T.flatten()), '--', label="pos position")
+    plt.legend()
+    
+
+    # plot imaginary since the real parts are identical for symetric linear arrays (Cos)
+    plt.figure()
+    plt.title("Angle difference")
+    a = signal_dc_ula_list[0].T.flatten()
+    b = signal_dc_ula_list[1].T.flatten()
+    theta = np.arccos( a * np.conjugate(b) / (abs(a) * abs(b)))
+    plt.plot(tmp_time, theta )
+    # plt.plot(tmp_time, np.angle(signal_dc_ar[0].T.flatten()), label="neg position")
+    # plt.plot(tmp_time, np.angle(signal_dc_ar[1].T.flatten()), '--', label="pos position")
+    plt.legend()
+    plt.show()
+
+
+    rdm_list = [signal_dc, total_dc]
 
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: unprocessed")
 
     ########## Apply the match filter ##############################################################
-    for dc in [signal_dc, total_dc]:
+    for dc in rdm_list:
         matchfilter(dc, waveform["pulse"], pedantic=True)
 
     if debug:
@@ -84,11 +127,11 @@ def gen(
     ########### Doppler process ####################################################################
     # First create filter window and apply it
     chwin_norm_mat = create_window(signal_dc.shape, plot=False)
-    total_dc = total_dc * chwin_norm_mat
-    signal_dc = signal_dc * chwin_norm_mat
+    for dc in rdm_list:
+        dc = dc * chwin_norm_mat
 
     # Doppler process datacubes
-    for dc in [signal_dc, total_dc]:
+    for dc in rdm_list:
         f_axis, r_axis = doppler_process(dc, radar["sampRate"])
 
     ########## Plots and checks ####################################################################
