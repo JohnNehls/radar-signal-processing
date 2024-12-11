@@ -74,8 +74,11 @@ def gen(
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: unprocessed")
 
+    # list of datacubes to process in the following steps
+    rdm_list = [signal_dc, total_dc]
+
     ########## Apply the match filter ##############################################################
-    for dc in [signal_dc, total_dc]:
+    for dc in rdm_list:
         matchfilter(dc, waveform["pulse"], pedantic=True)
 
     if debug:
@@ -84,11 +87,11 @@ def gen(
     ########### Doppler process ####################################################################
     # First create filter window and apply it
     chwin_norm_mat = create_window(signal_dc.shape, plot=False)
-    total_dc = total_dc * chwin_norm_mat
-    signal_dc = signal_dc * chwin_norm_mat
+    for dc in rdm_list:
+        dc *=  chwin_norm_mat
 
     # Doppler process datacubes
-    for dc in [signal_dc, total_dc]:
+    for dc in rdm_list:
         f_axis, r_axis = doppler_process(dc, radar["sampRate"])
 
     ########## Plots and checks ####################################################################

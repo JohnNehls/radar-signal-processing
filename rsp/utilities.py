@@ -41,7 +41,7 @@ def phase_zero_twopi(phase):
     return phase
 
 
-def zero_to_smallest_float(array):
-    """set all elements of input array to smallest float32"""
+def zero_to_smallest_float(array, value=1e-16):
+    """set all zero elements of input array to value"""
     indxs = np.where(array == 0)
-    array[indxs] = sys.float_info.min
+    array[indxs] = value
