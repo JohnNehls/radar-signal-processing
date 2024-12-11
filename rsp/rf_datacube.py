@@ -73,3 +73,4 @@ def matchfilter(dataCube, pulse_wvf, pedantic=True):
         PulseM = Kernel @ np.ones((1, dataCube.shape[1]))
         DataCube = fft.fft(dataCube, axis=0)
         dataCube[:] = fft.ifft(PulseM * DataCube, axis=0, overwrite_x=True, workers=2)
+
