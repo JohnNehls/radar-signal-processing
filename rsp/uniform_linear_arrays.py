@@ -69,7 +69,7 @@ def array_phase_center(position_ar, weight_ar):
 
 
 def apply_timeshift_due_to_element_position(signal_ar, fs, element_position, tgt_angle):
-    """"""
+    """Apply time shift to signal due to element position [meters]"""g
     range_diff = element_position* np.sin(np.deg2rad(tgt_angle))
     time_shift = range_diff/ c.C
     print(f"{time_shift=}")
