@@ -124,9 +124,10 @@ def monopulse(dx, dc_list, tgt_angle):
     sum = dc_list[0] + dc_list[1]
     delta = dc_list[0] - dc_list[1]
     v_theta = np.arctan(2 * (delta / sum).imag) / (rho)  # ALGEBRA ERROR IN DOC
-    f_max_index = np.where(abs(dc_list[0]) == abs(dc_list[0]).max())
+    theta = np.arcsin(v_theta)
 
-    f_measured_theta = np.rad2deg(np.arcsin(v_theta)[f_max_index])
+    f_max_index = np.where(abs(dc_list[0]) == abs(dc_list[0]).max())
+    f_measured_theta = np.rad2deg(theta[f_max_index])
     f_measured_error = abs(f_measured_theta - tgt_angle)
 
     print(f"\t{f_measured_theta=} degrees")
