@@ -1,5 +1,4 @@
 import numpy as np
-from scipy import interpolate
 from . import constants as c
 from .rdm_helpers import plot_rtm, plot_rdm, plot_rdm_snr
 from .rf_datacube import number_range_bins, range_axis, dataCube
@@ -9,8 +8,6 @@ from .range_equation import noise_power
 from .noise import unity_variance_complex_noise
 from .rdm_helpers import noise_checks, create_window, check_expected_snr
 from .rdm_helpers import add_returns, add_returns_snr
-import rsp.uniform_linear_arrays as ula
-import matplotlib.pyplot as plt
 
 
 def gen(
@@ -21,8 +18,7 @@ def gen(
     plot: bool = True,
     debug: bool = False,
     snr: bool = False,
-    array_positions: list = 0,
-    angle: float = 0
+    steerVec: float = 1,
 ):
     """
     Generate a single CPI RDM for one target moving at a constant range rate.
@@ -72,57 +68,14 @@ def gen(
         noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
         add_returns(signal_dc, waveform, return_list, radar)
 
-    ### Alter the signal due to linear array position #####################
-    # - These are experimental at this time
-    if array_positions.all() != 0:
-        print("Note: this applies one angle to all of the return information")
-        print("\t should only be used for one target")
-        
-        assert abs(angle) < 90
-        signal_dc_ula_list = []
-        total_dc_ula_list = []        
-        for pos in array_positions:
-            # apply phase shift from carrier 
-            signal_dc_sv = signal_dc * ula.steering_vector(pos, angle)
+    signal_dc *= steerVec
+    total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
 
-            # apply time shift to baseband signal from array position from zero        
-            tmp_signal = signal_dc_sv.T.flatten() 
-            shifted_signal = ula.apply_timeshift_due_to_element_position(tmp_signal, radar["sampRate"], pos, angle)
-            signal_dc_shift = shifted_signal.reshape(tuple(reversed(signal_dc_sv.shape))).T
-            
-            signal_dc_ula_list.append(signal_dc_shift)
-            total_dc_ula_list.append(signal_dc_shift + noise_dc) # TODO use new noise for each channel
-            # signal_dc_ar.append(signal_dc_sv)   # IGNORE timeShift
-        
-        if debug:
-            # plot imaginary since the real parts are identical for symetric linear arrays (Cos)
-            plt.figure()
-            plt.title("Imaginary component of signal")
-            plt.plot(np.imag(signal_dc_ula_list[0].T.flatten()), label="neg position")
-            plt.plot(np.imag(signal_dc_ula_list[1].T.flatten()), '--', label="pos position")
-            plt.legend()
-            
-            # plot imaginary since the real parts are identical for symetric linear arrays (Cos)
-            plt.figure()
-            plt.title("Angle difference")
-            a = signal_dc_ula_list[0].T.flatten()
-            b = signal_dc_ula_list[1].T.flatten()
-            theta = np.arccos( a * np.conjugate(b) / (abs(a) * abs(b)))
-            plt.plot(theta)
-            plt.legend()
-            plt.show()
-        
-        rdm_list = signal_dc_ula_list + total_dc_ula_list
-        signal_dc = signal_dc_ula_list[0]
-        total_dc = total_dc_ula_list[0]
-
-    else:
-        total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting    
-        # list of datacubes to process in the following steps
-        rdm_list = [signal_dc, total_dc]
-    
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: unprocessed")
+
+    # list of datacubes to process in the following steps
+    rdm_list = [signal_dc, total_dc]
 
     ########## Apply the match filter ##############################################################
     for dc in rdm_list:
@@ -160,8 +113,5 @@ def gen(
             check_expected_snr(radar, return_list[0]["target"], waveform)  # first return item
         else:
             plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform['type']}")
-    
-    if array_positions.all() != 0:
-        return rdot_axis, r_axis, total_dc_ula_list, signal_dc_ula_list
-    else:
-        return rdot_axis, r_axis, total_dc, signal_dc
+
+    return rdot_axis, r_axis, total_dc, signal_dc
