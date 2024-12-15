@@ -100,6 +100,7 @@ def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
         #   - see ../tests/5_1_skin_in_correct_rangedoppler_bin.py for details
         timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] + time_pw_offset)) - 1
         pulse = SNR_volt * wvf["pulse"] * np.exp(1j * twoWay_phase_ar[i])
+        pulse *= tgtInfo.get("sv", 1)  # account for linear array position
 
         if timeIndex < signal_dc.size:  # else pulse is in next CPI
             add_waveform_at_index(tmpSignal, pulse, timeIndex)
@@ -111,7 +112,10 @@ def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
 
 def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
     """Add notional memory return to datacube"""
+    print("TODO: verify add_memory account for linear array position")
     print("Note: memory return amplitudes are notional")
+    if "rcs" in returnInfo["target"]:
+        print("Note: returnInfo['target']['rcs'] ignored for 'memory' returns")
 
     # time and range arrays
     time_ar = np.arange(signal_dc.size) * 1 / radar["sampRate"]  # time of all samples in CPI
@@ -176,6 +180,7 @@ def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
         # Create base pulse
         # - TODO set amplitude base on pod parameters
         pulse = SNR_volt * stored_pulse
+        pulse *= returnInfo["target"].get("sv", 1)  # account for linear array position
 
         # add slowtime noise (VBM)
         pulse = pulse * slowtime_noise[i]
