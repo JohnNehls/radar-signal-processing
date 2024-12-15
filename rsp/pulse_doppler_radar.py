@@ -5,6 +5,7 @@ def range_unambiguous(PRF):
     """maximum unambigious range"""
     return c.C / (2 * PRF)
 
+
 def range_resolution(B):
     """range resolution of the pulsed or CW radar depending on waveform bandwidth"""
     return c.C / (2 * B)

@@ -48,7 +48,7 @@ for nChip in BARKER_DICT.keys():
     ax[0].plot(t_b, mag_b, label=f"barker {nChip}")
 
     t_b, mag_b = zeropad_waveform(t_b, mag_b, Npad)
-    ib, conv_b= matchfilter_with_waveform(mag_b, mag_b)
+    ib, conv_b = matchfilter_with_waveform(mag_b, mag_b)
     conv_b = abs(conv_b)
     # conv_b = 20*np.log(conv_b)
     ax[1].plot(ib, conv_b, label=f"barker {nChip}")
