@@ -41,7 +41,7 @@ snr_db_list = np.arange(-15, 50, step=5)
 
 error_mean_list = []
 error_std_list = []
-error_mean_list_phase = [] # monopulse error calculated in time domain using only phase
+error_mean_list_phase = []  # monopulse error calculated in time domain using only phase
 f_error_list = []  # monopulse error calculated in frequency domain
 f_error_list_phase = []  # monopulse error calculated in frequency domain using only phase
 for snr_db in snr_db_list:
@@ -50,11 +50,11 @@ for snr_db in snr_db_list:
     recieved_signals = []  # noisey signals with specified snr
     for sv in steer_vec:
         if BASEBAND:  # option 1: converted to baseband
-            recieved_signals.append(snr_volt_scale * sv +
-                                    unity_variance_complex_noise(N_samples))
+            recieved_signals.append(snr_volt_scale * sv + unity_variance_complex_noise(N_samples))
         else:  # option 2: in RF passband
-            recieved_signals.append(snr_volt_scale * sv * signal_ar +
-                                    unity_variance_complex_noise(N_samples))
+            recieved_signals.append(
+                snr_volt_scale * sv * signal_ar + unity_variance_complex_noise(N_samples)
+            )
     plt.plot(np.real(recieved_signals[0]), label=f"snr={snr_db}")
 
     ## time-domain signal monopulse
@@ -71,8 +71,7 @@ for snr_db in snr_db_list:
 
     ## time-domain angle estimate from phase only
     # Does not work for RF passband, ony for singal converted to baseband
-    angle_est_niave = (np.angle(recieved_signals[0]) -
-                                np.angle(recieved_signals[1]))/(np.pi)
+    angle_est_niave = (np.angle(recieved_signals[0]) - np.angle(recieved_signals[1])) / (np.pi)
     error_mean_list_phase.append(np.mean(abs(np.rad2deg(angle_est_niave) - tgt_angle)))
 
     ## freq-domain signal monopulse
@@ -92,8 +91,9 @@ for snr_db in snr_db_list:
     f_error_list.append(f_measured_error)
 
     ## freq-domain angle estimate from phase only
-    f_angle_est_niave = (np.angle(f_recieved_signals[0]) -
-                                np.angle(f_recieved_signals[1]))[f_max_index]/(np.pi)
+    f_angle_est_niave = (np.angle(f_recieved_signals[0]) - np.angle(f_recieved_signals[1]))[
+        f_max_index
+    ] / (np.pi)
     f_error_list_phase.append(abs(np.rad2deg(f_angle_est_niave) - tgt_angle))
 
 
@@ -108,9 +108,9 @@ plt.grid()
 fig, axs = plt.subplots(1, 2)
 fig.suptitle("Monopulse Angle Estimation")
 axs[0].plot(snr_db_list, error_mean_list, label="time domain (mean)")
-axs[0].plot(snr_db_list, error_mean_list_phase, 'o', label="time domain (mean) phase")
+axs[0].plot(snr_db_list, error_mean_list_phase, "o", label="time domain (mean) phase")
 axs[0].plot(snr_db_list, f_error_list, label="freq domain (@max)")
-axs[0].plot(snr_db_list, f_error_list_phase, 'o', label="freq domain (@max) phase")
+axs[0].plot(snr_db_list, f_error_list_phase, "o", label="freq domain (@max) phase")
 axs[0].set_title("Angle Error")
 axs[0].legend()
 axs[1].plot(snr_db_list, error_std_list)

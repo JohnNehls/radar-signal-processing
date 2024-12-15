@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 from rsp import constants as c
 import rsp.uniform_linear_arrays as ula
-from rsp.rdm_helpers import plot_rtm, plot_rdm
+from rsp.rdm_helpers import plot_rdm
 from rsp.rf_datacube import number_range_bins, range_axis, dataCube
 from rsp.rf_datacube import matchfilter, doppler_process
 from rsp.waveform import process_waveform_dict
@@ -47,11 +47,11 @@ return_list = [{"type": "skin", "target": {"range": 2.4e3, "rangeRate": 0.2e3, "
 
 waveform = {"type": "uncoded", "bw": bw}  # high 1
 waveform = {"type": "barker", "nchips": 13, "bw": bw}  # high 1
-waveform = {"type": "lfm", "bw": 3*bw, "T": 10 / 40e6, "chirpUpDown": 1} ## high 2
+waveform = {"type": "lfm", "bw": 3 * bw, "T": 10 / 40e6, "chirpUpDown": 1}  ## high 2
 
 tgt_angle = 2
-dx = 1/2  # seperation of array elements in terms of carrier wavelength
-array_pos = np.array([-dx/2, dx/2])  # in terms of wavelength
+dx = 1 / 2  # seperation of array elements in terms of carrier wavelength
+array_pos = np.array([-dx / 2, dx / 2])  # in terms of wavelength
 
 ########## Compute waveform and radar parameters ###############################################
 # Use normalized pulses, the time-bandwidth poduct is used for amp scaling
@@ -81,9 +81,11 @@ for pos in array_pos:
     signal_dc_ula_list.append(signal_dc_sv)
 
     # apply time shift to baseband signal from array position from zero
-    position_meters = c.C/radar["fcar"] * pos
+    position_meters = c.C / radar["fcar"] * pos
     tmp_signal = signal_dc_sv.T.flatten()
-    shifted_signal = ula.apply_timeshift_due_to_element_position(tmp_signal, radar["sampRate"], position_meters, tgt_angle)
+    shifted_signal = ula.apply_timeshift_due_to_element_position(
+        tmp_signal, radar["sampRate"], position_meters, tgt_angle
+    )
     signal_dc_shift = shifted_signal.reshape(tuple(reversed(signal_dc_sv.shape))).T
     signal_dc_ula_list_timeshift.append(signal_dc_shift)
 
@@ -93,8 +95,8 @@ plt.figure()
 plt.title("Imaginary component of signal")
 plt.plot(fun(signal_dc_ula_list[0].T.flatten()), label="neg position")
 plt.plot(fun(signal_dc_ula_list[1].T.flatten()), label="pos position")
-plt.plot(fun(signal_dc_ula_list_timeshift[0].T.flatten()), '--', label="timeshift neg position")
-plt.plot(fun(signal_dc_ula_list_timeshift[1].T.flatten()), '--', label="timeshift pos position")
+plt.plot(fun(signal_dc_ula_list_timeshift[0].T.flatten()), "--", label="timeshift neg position")
+plt.plot(fun(signal_dc_ula_list_timeshift[1].T.flatten()), "--", label="timeshift pos position")
 plt.legend()
 
 # list of datacubes to process
@@ -108,7 +110,7 @@ for dc in rdm_list:
 # First create filter window and apply it
 chwin_norm_mat = create_window(signal_dc.shape, plot=False)
 for dc in rdm_list:
-    dc *=  chwin_norm_mat
+    dc *= chwin_norm_mat
 
 # Doppler process datacubes
 for dc in rdm_list:
@@ -117,6 +119,7 @@ for dc in rdm_list:
 ########## Plots and checks ####################################################################
 # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
 rdot_axis = -c.C * f_axis / (2 * radar["fcar"])
+
 
 ########## Monopulse on the RDMs #######################################################
 def monopulse(dx, dc_list, tgt_angle):
@@ -132,6 +135,7 @@ def monopulse(dx, dc_list, tgt_angle):
 
     print(f"\t{f_measured_theta=} degrees")
     print(f"\t{f_measured_error=} degrees")
+
 
 print("No-timeshift")
 monopulse(dx, signal_dc_ula_list, tgt_angle)

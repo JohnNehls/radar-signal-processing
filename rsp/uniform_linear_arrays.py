@@ -3,6 +3,7 @@ import matplotlib.pyplot as plt
 from . import constants as c
 from scipy import interpolate
 
+
 def steering_vector(el_pos, theta):
     """Vandermonde Steering Vector
     Parameters
@@ -70,12 +71,12 @@ def array_phase_center(position_ar, weight_ar):
 
 def apply_timeshift_due_to_element_position(signal_ar, fs, element_position, tgt_angle):
     """Apply time shift to signal due to element position [meters]"""
-    range_diff = element_position* np.sin(np.deg2rad(tgt_angle))
-    time_shift = range_diff/ c.C
+    range_diff = element_position * np.sin(np.deg2rad(tgt_angle))
+    time_shift = range_diff / c.C
     print(f"{time_shift=}")
-    time_ar = np.arange( len( signal_ar )) / fs
+    time_ar = np.arange(len(signal_ar)) / fs
     shifted_time = time_ar + time_shift
-    interp_fun = interpolate.interp1d(time_ar, signal_ar, kind='cubic', fill_value="extrapolate")
+    interp_fun = interpolate.interp1d(time_ar, signal_ar, kind="cubic", fill_value="extrapolate")
     shifted_signal = interp_fun(shifted_time)
 
     return shifted_signal

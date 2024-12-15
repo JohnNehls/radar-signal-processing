@@ -33,7 +33,7 @@ waveform = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}
 return_list = [
     {
         "type": "memory",
-        "target": {"range": 3.5e3, "rangeRate": 0.5e3, "sv": np.exp(1j*np.pi/4)},
+        "target": {"range": 3.5e3, "rangeRate": 0.5e3, "sv": np.exp(1j * np.pi / 4)},
         "rdot_delta": 3.0e3,
         "rdot_offset": 0.3e3,
         "range_offset": -0.2e3,
