@@ -34,14 +34,17 @@ run_python_files() {
     fi
 }
 
+# Get the path of the directory holding this script
+DIR_NAME=$(dirname $0)
+
 echo -e "${BLUE}################## test files in ./tests #####################################${NC}"
-run_python_files .
+run_python_files $DIR_NAME
 
 echo ""
 echo -e "${BLUE}################## inspect plots in ./examples ###############################${NC}"
-run_python_files ../examples
+run_python_files $DIR_NAME/../examples
 
 # Studies take a relativly long time to run, check less frequently
 echo ""
 echo -e "${BLUE}################## inspect plots in ./studies ################################${NC}"
-run_python_files ../studies
+run_python_files $DIR_NAME/../studies

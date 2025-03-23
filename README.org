@@ -1,8 +1,8 @@
 * Radar Signal Processing
-Range Doppler map (RDM) and radar signal processing module.
+Range Doppler map (RDM) and general radar signal processing module.
 
 ** Description
-This Python module provides tools for creating range Doppler maps and  a variety of functions useful for radar signal processing. It is designed to be a simple tool, useful for gaining intuition on how RDMs are made.
+This Python module provides tools for creating range Doppler maps and  a variety of functions useful for radar signal processing. It is designed to be a simple tool that is useful for gaining intuition on how RDMs are made.
 
 ** Libraries
 - [[file:rsp/rdm.py][RDM generation]]
@@ -21,14 +21,27 @@ pip install .
 #+END_SRC
 
 *** requirements
-Python >= 3.11
+Python >= 3.11 and the packages listed in [[file:requirements.txt][requirements.txt]]
 
 ** Usage
 - *RDM generator*
-For examples of basic usage, see the [[file:examples][examples]]. To see a script with all waveform and return options written out, check out [[file:examples/kitchen_sink.py][kitchen_sink.py]].
+   - For examples of basic usage, see the [[file:examples][examples]].
+   - To see a script with all waveform and return options written out, check out [[file:examples/kitchen_sink.py][kitchen_sink.py]].
 - *Everything else*
-See [[file:tests][tests]] for example of the other functions of the project.
+   - See [[file:tests][tests]] for example of the other functions of the project.
 
+** Testing RSP
+   - To run each of the scripts in [[file:tests][tests]] and print the results to sdout run the following:
+#+begin_src shell
+  ./tests/test_tests.sh
+#+end_src
+
+*** Known Test Failures
+**** 7_4_linear_arrays_ifft_array_factor.py
+- Not yet implemented
+**** 8_0_detection.py
+- Not yet implemented
+ 
 ** Contributing
 Contributions are welcome. Please fork the repository and submit a pull request.
 
