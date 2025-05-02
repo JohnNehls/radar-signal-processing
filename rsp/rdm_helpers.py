@@ -98,7 +98,9 @@ def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
         # TODO is this how these should be binned? Should they be interpolated onto grid?
         # - (-1) below added to make return end up in correct range bin (lfm still off)
         #   - see ../tests/5_1_skin_in_correct_rangedoppler_bin.py for details
-        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] + time_pw_offset)) - 1
+        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] + time_pw_offset))
+        if timeIndex > 0:
+            timeIndex -= 1
         pulse = SNR_volt * wvf["pulse"] * np.exp(1j * twoWay_phase_ar[i])
 
         if timeIndex < signal_dc.size:  # else pulse is in next CPI
@@ -192,7 +194,9 @@ def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
         # TODO is this how these should be binned? Should they be interpolated onto grid?
         # - Like skin index, -1 was added to better match expected results
         #   - see ../tests/5_2_memory_in_correct_rangedoppler_bin.py for details
-        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] - delay + time_pw_offset)) - 1
+        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] - delay + time_pw_offset))
+        if timeIndex > 0:
+            timeIndex -= 1
         if timeIndex < signal_dc.size:  # else pulse is in next CPI
             add_waveform_at_index(tmpSignal, pulse, timeIndex)
 
