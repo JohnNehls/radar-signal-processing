@@ -5,19 +5,18 @@ Range Doppler map (RDM) and general radar signal processing module.
 This Python module provides tools for creating range Doppler maps and  a variety of functions useful for radar signal processing. It is designed to be a simple tool that is useful for gaining intuition on how RDMs are made.
 
 ** Libraries
-- [[file:rsp/rdm.py][RDM generation]]
-- [[file:rsp/waveform.py][waveform generation]]
-- [[file:rsp/pulse_doppler_radar.py][pulse doppler]]
-- [[file:rsp/range_equation.py][radar range equation]]
-- [[file:rsp/uniform_linear_arrays.py][uniform linear array antennas]]
-- [[file:rsp/noise.py][noise]]
+- [[file:src/rsp/rdm.py][RDM generation]]
+- [[file:src/rsp/waveform.py][waveform generation]]
+- [[file:src/rsp/pulse_doppler_radar.py][pulse doppler]]
+- [[file:src/rsp/range_equation.py][radar range equation]]
+- [[file:src/rsp/uniform_linear_arrays.py][uniform linear array antennas]]
+- [[file:src/rsp/noise.py][noise]]
 
 ** Installation
 To install the module, clone this repository and install with pip:
 #+BEGIN_SRC shell
-git clone https://github.com/JohnNehls/radar-signal-processing
-cd radar-signal-processing
-pip install .
+  git clone https://github.com/JohnNehls/radar-signal-processing
+  pip install radar-signal-processing/
 #+END_SRC
 
 *** requirements
@@ -26,17 +25,19 @@ Python >= 3.11 and the packages listed in [[file:requirements.txt][requirements.
 ** Usage
 - *RDM generator*
    - For examples of basic usage, see the [[file:examples][examples]].
-   - To see a script with all waveform and return options written out, check out [[file:examples/kitchen_sink.py][kitchen_sink.py]].
+      - [[file:examples/kitchen_sink.py][kitchen_sink.py]] is a script with all waveform and return options written out
 - *Everything else*
    - See [[file:tests][tests]] for example of the other functions of the project.
 
 ** Testing RSP
-   - To run each of the scripts in [[file:tests][tests]] and print the results to sdout run the following:
+   - To run each python script in [[file:tests][tests]], [[./examples][examples]], and [[./studies][studies]] to test for errors, run the following:
 #+begin_src shell
-  ./tests/test_tests.sh
+  ./tests/run_all_tests.sh
 #+end_src
 
 *** Known Test Failures
+**** 6_rdm_keystone.py
+- Not yet implemented
 **** 7_4_linear_arrays_ifft_array_factor.py
 - Not yet implemented
 **** 8_0_detection.py
