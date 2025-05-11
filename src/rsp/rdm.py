@@ -88,7 +88,7 @@ def gen(
     # First create filter window and apply it
     chwin_norm_mat = create_window(signal_dc.shape, plot=False)
     for dc in rdm_list:
-        dc *=  chwin_norm_mat
+        dc *= chwin_norm_mat
 
     # Doppler process datacubes
     for dc in rdm_list:

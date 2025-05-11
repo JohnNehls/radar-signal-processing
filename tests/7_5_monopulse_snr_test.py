@@ -40,8 +40,9 @@ for snr_db in snr_db_list:
 
     recieved_signals = []  # noisey signals with specified snr
     for sv in steer_vec:
-        recieved_signals.append(snr_volt_scale * sv * signal_ar +
-                               unity_variance_complex_noise(N_samples))
+        recieved_signals.append(
+            snr_volt_scale * sv * signal_ar + unity_variance_complex_noise(N_samples)
+        )
     plt.plot(recieved_signals[0], label=f"snr={snr_db}")
 
     dx = array_pos[1] - array_pos[0]  # seperation of array elements

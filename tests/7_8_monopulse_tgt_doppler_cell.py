@@ -42,14 +42,14 @@ return_list = [{"type": "skin", "target": {"range": 2.4e3, "rangeRate": 0.2e3, "
 
 waveform = {"type": "uncoded", "bw": bw}  # high 1
 waveform = {"type": "barker", "nchips": 13, "bw": bw}  # high 1
-waveform = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1} ## high 2
+waveform = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}  ## high 2
 
 tgt_angle = 5
-dx = 1/2  # seperation of array elements in terms of wavelength
-array_pos = np.array([-dx/2, dx/2])  # in terms of wavelength
+dx = 1 / 2  # seperation of array elements in terms of wavelength
+array_pos = np.array([-dx / 2, dx / 2])  # in terms of wavelength
 steer_vec = ula.steering_vector(array_pos, tgt_angle)
 
-dc_list = [ ]
+dc_list = []
 
 for sv in steer_vec:
     rseed = np.random.randint(1000)

@@ -9,7 +9,7 @@ setup(
     long_description_content_type="text/orgfile",
     url="https://github.com/JohnNehls/radar-signal-processing",
     packages=find_packages("src"),
-    package_dir={"":"src"},
+    package_dir={"": "src"},
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: GPL-3.0 License",

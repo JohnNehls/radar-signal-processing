@@ -60,7 +60,6 @@ def compare_max_indices(signal_dc, return_item):
     print(f"\t\t{max_rdot_index=} {j=}")
 
 
-
 print("uncoded")
 waveform = {"type": "uncoded", "bw": bw}
 rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(radar, waveform, return_list, plot=True)
