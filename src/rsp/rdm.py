@@ -18,7 +18,6 @@ def gen(
     plot: bool = True,
     debug: bool = False,
     snr: bool = False,
-    steerVec: float = 1,
 ):
     """
     Generate a single CPI RDM for one target moving at a constant range rate.
@@ -68,7 +67,6 @@ def gen(
         noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
         add_returns(signal_dc, waveform, return_list, radar)
 
-    signal_dc *= steerVec
     total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
 
     if debug:

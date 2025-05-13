@@ -53,8 +53,9 @@ dc_list = []
 
 for sv in steer_vec:
     rseed = np.random.randint(1000)
+    return_list[0]["target"]["sv"] = sv  # sv component to "target"
     rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
-        radar, waveform, return_list, snr=True, debug=False, plot=False, steerVec=sv, seed=rseed
+        radar, waveform, return_list, snr=True, debug=False, plot=False, seed=rseed
     )
     dc_list.append(total_dc)
 

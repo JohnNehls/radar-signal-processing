@@ -1,6 +1,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from . import constants as c
+from scipy import interpolate
 
 
 def steering_vector(el_pos, theta):
@@ -66,3 +67,16 @@ def array_phase_center(position_ar, weight_ar):
     assert len(position_ar) == len(weight_ar)
     # unsure if the weight should be abs value or not
     return np.sum(abs(weight_ar) * position_ar) / np.sum(weight_ar)
+
+
+def apply_timeshift_due_to_element_position(signal_ar, fs, element_position, tgt_angle):
+    """Apply time shift to signal due to element position [meters]"""
+    range_diff = element_position * np.sin(np.deg2rad(tgt_angle))
+    time_shift = range_diff / c.C
+    print(f"{time_shift=}")
+    time_ar = np.arange(len(signal_ar)) / fs
+    shifted_time = time_ar + time_shift
+    interp_fun = interpolate.interp1d(time_ar, signal_ar, kind="cubic", fill_value="extrapolate")
+    shifted_signal = interp_fun(shifted_time)
+
+    return shifted_signal

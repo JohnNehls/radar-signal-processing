@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 from rsp import rdm
+import numpy as np
 
 ################################################################################
 # Kitchen sink: script showing a sample of all of the options available
@@ -22,20 +23,17 @@ radar = {
     "dwell_time": 2e-3,
 }
 
+# Example waveform configurations, the last un-commented on will be used for the RDM
 waveform = {"type": None}  # noise test
-
 waveform = {"type": "uncoded", "bw": bw}
-
 waveform = {"type": "barker", "nchips": 13, "bw": bw}
-
 waveform = {"type": "random", "nchips": 13, "bw": bw}
-
 waveform = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}
 
 return_list = [
     {
         "type": "memory",
-        "target": {"range": 3.5e3, "rangeRate": 0.5e3, "rcs": 10},
+        "target": {"range": 3.5e3, "rangeRate": 0.5e3, "sv": np.exp(1j * np.pi / 4)},
         "rdot_delta": 3.0e3,
         "rdot_offset": 0.3e3,
         "range_offset": -0.2e3,
