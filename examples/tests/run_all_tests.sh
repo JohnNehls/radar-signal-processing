@@ -46,8 +46,8 @@ DIR_NAME=$(dirname $0)
 echo -e "${B_BLUE}################## test files in ./tests #####################################${NC}"
 run_python_files ${DIR_NAME}
 
-echo -e "${B_BLUE}################## inspect plots in ./examples ###############################${NC}"
-run_python_files ${DIR_NAME}/../examples
+echo -e "${B_BLUE}################## inspect plots in ./rdms ###############################${NC}"
+run_python_files ${DIR_NAME}/../rdms
 
 # Studies take a relativly long time to run, check less frequently
 echo -e "${B_BLUE}################## inspect plots in ./studies ################################${NC}"

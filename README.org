@@ -25,18 +25,18 @@ Python >= 3.11 and the packages listed in [[file:requirements.txt][requirements.
 ** Usage
 - *RDM generator*
    - For examples of basic usage, see the [[file:examples][examples]].
-      - [[file:examples/kitchen_sink.py][kitchen_sink.py]] is a script with all waveform and return options written out
+      - [[file:examples/rdms/kitchen_sink.py][kitchen_sink.py]] is a script with all waveform and return options written out
 - *Everything else*
-   - See [[file:tests][tests]] for example of the other functions of the project.
+   - For example of the other functions of the project, see [[file:examples/tests][tests]].
 
 ** Testing RSP
    - To run each python script in [[file:tests][tests]], [[./examples][examples]], and [[./studies][studies]] to test for errors, run the following:
 #+begin_src shell
-  ./tests/run_all_tests.sh
+  ./examples/tests/run_all_tests.sh
 #+end_src
 
 *** Known Test Failures
-**** 6_rdm_keystone.py
+**** 6_0_rdm_keystone.py
 - Not yet implemented
 **** 7_4_linear_arrays_ifft_array_factor.py
 - Not yet implemented
