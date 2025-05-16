@@ -73,7 +73,7 @@ apparent_doppler_ar = []
 apparent_rangeRate_ar = []
 
 for PRF in PRF_ar:
-    doppler_freq_tgt = pdr.frequency_doppler(rangeRate_tgt, f0)
+    doppler_freq_tgt = pdr.frequency_delta_doppler(rangeRate_tgt, f0)
     apparent_doppler_ar.append(pdr.frequency_aliased(doppler_freq_tgt, PRF))
     apparent_rangeRate_ar.append(pdr.rangeRate_aliased_prf_f0(rangeRate_tgt, PRF, f0))
 

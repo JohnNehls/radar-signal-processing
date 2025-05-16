@@ -2,42 +2,87 @@ from . import constants as c
 
 
 def range_unambiguous(PRF):
-    """maximum unambigious range"""
+    """
+    Unambigious range.
+    Args:
+        PRF (float) : Pulse repitition frequency [Hz]
+    Return:
+        range : float [m]
+    """
     return c.C / (2 * PRF)
 
 
 def range_resolution(B):
-    """range resolution of the pulsed or CW radar depending on waveform bandwidth"""
+    """
+    Range resolution.
+    Args:
+        B (float) : Pulse bandwidth [Hz]
+    Return:
+        range : float [m]
+    """
     return c.C / (2 * B)
 
 
 def range_aliased(range, PRF):
+    """
+    Target range as it appears after aliasing.
+    Args:
+        range (float) : Taget range
+        PRF (float) : Pulse repitition frequency [Hz]
+    Return:
+        range : float [m]
+    """
     return range % range_unambiguous(PRF)
 
 
-def frequency_doppler(rangeRate, f0):
-    """frequnce of light recieved after reflection off target with the given rangeRate"""
+def frequency_delta_doppler(rangeRate, f0):
+    """
+    Frequnce delta due to Doppler shift after bouncing off of target.
+    Args:
+        rangeRate (float) : Target rangeRate
+        f0 (float) : Frequency of the radar pulse [Hz]
+    Return:
+        f_doppler : float [Hz]
+    """
     return f0 * (-2 * rangeRate / c.C)
 
 
-def frequency_aliased(freq, freq_sample):
-    """Place freq in [-freq_sample/2, freq_sample/2]
-    Usefull for finding aliasing of real signals"""
-    f = freq % freq_sample
-    if f > freq_sample / 2:
-        return f - freq_sample
+def frequency_aliased(freq, fs):
+    """
+    Frequency as it appears after being aliasing into [-fs/2, fs/2]
+    Args:
+        freq (float) : Frequency [Hz]
+        fs (float) : Sample frequency [Hz]
+    Return:
+        freq : float [Hz]
+    """
+    f = freq % fs
+    if f > fs / 2:
+        return f - fs
     else:
         return f
 
 
 def rangeRate_pm_unambiguous(PRF, f0):
-    """+/- bounds of the unambgeous velocity"""
+    """+/- bounds of the unambgeous velocity.
+    Args:
+        PRF (float) : Pulse repitition frequency [Hz]
+        f0 (float) : Frequency of the radar pulse [Hz]
+    Return:
+        rangeRate : float [m/s]
+    """
     return PRF * c.C / (4 * f0)
 
 
 def rangeRate_aliased_rrmax(rangeRate, rangeRate_max):
-    """Place freq in [-rangeRate_max, rangeRate_max]
-    Usefull for finding aliasing of real signals"""
+    """
+    RangeRate as it appears after aliasing in [-rangeRate_max, rangeRate_max].
+    Args:
+        rangeRate (float) : Input rangeRate [m/s]
+        rangeRate_max (float) : Maximum rangeRate [m/s]
+    Return:
+        rangeRate : float [m/s]
+    """
     r = rangeRate % (2 * rangeRate_max)
     if r > rangeRate_max:
         return r - 2 * rangeRate_max
@@ -46,11 +91,25 @@ def rangeRate_aliased_rrmax(rangeRate, rangeRate_max):
 
 
 def rangeRate_aliased_prf_f0(rangeRate, PRF, f0):
-    """Place freq in [-rangeRate_max, rangeRate_max]
-    Usefull for finding aliasing of real signals"""
+    """
+    RangeRate as it appears after aliasing in [-rangeRate_max, rangeRate_max].
+    Args:
+        rangeRate (float) : Input rangeRate [m/s]
+        PRF (float) : Pulse repitition frequency [Hz]
+        f0 (float) : Frequency of the radar pulse [Hz]
+    Return:
+        rangeRate : float [m/s]
+    """
     return rangeRate_aliased_rrmax(rangeRate, rangeRate_pm_unambiguous(PRF, f0))
 
 
 def first_echo_pulse_bin(range, PRF):
-    """Find the te slowtime bin the first target return will arrive in"""
+    """
+    The slow-time bin the first target return will arrive in.
+    Args:
+        range (float) : Taget range
+        PRF (float) : Pulse repitition frequency [Hz]
+    Return:
+        bin : int [unitless]
+    """
     return int(range / range_unambiguous(PRF))
