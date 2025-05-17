@@ -13,17 +13,24 @@ BARKER_DICT = {
 }
 
 
-def uncoded_pulse(sampleRate, BW, t_start=0, normalize=True):
-    """baseband uncoded pulse"""
+def uncoded_pulse(sampleRate, BW, normalize=True):
+    """
+    Create a baseband uncoded pulse.
+    Args:
+        sampleRate (float) : Sample rate.
+        BW (float) : Pulse Bandwidth
+        normalize : bool (optional: default is True)
+    Return:
+        f_doppler : float [Hz]
+    """
     assert sampleRate / BW >= 2, "Error: sample rate below Nyquist"
 
     T = 1 / BW
     dt = 1 / sampleRate
-    t_end = t_start + T
-    t = np.arange(t_start, t_end, dt)
+    t = np.arange(0, T, dt)
     mag = np.zeros(t.size)
 
-    mag[np.where((t >= t_start) & (t <= T + t_start))] = 1
+    mag[np.where(t <= T)] = 1
 
     if normalize:
         mag = mag / norm(mag)
@@ -31,14 +38,14 @@ def uncoded_pulse(sampleRate, BW, t_start=0, normalize=True):
     return t, mag
 
 
-def complex_tone_pulse(sampleRate, BW, fc, t_start=0, normalize=True):
+def complex_tone_pulse(sampleRate, BW, fc, normalize=True):
     """complex tone pulse"""
-    t, mag = uncoded_pulse(sampleRate, BW, t_start=t_start, normalize=True)
+    t, mag = uncoded_pulse(sampleRate, BW, normalize=normalize)
     mag_c = np.exp(2j * c.PI * fc * t) * mag
     return t, mag_c
 
 
-def coded_pulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize=True):
+def coded_pulse(sampleRate, BW, code, output_length_T=1, normalize=True):
     """baseband coded pulse"""
     assert output_length_T >= 1, "Error: must output a full pulse"
 
@@ -62,7 +69,7 @@ def coded_pulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize=Tr
         tmp[: mag.size] = mag
         mag = tmp
 
-    t = np.arange(mag.size) * dt + t_start
+    t = np.arange(mag.size) * dt
 
     if normalize:
         mag = mag / norm(mag)
@@ -70,7 +77,7 @@ def coded_pulse(sampleRate, BW, code, output_length_T=1, t_start=0, normalize=Tr
     return t, mag
 
 
-def barker_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
+def barker_coded_pulse(sampleRate, BW, nChips, output_length_T=1, normalize=True):
     """baseband Barker coded pulse"""
     assert nChips in BARKER_DICT, f"Error: {nChips=} is not a valid Barker code."
     assert nChips == len(BARKER_DICT[nChips]), "Error: Barker dict is incorrect"
@@ -79,12 +86,11 @@ def barker_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, nor
         BW,
         BARKER_DICT[nChips],
         output_length_T=output_length_T,
-        t_start=t_start,
         normalize=normalize,
     )
 
 
-def random_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, normalize=True):
+def random_coded_pulse(sampleRate, BW, nChips, output_length_T=1, normalize=True):
     """baseband random bi-phase coded pulse"""
     code_rand = np.random.choice([1, -1], size=nChips)
     return coded_pulse(
@@ -92,19 +98,18 @@ def random_coded_pulse(sampleRate, BW, nChips, output_length_T=1, t_start=0, nor
         BW,
         code_rand,
         output_length_T=output_length_T,
-        t_start=t_start,
         normalize=normalize,
     )
 
 
-def lfm_pulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, t_start=0, normalize=True):
+def lfm_pulse(sampleRate, BW, T, chirpUpDown, output_length_T=1, normalize=True):
     """baseband LFM pulse"""
     assert output_length_T >= 1, "Error: must output a full pulse"
     dt = 1 / sampleRate
-    t = np.arange(t_start, t_start + output_length_T * T + dt, dt)
+    t = np.arange(0, output_length_T * T + dt, dt)  #TODO + dt?
     f = chirpUpDown * (-BW * t + BW * t**2 / T) / 2
     mag = np.zeros(t.size, dtype=np.complex64)
-    i_ar = np.where((t >= t_start) & (t <= (t_start + T)))
+    i_ar = np.where(t <= T)
     mag[i_ar] = np.exp(1j * 2 * c.PI * f[i_ar])
 
     if normalize:
