@@ -24,7 +24,7 @@ BW = 4e6  # Hz
 sampleRate = 16e6  # Hz
 Npad = 50
 
-tu, mag_u = uncoded_pulse(sampleRate, BW)  # output_length_T=13, normalize=True)
+tu, mag_u = uncoded_pulse(sampleRate, BW)
 tu, mag_u = zeropad_waveform(tu, mag_u, Npad)
 
 fig, ax = plt.subplots(1, 2)

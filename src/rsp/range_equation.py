@@ -42,8 +42,8 @@ def snr_range_eqn_uncoded(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T):
         wavelength (float) : Wavelength [Hz]
         R (float) : Range [m]
         B (float) : Bandwidth of the reciever [Hz]
-        F (float) : Noise factor of the reciever [unitless]    
-        L (float) : Loss [unitless]    
+        F (float) : Noise factor of the reciever [unitless]
+        L (float) : Loss [unitless]
         T (float) : Temperature of the system [Kelvin]
     Return:
         SNR : float [unitless]
