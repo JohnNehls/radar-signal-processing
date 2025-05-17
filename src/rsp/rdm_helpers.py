@@ -360,6 +360,7 @@ def add_returns(signal_dc, waveform, return_list, radar):
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 
+
 ## see examples/tests/function_tests/process_waveform.py for simple test of this function
 def process_waveform_dict(waveform: dict, radar: dict):
     """Fill in wvf dict with "pulse", "time_BW_product", "pulse_width"""
@@ -370,19 +371,25 @@ def process_waveform_dict(waveform: dict, radar: dict):
         waveform["pulse_width"] = 1 / waveform["bw"]
 
     elif waveform["type"] == "barker":
-        _, pulse_wvf = wvf.barker_coded_pulse(radar["sampRate"], waveform["bw"], waveform["nchips"])
+        _, pulse_wvf = wvf.barker_coded_pulse(
+            radar["sampRate"], waveform["bw"], waveform["nchips"]
+        )
         waveform["pulse"] = pulse_wvf
         waveform["time_BW_product"] = waveform["nchips"]
         waveform["pulse_width"] = 1 / waveform["bw"] * waveform["nchips"]
 
     elif waveform["type"] == "random":
-        _, pulse_wvf = wvf.random_coded_pulse(radar["sampRate"], waveform["bw"], waveform["nchips"])
+        _, pulse_wvf = wvf.random_coded_pulse(
+            radar["sampRate"], waveform["bw"], waveform["nchips"]
+        )
         waveform["pulse"] = pulse_wvf
         waveform["time_BW_product"] = waveform["nchips"]
         waveform["pulse_width"] = 1 / waveform["bw"] * waveform["nchips"]
 
     elif waveform["type"] == "lfm":
-        _, pulse_wvf = wvf.lfm_pulse(radar["sampRate"], waveform["bw"], waveform["T"], waveform["chirpUpDown"])
+        _, pulse_wvf = wvf.lfm_pulse(
+            radar["sampRate"], waveform["bw"], waveform["T"], waveform["chirpUpDown"]
+        )
         waveform["pulse"] = pulse_wvf
         waveform["time_BW_product"] = waveform["bw"] * waveform["T"]
         waveform["pulse_width"] = waveform["T"]
