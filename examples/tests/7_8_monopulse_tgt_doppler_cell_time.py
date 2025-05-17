@@ -8,10 +8,8 @@ import rsp.uniform_linear_arrays as ula
 from rsp.rdm_helpers import plot_rdm
 from rsp.rf_datacube import number_range_bins, range_axis, dataCube
 from rsp.rf_datacube import matchfilter, doppler_process
-from rsp.waveform import process_waveform_dict
 from rsp.range_equation import noise_power
-from rsp.rdm_helpers import create_window
-from rsp.rdm_helpers import add_returns
+from rsp.rdm_helpers import create_window, add_returns, process_waveform_dict
 
 
 # Can make plotting non-blocking with an input flag

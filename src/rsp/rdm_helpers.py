@@ -2,6 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal, fft
 from . import constants as c
+from . import waveform as wvf
 from .waveform_helpers import add_waveform_at_index
 from .utilities import phase_negpi_pospi, zero_to_smallest_float
 from .range_equation import snr_range_eqn, snr_range_eqn_cp, signal_range_eqn
@@ -358,3 +359,33 @@ def add_returns(signal_dc, waveform, return_list, radar):
             add_memory(signal_dc, waveform, radar, returnItem, rx_mem_amp)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
+
+## see examples/tests/function_tests/process_waveform.py for simple test of this function
+def process_waveform_dict(waveform: dict, radar: dict):
+    """Fill in wvf dict with "pulse", "time_BW_product", "pulse_width"""
+    if waveform["type"] == "uncoded":
+        _, pulse_wvf = wvf.uncoded_pulse(radar["sampRate"], waveform["bw"])
+        waveform["pulse"] = pulse_wvf
+        waveform["time_BW_product"] = 1
+        waveform["pulse_width"] = 1 / waveform["bw"]
+
+    elif waveform["type"] == "barker":
+        _, pulse_wvf = wvf.barker_coded_pulse(radar["sampRate"], waveform["bw"], waveform["nchips"])
+        waveform["pulse"] = pulse_wvf
+        waveform["time_BW_product"] = waveform["nchips"]
+        waveform["pulse_width"] = 1 / waveform["bw"] * waveform["nchips"]
+
+    elif waveform["type"] == "random":
+        _, pulse_wvf = wvf.random_coded_pulse(radar["sampRate"], waveform["bw"], waveform["nchips"])
+        waveform["pulse"] = pulse_wvf
+        waveform["time_BW_product"] = waveform["nchips"]
+        waveform["pulse_width"] = 1 / waveform["bw"] * waveform["nchips"]
+
+    elif waveform["type"] == "lfm":
+        _, pulse_wvf = wvf.lfm_pulse(radar["sampRate"], waveform["bw"], waveform["T"], waveform["chirpUpDown"])
+        waveform["pulse"] = pulse_wvf
+        waveform["time_BW_product"] = waveform["bw"] * waveform["T"]
+        waveform["pulse_width"] = waveform["T"]
+
+    else:
+        raise Exception(f"waveform type {waveform['type']} not found.")

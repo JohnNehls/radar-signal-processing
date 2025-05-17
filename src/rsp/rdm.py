@@ -3,11 +3,10 @@ from . import constants as c
 from .rdm_helpers import plot_rtm, plot_rdm, plot_rdm_snr
 from .rf_datacube import number_range_bins, range_axis, dataCube
 from .rf_datacube import matchfilter, doppler_process
-from .waveform import process_waveform_dict
 from .range_equation import noise_power
 from .noise import unity_variance_complex_noise
 from .rdm_helpers import noise_checks, create_window, check_expected_snr
-from .rdm_helpers import add_returns, add_returns_snr
+from .rdm_helpers import add_returns, add_returns_snr, process_waveform_dict
 
 
 def gen(

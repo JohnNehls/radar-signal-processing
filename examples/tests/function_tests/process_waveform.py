@@ -1,7 +1,6 @@
 #!/usr/bin/env python
 
-from rsp.waveform import process_waveform_dict
-
+from rsp.rdm_helpers import process_waveform_dict
 bw = 10e6
 
 wvf = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}

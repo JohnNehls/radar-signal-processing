@@ -107,34 +107,3 @@ def lfm_pulse(sampleRate, BW, T, chirpUpDown, normalize=True):
         mag = mag / norm(mag)
 
     return t, mag
-
-
-## see /tests/function_tests/process_waveform.py for test of this function
-def process_waveform_dict(wvf: dict, radar: dict):
-    """Fill in wvf dict with "pulse", "time_BW_product", "pulse_width" """
-    if wvf["type"] == "uncoded":
-        _, pulse_wvf = uncoded_pulse(radar["sampRate"], wvf["bw"])
-        wvf["pulse"] = pulse_wvf
-        wvf["time_BW_product"] = 1
-        wvf["pulse_width"] = 1 / wvf["bw"]
-
-    elif wvf["type"] == "barker":
-        _, pulse_wvf = barker_coded_pulse(radar["sampRate"], wvf["bw"], wvf["nchips"])
-        wvf["pulse"] = pulse_wvf
-        wvf["time_BW_product"] = wvf["nchips"]
-        wvf["pulse_width"] = 1 / wvf["bw"] * wvf["nchips"]
-
-    elif wvf["type"] == "random":
-        _, pulse_wvf = random_coded_pulse(radar["sampRate"], wvf["bw"], wvf["nchips"])
-        wvf["pulse"] = pulse_wvf
-        wvf["time_BW_product"] = wvf["nchips"]
-        wvf["pulse_width"] = 1 / wvf["bw"] * wvf["nchips"]
-
-    elif wvf["type"] == "lfm":
-        _, pulse_wvf = lfm_pulse(radar["sampRate"], wvf["bw"], wvf["T"], wvf["chirpUpDown"])
-        wvf["pulse"] = pulse_wvf
-        wvf["time_BW_product"] = wvf["bw"] * wvf["T"]
-        wvf["pulse_width"] = wvf["T"]
-
-    else:
-        raise Exception(f"wvf type {wvf['type']} not found.")
