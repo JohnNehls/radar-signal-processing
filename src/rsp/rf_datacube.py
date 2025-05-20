@@ -4,54 +4,81 @@ from . import constants as c
 from .waveform_helpers import matchfilter_with_waveform
 
 
-def range_axis(fs: float, Nr: int):
-    """Create range labels for the fast-time axis"""
+def range_axis(fs: float, N_r: int):
+    """
+    Create range labels for the fast-time axis.
+    Args:
+        fs (float) : Sample rate [Hz]
+        N_r (int) : Number of range bins
+    Return:
+        R_axis : 1D array
+    """
     dR_grid = c.C / (2 * fs)
-    R_axis = np.arange(1, Nr + 1) * dR_grid  # Process fast time
+    R_axis = np.arange(1, N_r + 1) * dR_grid  # Process fast time
     return R_axis
 
 
 def number_range_bins(fs: float, prf: float):
-    "Calculate the number of range bins in an RDM"
-    # return round(fs / prf)
+    """
+    Calculate the number of range bins in an RDM
+    Args:
+        fs (float) : Sample rate [Hz]
+        prf (float) : Pulse Repition Interval [s]
+    Return:
+        N_r : (int)
+    """
     return int(fs / prf)
 
 
-def dataCube(fs: float, prf: float, Np: int):
-    """Create an empty or noise datacube
-    Outputs unprocessed datacube, both in fast and slow time
-    inputs:
-      fs = sampling frequency
-      prf= pulse repitition frequncy of the radar
-      Np = number of pulses in a CPI
-    outputs:
-      datacube of size (Nrange_bins, Np)
+def dataCube(fs: float, prf: float, N_p: int):
+    """
+    Create an empty datacube.
+    Args:
+        fs (float) : Sample rate [Hz]
+        prf (float) : Pulse Repition Interval [s]
+        N_p (int) : Number of pulses in the CPI
+    Return:
+        datacube : 2D array with shape (Nrange_bins, Np)
     """
     Nr = number_range_bins(fs, prf)
-    dc = np.zeros((Nr, Np), dtype=np.complex64)
+    dc = np.zeros((Nr, N_p), dtype=np.complex64)
     return dc
 
 
-def doppler_process(data_cube, fs):
-    """Process data cube in place
-    args:
-        data_cube: time domain data to be Doppler processed
-       fs: sample frequncy of the time domain data
-
-    f_axis : [-PRF/2, PRF/2)
-    r_axis : [delta_r, R_ambigious]
+def doppler_process(datacube, fs: float):
+    """Doppler process data cube in place.
+    Args:
+        datacube (2D array) : Time domain data to be Doppler processed
+        fs (float) : Sample rate [Hz]
+    Returns:
+        None
+    Notes:
+        - New datacube axes:
+            - f_axis : [-PRF/2, PRF/2)
+            - r_axis : [delta_r, R_ambigious]
     """
-    Nr, Np = data_cube.shape
+    N_r, N_p = datacube.shape
     dR_grid = c.C / (2 * fs)
-    PRF = fs / data_cube.shape[0]
-    R_axis = np.arange(1, Nr + 1) * dR_grid  # Process fast time
-    f_axis = fft.fftshift(fft.fftfreq(Np, 1 / PRF))  # process slow time
-    data_cube[:] = fft.fftshift(fft.fft(data_cube, axis=1), axes=1)
+    PRF = fs / datacube.shape[0]
+    R_axis = np.arange(1, N_r + 1) * dR_grid  # Process fast time
+    f_axis = fft.fftshift(fft.fftfreq(N_p, 1 / PRF))  # process slow time
+    datacube[:] = fft.fftshift(fft.fft(datacube, axis=1), axes=1)
     return f_axis, R_axis
 
 
 def matchfilter(dataCube, pulse_wvf, pedantic=True):
-    """Inplace match filter on data cube"""
+    """
+    Apply match filter to a datacube in place.
+    Args:
+        datacube (2D array) : Time domain data to be Doppler processed
+        pulse_wvf (1d array) : Sample rate [Hz]
+        pedantic (bool) : Pedantic algorithm flag
+    Returns:
+        None
+    Notes:
+        - Pedantic algorithm leaves the phase of the datacube zero for non-zero elements.
+        - Non-pedantic algorithm is an attempt at the efficient match filter in frequency space, only needing to take the the fft of the waveform once.
+    """
     if pedantic:
         for j in range(dataCube.shape[1]):
             _, mf = matchfilter_with_waveform(dataCube[:, j], pulse_wvf)

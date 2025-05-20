@@ -7,6 +7,7 @@ from scipy import signal
 
 logger = logging.getLogger(__name__)
 
+
 def zeropad_waveform(t, waveform, N_pad):
     """
     Zeropad waveform at the end of the pulse and modify time array accordingly.
@@ -211,9 +212,7 @@ def add_waveform_at_index(ar, waveform, index):
         logger.info("add_waveform_at_index: wave form not added")
     elif index + Nwv >= Nar:
         ar[index:-1] = ar[index:-1] + waveform[: int(Nar - index - 1)]
-        logger.info(
-            f"add_waveform_at_index: add eclipsed waveform \n\t{index}\n\t{Nar}\n\t{Nwv}"
-        )
+        logger.info(f"add_waveform_at_index: add eclipsed waveform \n\t{index}\n\t{Nar}\n\t{Nwv}")
     else:
         ar[index : index + Nwv] = ar[index : index + Nwv] + waveform
         logger.info(f"add_waveform_at_index: add waveform \n\t{index}\n\t{Nar}\n\t{Nwv}")
