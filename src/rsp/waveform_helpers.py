@@ -1,26 +1,53 @@
 import numpy as np
 import matplotlib.pyplot as plt
+import logging
 from scipy import fft
 from scipy.interpolate import interp1d
 from scipy import signal
 
+logger = logging.getLogger(__name__)
 
-def zeropad_waveform(t, mag, Npad):
-    """Zeropad waveform with Npad zeros at the end of the pulse. Output time starts at 0 seconds"""
-    mag = np.append(mag, np.zeros(Npad))
-    t = np.arange(mag.size) * (t[1] - t[0])
-    return t, mag
+def zeropad_waveform(t, waveform, N_pad):
+    """
+    Zeropad waveform at the end of the pulse and modify time array accordingly.
+    Args:
+        t (1d array) : Time array
+        waveform (1d array) : Signal array
+        N_pad (int) : number of zero pad samples
+    Return:
+        noise : 1d array
+    """
+    assert type(N_pad) is int
+    assert len(t) == len(waveform)
+    waveform = np.append(waveform, np.zeros(N_pad))
+    t = np.arange(waveform.size) * (t[1] - t[0]) + t[0]
+    return t, waveform
 
 
-def moving_average(waveform, elements):
-    """moving average of input waveform over number of elements specified"""
-    kernel = np.ones(elements) / elements
-    av = np.convolve(waveform, kernel, mode="same")
-    return av
+def moving_average(waveform, N_elements):
+    """
+    Moving average of input waveform over a number of elements
+    Args:
+        waveform (1d array) : Signal array
+        N_elements (int) : Number of elements to average over
+    Return:
+        ave : 1d array
+    """
+    assert type(N_elements) is int
+    kernel = np.ones(N_elements) / N_elements
+    ave = np.convolve(waveform, kernel, mode="same")
+    return ave
 
 
-def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2, debug=False):
-    """find the width in x of the real signal y written for as a recursive algorithm for recreation"""
+def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2):
+    """
+    Experimental/recreation: Find the width in x of the real signal y written for as a recursive algorithm.
+    Args:
+        x (array) : Independent variable
+        y (array) : Dependent variable
+    Return:
+        pulsewidth, x_start, x_end : float, float, float
+    """
     # Step 1: Find the maximum amplitude of the signal
     max_amplitude = np.max(y)
 
@@ -39,14 +66,14 @@ def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2, debug=False):
 
     # stop infinite recursion
     elif interp_count >= interp_max:
-        if debug:
-            print("Error: cannot find width")
+        logger.error("Error: cannot find width")
         return [np.nan, np.nan, np.nan]
 
     # recursive step
     else:
-        if debug:
-            print(f"find_width is interpolating to 2x the sample rate {interp_count=}")
+        logger.info(
+            f"find_width: find_width is interpolating to 2x the sample rate {interp_count=}"
+        )
         interp_func = interp1d(x, y, kind="linear")
         newx = np.linspace(x[0], x[-1], x.size * interp_scale)
         newy = interp_func(newx)
@@ -107,17 +134,27 @@ def plot_pulse_and_spectrum(t, mag, title=None, Npad=0, printBandwidth=True, spe
 
 
 def autocorrolate_waveform(waveform):
+    """
+    Create the autocorrelation of a waveform.
+    Args:
+        waveform (array) : real or complex waveform array
+    Return:
+        autoCor, index_shift : auto correlation and index shift arrays
+    Notes:
+        - index_shift is #TODO
+    """
     Nwf = waveform.size
     Nfft = 2 * Nwf - 1  # add some padding
     WF = fft.fft(waveform, Nfft)
-    val = fft.ifft(WF * np.conj(WF))
-    val = fft.fftshift(val)
+    autoCor = fft.ifft(WF * np.conj(WF))
+    autoCor = fft.fftshift(autoCor)
     index_shift = np.arange(-(Nwf - 1), Nwf)
 
-    return val, index_shift
+    return autoCor, index_shift
 
 
 def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
+    """plotPulseAndautocorrelation"""
     dt = t[1] - t[0]
 
     fig, ax = plt.subplots(1, 2)
@@ -158,27 +195,41 @@ def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
     return fig, ax
 
 
-def add_waveform_at_index(ar, waveform, index, debug=False):
-    """In place add wvf to current array"""
+def add_waveform_at_index(ar, waveform, index):
+    """Add waveform to input array in place.
+    Args:
+        ar (array) : Independent array
+        waveform (array) : real or complex waveform array
+        index (int) : Index to place the waveform
+    Return:
+        ar : array
+    """
     Nar = ar.size
     Nwv = waveform.size
 
     if index >= Nar:
-        if debug:
-            print("wave form not added")
+        logger.info("add_waveform_at_index: wave form not added")
     elif index + Nwv >= Nar:
         ar[index:-1] = ar[index:-1] + waveform[: int(Nar - index - 1)]
-        if debug:
-            print(f"add eclipsed waveform \n\t{index}\n\t{Nar}\n\t{Nwv}")
+        logger.info(
+            f"add_waveform_at_index: add eclipsed waveform \n\t{index}\n\t{Nar}\n\t{Nwv}"
+        )
     else:
         ar[index : index + Nwv] = ar[index : index + Nwv] + waveform
-        if debug:
-            print(f"add waveform \n\t{index}\n\t{Nar}\n\t{Nwv}")
+        logger.info(f"add_waveform_at_index: add waveform \n\t{index}\n\t{Nar}\n\t{Nwv}")
     return ar
 
 
 def matchfilter_with_waveform(ar, waveform):
-    """Just use signal.convolve"""
+    """
+    Create an array with the match filter of a waveform applied to an array.
+    Args:
+        ar (array) : Independent array
+        waveform (array) : real or complex waveform array
+    Return:
+        index_shift, conv : index shift arrays and matched filter result
+    #TODO describe what index_shift is
+    """
     Nar = ar.size
     kernel = np.conj(waveform)[::-1]
     conv = signal.convolve(ar, kernel, mode="same", method="direct")
