@@ -1,16 +1,24 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import signal, fft
+from scipy import signal
 from . import constants as c
 from . import waveform as wvf
 from .waveform_helpers import add_waveform_at_index
 from .utilities import phase_negpi_pospi, zero_to_smallest_float
-from .range_equation import snr_range_eqn, snr_range_eqn_cp, signal_range_eqn
+from .range_equation import snr_range_eqn, signal_range_eqn
 from . import vbm
 
 
 def plot_rtm(r_axis, data, title):
-    """Plot range-time matrix"""
+    """
+    Plot range-time matrix.
+    Args:
+        r_axis (1D array) : Range axis
+        data (2D array) : Range-time matrix.
+        title (string) : Plot title
+    Return:
+        None
+    """
     pulses = range(data.shape[1])
     fig, ax = plt.subplots(1, 2)
     fig.suptitle(title)
@@ -27,7 +35,18 @@ def plot_rtm(r_axis, data, title):
 
 
 def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=-100, volt2dbm=True):
-    """Plot range-Doppler matrix"""
+    """
+    Plot range-Doppler matrix.
+    Args:
+        rdot_axis (1D array) : Range rate axis
+        r_axis (1D array) : Range axis
+        data (2D array) : Range-time matrix
+        title (string) : Plot title
+        cbarMin (float) : Color bar minimum (default=-100)
+        volt2dbm (bool) : Flag to convert to dBm (default=True)
+    Return:
+        None
+    """
 
     data = abs(data)  # complex -> real
 
@@ -54,9 +73,18 @@ def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=-100, volt2dbm=True):
 
 
 def plot_rdm_snr(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
-    """Plot range-Doppler matrix"""
+    """Plot range-Doppler matrix in SNR.
+    Args:
+        rdot_axis (1D array) : Range rate axis
+        r_axis (1D array) : Range axis
+        data (2D array) : Range-time matrix
+        title (string) : Plot title
+        cbarMin (float) : Color bar minimum (default=0)
+        volt2dbm (bool) : Flag to convert to dBm (default=True)
+    Return:
+        None
+    """
     data = abs(data)  # complex -> real
-
     fig, ax = plt.subplots(1, 1)
     fig.suptitle(title)
     ax.set_xlabel("range rate [km/s]")
@@ -78,10 +106,20 @@ def plot_rdm_snr(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
     return fig, ax
 
 
-def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
-    """Add skin return to the datacube"""
+def add_skin(datacube, wvf: dict, tgtInfo: dict, radar: dict, return_magnitude: float):
+    """
+    Add skin return from target to the datacube in place.
+    Args:
+        datacube (2D array) : Datacube
+        wvf (dict) : Waveform dictionary
+        tgtInfo (dict) : Target dictionary
+        radar (dict) : Radar dictionary
+        return_magnitude (float) : Magitude of the return (voltage or SNR)
+    Return:
+        None
+    """
     # time and range arrays
-    time_ar = np.arange(signal_dc.size) * 1 / radar["sampRate"]  # time of all samples in CPI
+    time_ar = np.arange(datacube.size) * 1 / radar["sampRate"]  # time of all samples in CPI
     t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]  # time when pulses sent
 
     tgt_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"] * t_slow_axis  # tgt range at pulse send
@@ -93,7 +131,7 @@ def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
     time_pw_offset = wvf["pulse_width"] / 2
 
     # Due to the time axis being the non-continuous (slow) axis, we most do some transposing
-    tmpSignal = signal_dc.T.flatten()
+    tmpSignal = datacube.T.flatten()
 
     for i in range(radar["Npulses"]):
         # TODO is this how these should be binned? Should they be interpolated onto grid?
@@ -102,26 +140,36 @@ def add_skin(signal_dc, wvf: dict, tgtInfo: dict, radar: dict, SNR_volt):
         timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] + time_pw_offset))
         if timeIndex > 0:
             timeIndex -= 1
-        pulse = SNR_volt * wvf["pulse"] * np.exp(1j * twoWay_phase_ar[i])
+        pulse = return_magnitude * wvf["pulse"] * np.exp(1j * twoWay_phase_ar[i])
         pulse *= tgtInfo.get("sv", 1)  # account for linear array position
 
-        if timeIndex < signal_dc.size:  # else pulse is in next CPI
+        if timeIndex < datacube.size:  # else pulse is in next CPI
             add_waveform_at_index(tmpSignal, pulse, timeIndex)
 
-    tmpSignal = tmpSignal.reshape(tuple(reversed(signal_dc.shape))).T
+    tmpSignal = tmpSignal.reshape(tuple(reversed(datacube.shape))).T
 
-    signal_dc[:] = tmpSignal[:]
+    datacube[:] = tmpSignal[:]
 
 
-def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
-    """Add notional memory return to datacube"""
+def add_memory(datacube, wvf: dict, radar: dict, returnInfo: dict, return_magnitude: float):
+    """
+    Add notional memory return to datacube in place.
+    Args:
+        datacube (2D array) : Datacube
+        wvf (dict) : Waveform dictionary
+        tgtInfo (dict) : Target dictionary
+        radar (dict) : Radar dictionary
+        return_magnitude (float) : Magitude of the return (voltage or SNR)
+    Return:
+        None
+    """
     print("TODO: verify add_memory account for linear array position")
     print("Note: memory return amplitudes are notional")
     if "rcs" in returnInfo["target"]:
         print("Note: returnInfo['target']['rcs'] ignored for 'memory' returns")
 
     # time and range arrays
-    time_ar = np.arange(signal_dc.size) * 1 / radar["sampRate"]  # time of all samples in CPI
+    time_ar = np.arange(datacube.size) * 1 / radar["sampRate"]  # time of all samples in CPI
     t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]  # time when pulses sent
 
     # tgt range at pulse send
@@ -162,7 +210,7 @@ def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
     stored_angle = 0  # initialize to stop lsp from complaining
 
     # Due to the time axis being the non-continuous (slow) axis, we most do some transposing
-    tmpSignal = signal_dc.T.flatten()
+    tmpSignal = datacube.T.flatten()
 
     for i in range(radar["Npulses"]):
         # pulse recieved by the EW system
@@ -182,7 +230,7 @@ def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
 
         # Create base pulse
         # - TODO set amplitude base on pod parameters
-        pulse = SNR_volt * stored_pulse
+        pulse = return_magnitude * stored_pulse
         pulse *= returnInfo["target"].get("sv", 1)  # account for linear array position
 
         # add slowtime noise (VBM)
@@ -203,70 +251,23 @@ def add_memory(signal_dc, wvf: dict, radar: dict, returnInfo, SNR_volt):
         timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] - delay + time_pw_offset))
         if timeIndex > 0:
             timeIndex -= 1
-        if timeIndex < signal_dc.size:  # else pulse is in next CPI
+        if timeIndex < datacube.size:  # else pulse is in next CPI
             add_waveform_at_index(tmpSignal, pulse, timeIndex)
 
-    tmpSignal = tmpSignal.reshape(tuple(reversed(signal_dc.shape))).T
+    tmpSignal = tmpSignal.reshape(tuple(reversed(datacube.shape))).T
 
-    signal_dc[:] = tmpSignal[:]
-
-
-def noise_checks(signal_dc, noise_dc, total_dc):
-    """Print out some noise checks"""
-    print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
-    print("\nnoise check:")
-    noise_var = np.var(total_dc, 1)
-    print(f"\t{np.mean (noise_var)=: .4f}")
-    print(f"\t{np.var(noise_var)=: .4f}")
-    print(f"\t{np.mean (20*np.log10(noise_var))=: .4f}")
-    print(f"\t{np.var (20*np.log10(noise_var))=: .4f}")
-    print("\nSNR test:")
-    print(f"\t{20*np.log10(np.max(abs(signal_dc)))=:.2f}")
-    print(f"\t{20*np.log10(np.max(abs(noise_dc)))=:.2f}")
-    print(f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
-
-
-def check_expected_snr(radar, target, waveform):
-    ## expected
-    SNR_expected = snr_range_eqn_cp(
-        radar["txPower"],
-        radar["txGain"],
-        radar["rxGain"],
-        target["rcs"],
-        c.C / radar["fcar"],
-        target["range"],
-        waveform["bw"],
-        radar["noiseFactor"],
-        radar["totalLosses"],
-        radar["opTemp"],
-        radar["Npulses"],
-        waveform["time_BW_product"],
-    )
-    ## volatge used in return (recalculated)
-    SNR_onepulse = snr_range_eqn(
-        radar["txPower"],
-        radar["txGain"],
-        radar["rxGain"],
-        target["rcs"],
-        c.C / radar["fcar"],
-        target["range"],
-        waveform["bw"],
-        radar["noiseFactor"],
-        radar["totalLosses"],
-        radar["opTemp"],
-        waveform["time_BW_product"],
-    )
-    SNR_volt = np.sqrt(SNR_onepulse / radar["Npulses"])
-
-    print("SNR Check:")
-    print(f"\t{10*np.log10(SNR_onepulse)=:.2f}")
-    print(f"\t{SNR_volt=:.1e}")
-    print(f"\t{SNR_expected=:.1e}")
-    print(f"\t{10*np.log10(SNR_expected)=:.2f}")
+    datacube[:] = tmpSignal[:]
 
 
 def create_window(inShape: tuple, plot=True):
-    """Create windowing function"""
+    """
+    Create Dolph-Chebyshev window using Numpy.
+    Args:
+        inShape (tuple) : Window shape
+        plot (bool) : Flag to plot the window
+    Return:
+        chwin_norm_mat
+    """
     # see wondow comparison example for more window examples
     chwin = signal.windows.chebwin(inShape[1], 60)
     chwin_norm = chwin / np.mean(chwin)
@@ -285,6 +286,15 @@ def create_window(inShape: tuple, plot=True):
 
 
 def skin_snr_amplitude(radar, target, waveform):
+    """
+    Return the expected SNR for a given radar, target, and waveform used.
+    Args:
+        radar (dict) : Radar properties (txPower, txGain, rxGain, Noisefactor, totalLosses opTemp)
+        target (dict) : Target properties (rcs)
+        waveform (dict) : Waveform properties (time_BW_product)
+    Return:
+        SNR (float) : Expected SNR
+    """
     SNR_onepulse = snr_range_eqn(
         radar["txPower"],
         radar["txGain"],
@@ -298,25 +308,43 @@ def skin_snr_amplitude(radar, target, waveform):
         radar["opTemp"],
         waveform["time_BW_product"],
     )
-    print("Is skin_snr calculated correctly?")
+    #TODO Is skin_snr calculated correctly?
     return np.sqrt(SNR_onepulse / radar["Npulses"])
 
 
-def add_returns_snr(dc, wvf, return_list, radar):
-    """Add returns from the return_list to the data cube
-    Note: memory return amplitude is not physical"""
+def add_returns_snr(datacube, waveform, return_list, radar):
+    """
+    Add each from the return_list to the SNR datacube in place.
+    Args:
+        datacube (2D array) : Datacube
+        waveform (dict) : Waveform properties
+        return_list (list) : list of the returns to be added in the RDM
+        radar (dict) : Radar properties
+    Return:
+        None
+    Notes:
+        - SNR Memory return amplitude is not physical
+    """
     for returnItem in return_list:
-        snr_volt_amp = skin_snr_amplitude(radar, returnItem["target"], wvf)
+        snr_volt_amp = skin_snr_amplitude(radar, returnItem["target"], waveform)
         if returnItem["type"] == "skin":
-            add_skin(dc, wvf, returnItem["target"], radar, snr_volt_amp)
+            add_skin(datacube, waveform, returnItem["target"], radar, snr_volt_amp)
         elif returnItem["type"] == "memory":
             print("Note: Memory return SNR amplitudes are notional!")
-            add_memory(dc, wvf, radar, returnItem, snr_volt_amp)
+            add_memory(datacube, waveform, radar, returnItem, snr_volt_amp)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 
 
 def skin_voltage_amplitude(radar, target):
+    """
+    Calculate the correct voltage amplitude of a return from a target.
+    Args:
+        radar (dict) : Radar properties (txPower, txGain, rxGain, Noisefactor, totalLosses opTemp)
+        target (dict) : Target properties (rcs)
+    Return:
+        amplitude (float) : volatage amplitude
+    """
     rxPower = signal_range_eqn(
         radar["txPower"],
         radar["txGain"],
@@ -331,6 +359,15 @@ def skin_voltage_amplitude(radar, target):
 
 
 def memory_voltage_amplitude(platform, radar, target):
+    """
+    Calculate the correct voltage amplitude of a memory return from a platform.
+    Args:
+        platform (dict) : Platform properties (txPower, txgain, totalLosses)
+        radar (dict) : Radar properties (rxGain, fcar)
+        target (dict) : Target properties (rcs)
+    Return:
+        amplitude (float) : volatage amplitude
+    """
     rxMemPower = signal_range_eqn(
         platform["txPower"],
         platform["txGain"],
@@ -344,26 +381,43 @@ def memory_voltage_amplitude(platform, radar, target):
     return np.sqrt(c.RADAR_LOAD * rxMemPower)
 
 
-def add_returns(signal_dc, waveform, return_list, radar):
-    """Add returns from the return_list to the data cube
-    Note: memory return amplitude is not physical"""
+def add_returns(datacube, waveform, return_list, radar):
+    """
+    Add each from the return_list to the datacube in place.
+    Args:
+        datacube (2D array) : Datacube
+        waveform (dict) : Waveform properties
+        return_list (list) : list of the returns to be added in the RDM
+        radar (dict) : Radar properties
+    Return:
+        None
+    Notes:
+        - Check if memory return amplitude is physical
+    """
     for returnItem in return_list:
         if returnItem["type"] == "skin":
             rx_skin_amp = skin_voltage_amplitude(radar, returnItem["target"])
-            add_skin(signal_dc, waveform, returnItem["target"], radar, rx_skin_amp)
+            add_skin(datacube, waveform, returnItem["target"], radar, rx_skin_amp)
         elif returnItem["type"] == "memory":
             # radar below should should be replaced by EW system
             rx_mem_amp = memory_voltage_amplitude(
                 returnItem["platform"], radar, returnItem["target"]
             )
-            add_memory(signal_dc, waveform, radar, returnItem, rx_mem_amp)
+            add_memory(datacube, waveform, radar, returnItem, rx_mem_amp)
         else:
             print(f"{returnItem['type']=} not known, no return added.")
 
 
 ## see examples/tests/function_tests/process_waveform.py for simple test of this function
 def process_waveform_dict(waveform: dict, radar: dict):
-    """Fill in wvf dict with "pulse", "time_BW_product", "pulse_width"""
+    """
+    Fill in waveform dict with "pulse", "time_BW_product", "pulse_width" in place.
+    Args:
+        waveform (dict) : Waveform properties
+        radar (dict) : Radar properties
+    Return:
+        None
+    """
     if waveform["type"] == "uncoded":
         _, pulse_wvf = wvf.uncoded_pulse(radar["sampRate"], waveform["bw"])
         waveform["pulse"] = pulse_wvf
