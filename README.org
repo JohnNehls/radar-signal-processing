@@ -20,7 +20,9 @@ To install the module, clone this repository and install with pip:
 #+END_SRC
 
 *** requirements
-Python >= 3.11 and the packages listed in [[file:requirements.txt][requirements.txt]]
+- Python >= 3.11
+- Python packages listed in [[file:requirements.txt][requirements.txt]]
+- A few of the tests utilize LaTex, thus it may need to be installed in order for them to run
 
 ** Usage
 - *RDM generator*
