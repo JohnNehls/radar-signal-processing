@@ -2,3 +2,4 @@
 /build/
 *.egg-info
 /src/rsp/__pycache__/
+/src/rsp/_version.py
