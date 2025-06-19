@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=64", "setuptools-scm>=8"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "radar-signal-processing"
+description="A module for general radar signal processing"
+readme = "README.md"
+keywords = ["radar", "signal processing"]
+requires-python = ">=3.10"
+dynamic = ["version"]
+dependencies = [
+        "numpy>=1.26.4",
+        "scipy>=1.11.3",
+        "matplotlib>=3.9.4"
+        ]
+
+[project.urls]
+Repository="https://github.com/JohnNehls/radar-signal-processing"
+
+[tool.setuptools_scm]
+version_file = "src/rsp/_version.py"
