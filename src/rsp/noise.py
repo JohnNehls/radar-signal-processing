@@ -78,11 +78,11 @@ def guassian_complex_noise(mu, sigma, p, N_samples, fs, normalize=False):
     assert fs > 0
 
     freqs = fft.fftfreq(N_samples, 1 / fs)
-    f = np.zeros(N_samples, np.complex64)
-    f = 1 / (sigma * np.sqrt(2 * c.PI)) * np.exp(-(((freqs - mu) ** 2 / (2 * sigma**2)) ** p)) + 0j
+    f = (1 / (sigma * np.sqrt(2 * c.PI)) *
+         np.exp(-(((freqs - mu) ** 2 / (2 * sigma**2)) ** p))).astype(np.complex64)
 
-    for i in range(f.size):
-        f[i] *= np.exp(1j * 2 * c.PI * np.random.rand())
+    # Apply random phase to each frequency component
+    f *= np.exp(1j * 2 * c.PI * np.random.rand(f.size))
 
     noise = fft.ifft(f) * np.sqrt(N_samples)
 
