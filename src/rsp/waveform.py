@@ -199,10 +199,9 @@ def lfm_pulse(sampleRate, BW, T, chirpUpDown, normalize=True):
     assert chirpUpDown in [1, -1], "ValueError: chirpUpDown must be either 1 or -1."
     dt = 1 / sampleRate
     t = np.arange(0, T, dt)
-    f = chirpUpDown * (-BW * t + BW * t**2 / T) / 2
-    mag = np.zeros(t.size, dtype=np.complex64)
-    i_ar = np.where(t <= T)
-    mag[i_ar] = np.exp(1j * 2 * c.PI * f[i_ar])
+    k = BW / T  # Chirp rate
+    phase = chirpUpDown * np.pi * k * (t**2) - chirpUpDown * np.pi * BW * t
+    mag = np.exp(1j * phase)
 
     if normalize:
         mag = mag / norm(mag)
