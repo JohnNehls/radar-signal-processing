@@ -18,27 +18,79 @@ def gen(
     debug: bool = False,
     snr: bool = False,
 ):
-    """
-    Generate a single CPI RDM for one target moving at a constant range rate.
+    """Generate a Range-Doppler Map (RDM) for a single Coherent Processing Interval (CPI).
+
+    This function simulates the received radar data for one or more targets
+    moving at constant range rates and processes it to produce an RDM. It
+    accounts for radar system parameters, waveform characteristics, and noise.
 
     Parameters
     ----------
-    radar: dict with fcar, txPower, txGain, rxGain, opTemp, sampRate, noiseFactor, totalLosses, PRF
-    waveform: dict for waveform types in ["uncoded", "barker", "random", "lfm"]
-    returnInfo_list: list of dicts containing return types to place in the RDM, in ["skin", "memory"]
-
-    Optional parameters:
-    seed: int random seed
-    plot: boolean plot the final RDM
-    debug: boolean plot each step in building the RDM and print out statistics
-    snr: boolean create the RDM in SNR for the skin retrun (memory return is then notional)
+    radar : dict
+        A dictionary containing the radar system parameters. Expected keys are:
+        'fcar' : float
+            Carrier frequency in Hertz (Hz).
+        'txPower' : float
+            Transmit power in Watts (W).
+        'txGain' : float
+            Transmit antenna gain in decibels (dB).
+        'rxGain' : float
+            Receive antenna gain in decibels (dB).
+        'opTemp' : float
+            Operating temperature in Kelvin (K).
+        'sampRate' : float
+            Sampling rate in Hertz (Hz).
+        'noiseFactor' : float
+            Receiver noise factor in decibels (dB).
+        'totalLosses' : float
+            Total system losses in decibels (dB).
+        'PRF' : float
+            Pulse Repetition Frequency in Hertz (Hz).
+    waveform : dict
+        A dictionary describing the transmitted waveform. Must contain a 'type'
+        key, with other keys dependent on the type.
+        'type' : {"uncoded", "barker", "random", "lfm"}
+            The type of waveform modulation.
+    return_list : list of dict
+        A list where each dictionary defines a target return to be simulated.
+        Each dictionary should contain details about the return, such as:
+        'type' : {"skin", "memory"}
+            The type of radar return.
+        'rcs' : float
+            Radar Cross Section in square meters (m^2).
+        'range' : float
+            Initial target range in meters (m).
+        'range_rate' : float
+            Target's radial velocity in meters per second (m/s).
+    seed : int, optional
+        Seed for the random number generator to ensure reproducibility.
+        Default is 0.
+    plot : bool, optional
+        If True, generates a plot of the final Range-Doppler Map.
+        Default is True.
+    debug : bool, optional
+        If True, plots intermediate steps of the RDM generation and prints
+        diagnostic statistics. Default is False.
+    snr : bool, optional
+        If True, the output RDM amplitudes are normalized to the Signal-to-Noise
+        Ratio (SNR) of the primary skin return. If False, amplitudes are in Volts.
+        Default is False.
 
     Returns
     -------
-    rdot_axis: array of rangeRate axis [m/s]
-    r_axis: range axisk [m]
-    total_dc: RDM in Volts for noise + signal
-    signal_dc: RDM in Volts for signal
+    tuple
+        A tuple containing the following four numpy arrays:
+        rdot_axis : numpy.ndarray
+            1D array representing the range-rate (Doppler) axis of the RDM in
+            meters per second (m/s).
+        r_axis : numpy.ndarray
+            1D array representing the range axis of the RDM in meters (m).
+        total_dc : numpy.ndarray
+            2D array representing the complete RDM, including both
+            signal and noise, with amplitude in Volts or SNR.
+        signal_dc : numpy.ndarray
+            2D array representing the signal-only RDM, with
+            amplitude in Volts or SNR.
     """
     np.random.seed(seed)
 

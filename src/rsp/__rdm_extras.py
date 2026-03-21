@@ -5,7 +5,13 @@ from .range_equation import snr_range_eqn, snr_range_eqn_cp
 
 
 def noise_checks(signal_dc, noise_dc, total_dc):
-    """Print out some noise checks"""
+    """Prints various noise and signal-to-noise ratio (SNR) checks.
+
+    Args:
+        signal_dc (np.ndarray): The down-converted signal data.
+        noise_dc (np.ndarray): The down-converted noise data.
+        total_dc (np.ndarray): The down-converted total signal (signal + noise).
+    """
     print(f"\n5.3.2 noise check: {np.var(fft.fft(noise_dc, axis=1))=: .4f}")
     print("\nnoise check:")
     noise_var = np.var(total_dc, 1)
@@ -20,6 +26,13 @@ def noise_checks(signal_dc, noise_dc, total_dc):
 
 
 def check_expected_snr(radar, target, waveform):
+    """Calculates and prints expected SNR based on the radar equation.
+
+    Args:
+        radar (dict): A dictionary of radar system parameters.
+        target (dict): A dictionary of target parameters.
+        waveform (dict): A dictionary of waveform parameters.
+    """
     ## expected
     SNR_expected = snr_range_eqn_cp(
         radar["txPower"],

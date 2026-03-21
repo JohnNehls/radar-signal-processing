@@ -6,12 +6,18 @@ from scipy import interpolate
 
 def steering_vector(el_pos, theta):
     """
-    Vandermonde Steering Vector
+    Computes the Vandermonde steering vector for a linear array.
+
+    This vector represents the phase shifts of a planar wave arriving from a specific
+    angle as measured at each element of the array.
+
     Args:
-        el_pos : coordinates of array elements in units of wavelength
-        theta : angle of steering in degrees
-    Return:
-        steering_vector
+        el_pos (np.ndarray): A 1D array of antenna element positions, normalized
+                             by the signal wavelength.
+        theta (float): The steering angle in degrees, where 0 is broadside.
+
+    Returns:
+        np.ndarray: A complex-valued steering vector of the same size as `el_pos`.
     """
     theta_rad = np.deg2rad(theta)
     return np.exp(-1j * 2 * np.pi * np.sin(theta_rad) * el_pos)
@@ -19,15 +25,25 @@ def steering_vector(el_pos, theta):
 
 def linear_antenna_gain(el_pos, weight_vec=None, N_theta=10000, steer_angle=0, plot=False):
     """
-    Antenna voltage gain pattern (complex) from element positions in terms of signal wavelength
+    Calculates the complex voltage gain pattern for a linear antenna array.
+
     Args:
-        el_pos : Coordinates of array elements in units of wavelength [wavelength]
-        weight_vec : Array element weighting [unitless]
-        N_theta : Number of theta points for grid (default 10000)
-        steer_angle : Angle of maximum gain (default is 0)[rad]
-        plot :  Plotting flag (default is False)
-    Return:
-        theta_vec, gain_vec : Theta grid and gain vector
+        el_pos (np.ndarray): 1D array of element positions, normalized by the
+                             signal wavelength.
+        weight_vec (np.ndarray, optional): A vector of complex weights for each
+            antenna element. If None, uniform weights (all ones) are used.
+            Defaults to None.
+        N_theta (int, optional): The number of angular points to calculate the
+            gain over. Defaults to 10000.
+        steer_angle (float, optional): The angle in degrees at which to steer
+            the main beam. 0 degrees is broadside. Defaults to 0.
+        plot (bool, optional): If True, plots the gain pattern in dBi.
+            Defaults to False.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]:
+            - theta_vec (np.ndarray): The grid of angles in degrees, from -90 to 90.
+            - gain_vec (np.ndarray): The complex voltage gain at each angle in `theta_vec`.
     """
     if weight_vec is None:
         weight_vec = np.ones(len(el_pos)).T
@@ -56,16 +72,27 @@ def linear_antenna_gain(el_pos, weight_vec=None, N_theta=10000, steer_angle=0, p
 
 def linear_antenna_gain_meters(el_pos, fc, weights=None, Ntheta=10000, steer_angle=0, plot=False):
     """
-    Antenna voltage gain pattern (complex) from element positions [m] and signal frequency [Hz]
+    Calculates gain pattern from element positions in meters and frequency.
+
+    This is a convenience wrapper for `linear_antenna_gain` that converts
+    physical positions and frequency into wavelength-normalized positions.
+
     Args:
-        el_pos : Coordinates of array elements [m]
-        fc : Center frequency of transmit/recieve [Hz]
-        weight_vec : Array element weighting [unitless]
-        N_theta : Number of theta points for grid (default 10000)
-        steer_angle : Angle of maximum gain (default is 0)[rad]
-        plot :  Plotting flag (default is False)
-    Return:
-        theta_vec, gain_vec : Theta grid and gain vector
+        el_pos (np.ndarray): 1D array of element positions in meters.
+        fc (float): The signal's center frequency in Hertz.
+        weights (np.ndarray, optional): A vector of complex weights for each
+            antenna element. If None, uniform weights are used. Defaults to None.
+        Ntheta (int, optional): The number of angular points to calculate the
+            gain over. Defaults to 10000.
+        steer_angle (float, optional): The angle in degrees at which to steer
+            the main beam. 0 degrees is broadside. Defaults to 0.
+        plot (bool, optional): If True, plots the gain pattern in dBi.
+            Defaults to False.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]:
+            - theta_vec (np.ndarray): The grid of angles in degrees, from -90 to 90.
+            - gain_vec (np.ndarray): The complex voltage gain at each angle.
     """
     wavelength = c.C / fc
     el_pos_per_wl = el_pos / wavelength
@@ -76,16 +103,27 @@ def linear_antenna_gain_meters(el_pos, fc, weights=None, Ntheta=10000, steer_ang
 
 def linear_antenna_gain_N_db(N_el, dx, weights=None, Ntheta=10000, steer_angle=0, plot=False):
     """
-    Antenna voltage gain pattern (complex) in dBi from number of array elements and the elemnt spacing in terms of signal wavelength
+    Calculates gain pattern in dBi for a uniform linear array.
+
+    This function defines the array geometry based on the number of elements
+    and their uniform spacing. It then computes and returns the gain in dBi.
+
     Args:
-        N_el : Number of antenna array elements
-        dx : Array spacing in wavelength [wavelength]
-        weight_vec : Array element weighting [unitless]
-        N_theta : Number of theta points for grid (default 10000)
-        steer_angle : Angle of maximum gain (default is 0)[rad]
-        plot :  Plotting flag (default is False)
-    Return:
-        theta_vec, gain_vec : Theta grid and gain vector
+        N_el (int): The number of antenna array elements.
+        dx (float): The spacing between elements, normalized by signal wavelength.
+        weights (np.ndarray, optional): A vector of complex weights for each
+            antenna element. If None, uniform weights are used. Defaults to None.
+        Ntheta (int, optional): The number of angular points to calculate the
+            gain over. Defaults to 10000.
+        steer_angle (float, optional): The angle in degrees at which to steer
+            the main beam. 0 degrees is broadside. Defaults to 0.
+        plot (bool, optional): If True, plots the gain pattern in dBi.
+            Defaults to False.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]:
+            - theta_vec (np.ndarray): The grid of angles in degrees, from -90 to 90.
+            - gain_vec_db (np.ndarray): The voltage gain in dBi at each angle.
     """
     L = (N_el - 1) * dx
     el_pos = np.linspace(-L / 2, L / 2, N_el)  # wavelengths
@@ -98,12 +136,19 @@ def linear_antenna_gain_N_db(N_el, dx, weights=None, Ntheta=10000, steer_angle=0
 
 def array_phase_center(position_ar, weight_ar):
     """
-    Phase center location of an array form the positions and the weights.
+    Calculates the phase center of an antenna array.
+
+    The phase center is the apparent point from which the radiation emanates.
+    It is calculated as the weighted average of the element positions.
+
     Args:
-        position_ar : Coordinates of array elements #TODO [unit?]
-        weight_ar : Array element weighting [unitless]
-    Return:
-        phase_center : float
+        position_ar (np.ndarray): 1D array of element positions. The unit of
+            the output will match the unit of this input (e.g., meters).
+        weight_ar (np.ndarray): A vector of complex weights for each element.
+            The magnitude of the weights is used in the calculation.
+
+    Returns:
+        float: The position of the array's phase center.
     """
     assert len(position_ar) == len(weight_ar)
     # unsure if the weight should be abs value or not
@@ -112,14 +157,23 @@ def array_phase_center(position_ar, weight_ar):
 
 def apply_timeshift_due_to_element_position(signal_ar, fs, element_position, tgt_angle):
     """
-    Apply time shift to signal due to element position [meters]
+    Applies a time shift to a signal based on element position and angle.
+
+    This function models the delay or advance a signal experiences when arriving
+    at an off-center antenna element from a specific target angle. The time
+    shift is applied by resampling the signal using cubic interpolation.
+
     Args:
-        signal_ar (complex array): Time series of signal from a single antenna element [V]
-        fs (float) : Sampling frequency [Hz]
-        element_pos (float) : Array element's position relative to the phase center [m]
-        tgt_angle (float) : Angle of the target relative to the array element [rad]
-    Return:
-        shift_signal_ar (complex array) : Time shifted signal
+        signal_ar (np.ndarray): A complex time-series signal from a single
+            antenna element.
+        fs (float): The sampling frequency of the signal in Hertz.
+        element_position (float): The element's position relative to the array's
+            phase center in meters.
+        tgt_angle (float): The angle of the target in degrees, where 0 is
+            broadside.
+
+    Returns:
+        np.ndarray: The time-shifted complex signal.
     """
     range_diff = element_position * np.sin(np.deg2rad(tgt_angle))
     time_shift = range_diff / c.C

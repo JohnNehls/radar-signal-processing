@@ -10,13 +10,18 @@ from . import vbm
 
 
 def plot_rtm(r_axis, data, title):
-    """
-    Plot range-time matrix.
+    """Plots the magnitude and phase of a range-time matrix (RTM).
+
+    The RTM shows radar data before Doppler processing, with range on one
+    axis and pulse number (slow-time) on the other.
+
     Args:
-        r_axis (1D array) : Range axis
-        data (2D array) : Range-time matrix.
-        title (string) : Plot title
-    Return:
+        r_axis (np.ndarray): 1D array of range values in meters.
+        data (np.ndarray): 2D complex array representing the RTM.
+                           Shape should be (num_range_bins, num_pulses).
+        title (str): The title for the plot.
+
+    Returns:
         None
     """
     pulses = range(data.shape[1])
@@ -35,19 +40,23 @@ def plot_rtm(r_axis, data, title):
 
 
 def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=-100, volt2dbm=True):
-    """
-    Plot range-Doppler matrix.
-    Args:
-        rdot_axis (1D array) : Range rate axis
-        r_axis (1D array) : Range axis
-        data (2D array) : Range-time matrix
-        title (string) : Plot title
-        cbarMin (float) : Color bar minimum (default=-100)
-        volt2dbm (bool) : Flag to convert to dBm (default=True)
-    Return:
-        None
-    """
+    """Plots a range-Doppler matrix (RDM).
 
+    The RDM shows radar data after pulse compression and Doppler processing.
+
+    Args:
+        rdot_axis (np.ndarray): 1D array of range-rate values in m/s.
+        r_axis (np.ndarray): 1D array of range values in meters.
+        data (np.ndarray): 2D complex array representing the RDM.
+        title (str): The title for the plot.
+        cbarMin (float, optional): The minimum value for the color bar.
+                                   Defaults to -100.
+        volt2dbm (bool, optional): If True, converts the data from volts
+                                   to dBm for plotting. Defaults to True.
+
+    Returns:
+        tuple[plt.Figure, plt.Axes]: The figure and axes objects of the plot.
+    """
     data = abs(data)  # complex -> real
 
     fig, ax = plt.subplots(1, 1)
@@ -73,16 +82,20 @@ def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=-100, volt2dbm=True):
 
 
 def plot_rdm_snr(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
-    """Plot range-Doppler matrix in SNR.
+    """Plots a range-Doppler matrix in terms of Signal-to-Noise Ratio (SNR).
+
     Args:
-        rdot_axis (1D array) : Range rate axis
-        r_axis (1D array) : Range axis
-        data (2D array) : Range-time matrix
-        title (string) : Plot title
-        cbarMin (float) : Color bar minimum (default=0)
-        volt2dbm (bool) : Flag to convert to dBm (default=True)
-    Return:
-        None
+        rdot_axis (np.ndarray): 1D array of range-rate values in m/s.
+        r_axis (np.ndarray): 1D array of range values in meters.
+        data (np.ndarray): 2D array representing the RDM in SNR (linear units).
+        title (str): The title for the plot.
+        cbarMin (float, optional): The minimum value for the color bar.
+                                   Defaults to 0.
+        volt2db (bool, optional): If True, converts the SNR data to dB.
+                                  Defaults to True.
+
+    Returns:
+        tuple[plt.Figure, plt.Axes]: The figure and axes objects of the plot.
     """
     data = abs(data)  # complex -> real
     fig, ax = plt.subplots(1, 1)
@@ -107,16 +120,23 @@ def plot_rdm_snr(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
 
 
 def add_skin(datacube, wvf: dict, tgtInfo: dict, radar: dict, return_magnitude: float):
-    """
-    Add skin return from target to the datacube in place.
+    """Adds a direct radar reflection (skin return) from a target to the datacube.
+
+    This function simulates the signal received by the radar after it reflects
+    off a target. The function calculates the time delay and phase shift for each
+    pulse and adds the appropriately modified waveform to the datacube.
+
+    The datacube is modified in place.
+
     Args:
-        datacube (2D array) : Datacube
-        wvf (dict) : Waveform dictionary
-        tgtInfo (dict) : Target dictionary
-        radar (dict) : Radar dictionary
-        return_magnitude (float) : Magitude of the return (voltage or SNR)
-    Return:
-        None
+        datacube (np.ndarray): 2D complex array to which the return is added.
+        wvf (dict): Dictionary containing waveform parameters, including the
+                    'pulse' (waveform sample array) and 'pulse_width'.
+        tgtInfo (dict): Dictionary with target information, including 'range',
+                        'rangeRate', and optionally 'sv' (steering vector).
+        radar (dict): Dictionary with radar parameters, such as 'sampRate',
+                      'Npulses', 'PRF', and 'fcar'.
+        return_magnitude (float): The voltage or SNR amplitude of the return.
     """
     # time and range arrays
     time_ar = np.arange(datacube.size) * 1 / radar["sampRate"]  # time of all samples in CPI
@@ -152,16 +172,22 @@ def add_skin(datacube, wvf: dict, tgtInfo: dict, radar: dict, return_magnitude: 
 
 
 def add_memory(datacube, wvf: dict, radar: dict, returnInfo: dict, return_magnitude: float):
-    """
-    Add notional memory return to datacube in place.
+    """Adds a notional memory-based electronic attack (EA) return to the datacube.
+
+    This function simulates a Digital Radio Frequency Memory (DRFM) jammer that
+    records an incoming pulse and re-transmits it with modifications to deceive
+    the radar (e.g., range or Doppler offsets, Velocity Bin Masking).
+
+    The datacube is modified in place.
+
     Args:
-        datacube (2D array) : Datacube
-        wvf (dict) : Waveform dictionary
-        tgtInfo (dict) : Target dictionary
-        radar (dict) : Radar dictionary
-        return_magnitude (float) : Magitude of the return (voltage or SNR)
-    Return:
-        None
+        datacube (np.ndarray): 2D complex array to which the return is added.
+        wvf (dict): Dictionary containing waveform parameters.
+        radar (dict): Dictionary with radar parameters.
+        returnInfo (dict): Dictionary with EA and target information, including
+                           'target', 'delay', 'range_offset', 'rdot_offset',
+                           'rdot_delta' (for VBM).
+        return_magnitude (float): The voltage or SNR amplitude of the return.
     """
     print("TODO: verify add_memory account for linear array position")
     print("Note: memory return amplitudes are notional")
@@ -260,15 +286,22 @@ def add_memory(datacube, wvf: dict, radar: dict, returnInfo: dict, return_magnit
 
 
 def create_window(inShape: tuple, plot=True):
-    """
-    Create Dolph-Chebyshev window using Numpy.
+    """Creates a 2D Dolph-Chebyshev window for sidelobe reduction.
+
+    The window is applied along the slow-time (pulse) dimension to reduce
+    Doppler sidelobes.
+
     Args:
-        inShape (tuple) : Window shape
-        plot (bool) : Flag to plot the window
-    Return:
-        chwin_norm_mat
+        inShape (tuple): The desired shape of the output window (num_range_bins,
+                         num_pulses).
+        plot (bool, optional): If True, displays a plot of the generated
+                               window. Defaults to True.
+
+    Returns:
+        np.ndarray: The 2D window matrix of shape `inShape`.
     """
-    # see wondow comparison example for more window examples
+    assert len(inShape) == 2
+    # more window options are used in the window comparison in examples/tests/
     chwin = signal.windows.chebwin(inShape[1], 60)
     chwin_norm = chwin / np.mean(chwin)
     chwin_norm = chwin_norm.reshape((1, chwin.size))
@@ -286,14 +319,20 @@ def create_window(inShape: tuple, plot=True):
 
 
 def skin_snr_amplitude(radar, target, waveform):
-    """
-    Return the expected SNR for a given radar, target, and waveform used.
+    """Calculates the expected SNR amplitude for a skin return.
+
+    Uses the radar range equation to determine the signal-to-noise ratio
+    for a single pulse, then adjusts for coherent integration over multiple
+    pulses.
+
     Args:
-        radar (dict) : Radar properties (txPower, txGain, rxGain, Noisefactor, totalLosses opTemp)
-        target (dict) : Target properties (rcs)
-        waveform (dict) : Waveform properties (time_BW_product)
-    Return:
-        SNR (float) : Expected SNR
+        radar (dict): Dictionary of radar parameters.
+        target (dict): Dictionary of target parameters, including 'rcs' and 'range'.
+        waveform (dict): Dictionary of waveform parameters, including
+                         'time_BW_product'.
+
+    Returns:
+        float: The expected SNR as a linear voltage ratio.
     """
     SNR_onepulse = snr_range_eqn(
         radar["txPower"],
@@ -313,17 +352,20 @@ def skin_snr_amplitude(radar, target, waveform):
 
 
 def add_returns_snr(datacube, waveform, return_list, radar):
-    """
-    Add each from the return_list to the SNR datacube in place.
+    """Adds multiple returns to a datacube, with amplitudes in terms of SNR.
+
+    Iterates through a list of returns (e.g., skin, memory) and adds each
+    to the datacube. The amplitude of each return is calculated based on
+    the expected SNR. The datacube is modified in place.
+
+    Note: The SNR for memory returns is notional and not physically based.
+
     Args:
-        datacube (2D array) : Datacube
-        waveform (dict) : Waveform properties
-        return_list (list) : list of the returns to be added in the RDM
-        radar (dict) : Radar properties
-    Return:
-        None
-    Notes:
-        - SNR Memory return amplitude is not physical
+        datacube (np.ndarray): The 2D complex datacube to modify.
+        waveform (dict): Dictionary of waveform parameters.
+        return_list (list[dict]): A list of dictionaries, where each dictionary
+                                  describes a return to be added.
+        radar (dict): Dictionary of radar parameters.
     """
     for returnItem in return_list:
         snr_volt_amp = skin_snr_amplitude(radar, returnItem["target"], waveform)
@@ -337,13 +379,18 @@ def add_returns_snr(datacube, waveform, return_list, radar):
 
 
 def skin_voltage_amplitude(radar, target):
-    """
-    Calculate the correct voltage amplitude of a return from a target.
+    """Calculates the received voltage amplitude of a skin return.
+
+    Uses the radar range equation to determine the received power from a target
+    and converts it to voltage assuming a specific radar load impedance.
+
     Args:
-        radar (dict) : Radar properties (txPower, txGain, rxGain, Noisefactor, totalLosses opTemp)
-        target (dict) : Target properties (rcs)
-    Return:
-        amplitude (float) : volatage amplitude
+        radar (dict): Dictionary of radar parameters, icluding 'txPower', 'txGain',
+                      'rxGain', 'Noisefactor', 'totalLosses' and 'opTemp'.
+        target (dict): Dictionary of target parameters, including 'rcs' and 'range'.
+
+    Returns:
+        float: The received voltage amplitude.
     """
     rxPower = signal_range_eqn(
         radar["txPower"],
@@ -359,14 +406,20 @@ def skin_voltage_amplitude(radar, target):
 
 
 def memory_voltage_amplitude(platform, radar, target):
-    """
-    Calculate the correct voltage amplitude of a memory return from a platform.
+    """Calculates the received voltage amplitude of a memory-based EA return.
+
+    Uses a one-way range equation to model the signal received by the radar
+    from an EA platform (jammer).
+
     Args:
-        platform (dict) : Platform properties (txPower, txgain, totalLosses)
-        radar (dict) : Radar properties (rxGain, fcar)
-        target (dict) : Target properties (rcs)
-    Return:
-        amplitude (float) : volatage amplitude
+        platform (dict): Dictionary of the EA platform's parameters, such as
+                         'txPower', 'txGain', 'totalLosses'.
+        radar (dict): Dictionary of the radar's parameters, used for 'rxGain'
+                      and 'fcar'.
+        target (dict): Dictionary of the target's parameters, used for 'range'.
+
+    Returns:
+        float: The received voltage amplitude from the EA platform.
     """
     rxMemPower = signal_range_eqn(
         platform["txPower"],
@@ -382,17 +435,19 @@ def memory_voltage_amplitude(platform, radar, target):
 
 
 def add_returns(datacube, waveform, return_list, radar):
-    """
-    Add each from the return_list to the datacube in place.
+    """Adds multiple returns to a datacube, with physically-based voltage amplitudes.
+
+    Iterates through a list of returns (e.g., skin, memory) and adds each
+    to the datacube. The amplitude of each return is calculated based on the
+    radar range equation to find the received voltage. The datacube is
+    modified in place.
+
     Args:
-        datacube (2D array) : Datacube
-        waveform (dict) : Waveform properties
-        return_list (list) : list of the returns to be added in the RDM
-        radar (dict) : Radar properties
-    Return:
-        None
-    Notes:
-        - Check if memory return amplitude is physical
+        datacube (np.ndarray): The 2D complex datacube to modify.
+        waveform (dict): Dictionary of waveform parameters.
+        return_list (list[dict]): A list of dictionaries, where each dictionary
+                                  describes a return to be added.
+        radar (dict): Dictionary of radar parameters.
     """
     for returnItem in return_list:
         if returnItem["type"] == "skin":
@@ -408,15 +463,23 @@ def add_returns(datacube, waveform, return_list, radar):
             print(f"{returnItem['type']=} not known, no return added.")
 
 
-## see examples/tests/function_tests/process_waveform.py for simple test of this function
 def process_waveform_dict(waveform: dict, radar: dict):
-    """
-    Fill in waveform dict with "pulse", "time_BW_product", "pulse_width" in place.
+    """Generates waveform samples and computes parameters based on a dictionary.
+
+    This function acts as a factory, creating the actual pulse waveform array
+    and calculating key properties like time-bandwidth product and pulse width
+    based on the 'type' specified in the waveform dictionary.
+
+    The input `waveform` dictionary is updated in-place with the following keys:
+    'pulse', 'time_BW_product', 'pulse_width'.
+
     Args:
-        waveform (dict) : Waveform properties
-        radar (dict) : Radar properties
-    Return:
-        None
+        waveform (dict): Dictionary defining the waveform type and its specific
+                         parameters (e.g., 'bw', 'nchips', 'T').
+        radar (dict): Dictionary of radar parameters, including 'sampRate'.
+
+    Raises:
+        Exception: If the waveform 'type' is not recognized.
     """
     if waveform["type"] == "uncoded":
         _, pulse_wvf = wvf.uncoded_pulse(radar["sampRate"], waveform["bw"])

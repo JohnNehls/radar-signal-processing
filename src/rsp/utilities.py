@@ -3,56 +3,70 @@ from . import constants as c
 
 
 def power2db(power: float):
-    """
-    Convert power in Watts to dB
+    """Converts power from watts to decibels (dB).
+
+    The conversion is calculated as 10 * log10(power).
+
     Args:
-        power (float) : Power [W]
-    Return:
-        power (float) : Power [dB]
+        power (float): Power in watts (W).
+
+    Returns:
+        float: Power in decibels (dB).
     """
     return 10 * np.log10(power)
 
 
 def db2power(db: float):
-    """
-    Convert power in dB to Watts
+    """Converts power from decibels (dB) to watts.
+
+    The conversion is calculated as 10**(db / 10).
+
     Args:
-        power (float) : Power [dB]
-    Return:
-        power (float) : Power [W]
+        db (float): Power in decibels (dB).
+
+    Returns:
+        float: Power in watts (W).
     """
     return 10 ** (db / 10)
 
 
 def volt2db(voltage: float):
-    """
-    Convert voltage in Volts in Amps to dB
+    """Converts a voltage or amplitude ratio to decibels (dB).
+
+    The conversion is calculated as 20 * log10(voltage). This is typically
+    used for field quantities like voltage or pressure.
+
     Args:
-        voltage (float) : Voltage in [A]
-    Return:
-        voltage (float) : Voltage in [dB]
+        voltage (float): Voltage or amplitude ratio (unitless).
+
+    Returns:
+        float: The corresponding value in decibels (dB).
     """
     return 20 * np.log10(voltage)
 
 
 def db2volt(db: float):
-    """
-    Convert voltage in dB to Volts
+    """Converts a decibel (dB) value to a voltage or amplitude ratio.
+
+    The conversion is calculated as 10**(db / 20).
+
     Args:
-        voltage (float) : Voltage in [dB]
-    Return:
-        voltage (float) : Voltage in [A]
+        db (float): A value in decibels (dB).
+
+    Returns:
+        float: The corresponding voltage or amplitude ratio (unitless).
     """
     return 10 ** (db / 20)
 
 
 def phase_negpi_pospi(phase):
-    """
-    Place the input phases into [-pi, pi).
+    """Wraps phase angles to the interval [-pi, pi).
+
     Args:
-        phase (float) : Phase
-    Return:
-        phase (float) : Phase
+        phase (float or array-like): Phase angle(s) in radians.
+
+    Returns:
+        numpy.ndarray: Phase angle(s) wrapped to the [-pi, pi) interval.
     """
 
     if not hasattr(phase, "__iter__"):
@@ -68,12 +82,13 @@ def phase_negpi_pospi(phase):
 
 
 def phase_zero_twopi(phase):
-    """
-    Place the input phases into [0, 2pi).
+    """Wraps phase angles to the interval [0, 2*pi).
+
     Args:
-        phase (float) : Phase
-    Return:
-        phase (float) : Phase
+        phase (float or array-like): Phase angle(s) in radians.
+
+    Returns:
+        numpy.ndarray: Phase angle(s) wrapped to the [0, 2*pi) interval.
     """
     phase = np.array(phase)
     phase = phase % (2 * c.PI)
@@ -81,13 +96,18 @@ def phase_zero_twopi(phase):
 
 
 def zero_to_smallest_float(array, value=1e-16):
-    """
-    Set all zero elements of input array to value in place.
+    """Replaces all zero elements in a NumPy array with a small float value.
+
+    This operation is performed in-place. It is often used to avoid
+    division-by-zero errors or issues with taking logarithms of zero.
+
     Args:
-        array : Input array
-        value : Value to set the array's zero values to
-    Return:
-        None
+        array (numpy.ndarray): The input array to modify.
+        value (float, optional): The small value to substitute for zeros.
+            Defaults to 1e-16.
+
+    Returns:
+        None: The array is modified in-place.
     """
     indxs = np.where(array == 0)
     array[indxs] = value

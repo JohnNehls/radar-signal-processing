@@ -9,14 +9,21 @@ logger = logging.getLogger(__name__)
 
 
 def zeropad_waveform(t, waveform, N_pad):
-    """
-    Zeropad waveform at the end of the pulse and modify time array accordingly.
+    """Zeropads a waveform and adjusts the corresponding time array.
+
+    This function appends a specified number of zeros to the end of a waveform
+    and recalculates the time array to match the new length, preserving the
+    original time step.
+
     Args:
-        t (1d array) : Time array
-        waveform (1d array) : Signal array
-        N_pad (int) : number of zero pad samples
-    Return:
-        noise : 1d array
+        t (np.ndarray): The original 1D time array.
+        waveform (np.ndarray): The 1D signal array.
+        N_pad (int): The number of zero samples to append.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]: A tuple containing:
+            - np.ndarray: The new, extended time array.
+            - np.ndarray: The new, zero-padded waveform.
     """
     assert type(N_pad) is int
     assert len(t) == len(waveform)
@@ -26,13 +33,17 @@ def zeropad_waveform(t, waveform, N_pad):
 
 
 def moving_average(waveform, N_elements):
-    """
-    Moving average of input waveform over a number of elements
+    """Calculates the moving average of a waveform.
+
+    This function smooths the input waveform by convolving it with a uniform
+    kernel of a specified size.
+
     Args:
-        waveform (1d array) : Signal array
-        N_elements (int) : Number of elements to average over
-    Return:
-        ave : 1d array
+        waveform (np.ndarray): The 1D signal array to be averaged.
+        N_elements (int): The number of elements in the moving average window.
+
+    Returns:
+        np.ndarray: The smoothed waveform as a 1D array.
     """
     assert type(N_elements) is int
     kernel = np.ones(N_elements) / N_elements
@@ -41,13 +52,32 @@ def moving_average(waveform, N_elements):
 
 
 def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2):
-    """
-    Experimental/recreation: Find the width in x of the real signal y written for as a recursive algorithm.
+    """Recursively finds the full width at half maximum (FWHM) of a signal.
+
+    This function calculates the width of a pulse by finding the points where the
+    signal crosses half of its maximum amplitude. If two such points are not
+    found at the current resolution, it recursively interpolates the signal to a
+    finer grid and tries again, up to a maximum number of interpolations.
+
     Args:
-        x (array) : Independent variable
-        y (array) : Dependent variable
-    Return:
-        pulsewidth, x_start, x_end : float, float, float
+        x (np.ndarray): The independent variable array (e.g., time or frequency).
+        y (np.ndarray): The dependent variable array (the signal).
+        interp_max (int, optional): The maximum number of recursive interpolation
+            steps. Defaults to 5.
+        interp_count (int, optional): The current interpolation step count, used
+            for recursion. Defaults to 0.
+        interp_scale (int, optional): The factor by which to increase the number
+            of points during each interpolation step. Defaults to 2.
+
+    Returns:
+        tuple[float, float, float] or list[float]: A tuple containing:
+            - float: The calculated pulse width (FWHM).
+            - float: The x-value at the start of the pulse width (first
+              half-max crossing).
+            - float: The x-value at the end of the pulse width (last
+              half-max crossing).
+            Returns [np.nan, np.nan, np.nan] if the width cannot be found within
+            the interpolation limit.
     """
     # Step 1: Find the maximum amplitude of the signal
     max_amplitude = np.max(y)
@@ -82,7 +112,30 @@ def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2):
 
 
 def plot_pulse_and_spectrum(t, mag, title=None, Npad=0, printBandwidth=True, spec_dec=False):
-    """plotPulseAndSpectrum"""
+    """Plots a signal in the time and frequency domains.
+
+    Generates a two-panel plot showing the signal's magnitude over time and its
+    frequency spectrum. The spectrum is calculated using an FFT, and the
+    signal can be zero-padded to improve frequency resolution.
+
+    Args:
+        t (np.ndarray): The time array for the signal.
+        mag (np.ndarray): The signal magnitude array (can be complex).
+        title (str, optional): The super-title for the entire figure.
+            Defaults to None.
+        Npad (int, optional): The number of zeros to append for the FFT
+            calculation, improving frequency resolution. Defaults to 0.
+        printBandwidth (bool, optional): If True, calculates and prints the
+            signal's bandwidth (FWHM of the spectrum). Defaults to True.
+        spec_dec (bool, optional): If True, plots the spectrum magnitude in
+            decibels (dB). Defaults to False.
+
+    Returns:
+        tuple[plt.Figure, np.ndarray[plt.Axes]]: A tuple containing:
+            - plt.Figure: The matplotlib Figure object.
+            - np.ndarray[plt.Axes]: An array of the two matplotlib Axes objects
+              (time domain and frequency domain).
+    """
     ## time domain ##
     fig, ax = plt.subplots(1, 2)
     if np.iscomplexobj(mag):
@@ -134,15 +187,21 @@ def plot_pulse_and_spectrum(t, mag, title=None, Npad=0, printBandwidth=True, spe
     return fig, ax
 
 
-def autocorrolate_waveform(waveform):
-    """
-    Create the autocorrelation of a waveform.
+def autocorrelate_waveform(waveform):
+    """Calculates the autocorrelation of a waveform using the FFT method.
+
+    The autocorrelation is computed by multiplying the Fourier Transform of the
+    waveform with its complex conjugate and then performing an inverse Fourier
+    Transform.
+
     Args:
-        waveform (array) : real or complex waveform array
-    Return:
-        autoCor, index_shift : auto correlation and index shift arrays
-    Notes:
-        - index_shift is #TODO
+        waveform (np.ndarray): The 1D input signal (real or complex).
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]: A tuple containing:
+            - np.ndarray: The autocorrelation result.
+            - np.ndarray: An array of index shifts corresponding to the lags
+              of the autocorrelation, centered at zero.
     """
     Nwf = waveform.size
     Nfft = 2 * Nwf - 1  # add some padding
@@ -155,7 +214,25 @@ def autocorrolate_waveform(waveform):
 
 
 def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
-    """plotPulseAndautocorrelation"""
+    """Plots a signal and its autocorrelation.
+
+    Generates a two-panel plot showing the signal's magnitude over time and its
+    autocorrelation function.
+
+    Args:
+        t (np.ndarray): The time array for the signal.
+        mag (np.ndarray): The signal magnitude array (can be complex).
+        title (str, optional): The super-title for the entire figure.
+            Defaults to None.
+        printWidth (bool, optional): If True, calculates and prints the width
+            (FWHM) of the main autocorrelation lobe. Defaults to True.
+
+    Returns:
+        tuple[plt.Figure, np.ndarray[plt.Axes]]: A tuple containing:
+            - plt.Figure: The matplotlib Figure object.
+            - np.ndarray[plt.Axes]: An array of the two matplotlib Axes objects
+              (time domain and autocorrelation).
+    """
     dt = t[1] - t[0]
 
     fig, ax = plt.subplots(1, 2)
@@ -172,7 +249,7 @@ def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
     ax[0].set_ylabel("baseband signal")
     ax[0].grid()
 
-    xcor, index_shift = autocorrolate_waveform(mag)
+    xcor, index_shift = autocorrelate_waveform(mag)
     time_shift = index_shift * dt
     val = abs(xcor)
     val = val / val.max()
@@ -197,13 +274,20 @@ def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
 
 
 def add_waveform_at_index(ar, waveform, index):
-    """Add waveform to input array in place.
+    """Adds a waveform to an array at a specified starting index.
+
+    This function modifies the target array `ar` in-place by adding the
+    `waveform` to it, starting at the given `index`. If the waveform extends
+    beyond the bounds of `ar`, it is truncated.
+
     Args:
-        ar (array) : Independent array
-        waveform (array) : real or complex waveform array
-        index (int) : Index to place the waveform
-    Return:
-        ar : array
+        ar (np.ndarray): The target array to be modified.
+        waveform (np.ndarray): The waveform to add to the target array.
+        index (int): The starting index in `ar` where the waveform will be
+            added.
+
+    Returns:
+        np.ndarray: The modified target array `ar`.
     """
     Nar = ar.size
     Nwv = waveform.size
@@ -220,14 +304,21 @@ def add_waveform_at_index(ar, waveform, index):
 
 
 def matchfilter_with_waveform(ar, waveform):
-    """
-    Create an array with the match filter of a waveform applied to an array.
+    """Performs matched filtering of a signal with a given waveform.
+
+    This function applies a matched filter to the input array `ar` using the
+    provided `waveform` as the template. The filter is implemented as a
+    convolution with the time-reversed complex conjugate of the waveform.
+
     Args:
-        ar (array) : Independent array
-        waveform (array) : real or complex waveform array
-    Return:
-        index_shift, conv : index shift arrays and matched filter result
-    #TODO describe what index_shift is
+        ar (np.ndarray): The input signal array to be filtered.
+        waveform (np.ndarray): The template waveform for the matched filter.
+
+    Returns:
+        tuple[np.ndarray, np.ndarray]: A tuple containing:
+            - np.ndarray: An array of index shifts corresponding to the output,
+              centered at zero.
+            - np.ndarray: The result of the matched filter convolution.
     """
     Nar = ar.size
     kernel = np.conj(waveform)[::-1]
