@@ -5,88 +5,125 @@ from typing import Union
 from . import constants as c
 
 
-def unity_variance_complex_noise(inSize: Union[tuple, int]):
+def unity_variance_complex_noise(inSize: Union[tuple, int]) -> np.ndarray:
     """
     Generates complex Gaussian noise with unity variance.
 
     Args:
-        inSize (Union[tuple, int]): Shape of the output array.
+        inSize: Shape of the output array.
 
     Returns:
-        np.ndarray: A complex array where the real and imaginary components are
-            independent standard normal distributions, scaled to achieve unit variance.
+        A complex array where the real and imaginary components are
+        independent standard normal distributions, scaled to achieve unit variance.
     """
-    return (nr.standard_normal(size=inSize) + 1j * nr.standard_normal(size=inSize)) / np.sqrt(2)
+    real_part = nr.standard_normal(size=inSize)
+    imag_part = nr.standard_normal(size=inSize)
+    return (real_part + 1j * imag_part) / np.sqrt(2)
 
 
-def band_limited_complex_noise(f_min, f_max, N_samples, fs, normalize=False):
+def band_limited_complex_noise(
+    f_min: float, f_max: float, N_samples: int, fs: float, normalize: bool = False
+) -> np.ndarray:
     """
     Generates band-limited complex noise within a specified frequency range.
 
     Args:
-        f_min (float): Minimum frequency limit in Hz.
-        f_max (float): Maximum frequency limit in Hz.
-        N_samples (int): Total number of time-domain samples to generate.
-        fs (float): Sampling frequency in Hz.
-        normalize (bool, optional): If True, normalizes the output signal to unit
-            magnitude. Defaults to False.
+        f_min: Minimum frequency limit in Hz.
+        f_max: Maximum frequency limit in Hz.
+        N_samples: Total number of time-domain samples to generate.
+        fs: Sampling frequency in Hz.
+        normalize: If True, normalizes the output signal to have a pointwise
+            magnitude of one. Defaults to False.
 
     Returns:
-        np.ndarray: A complex time-domain array representing the band-limited noise.
-
-    Raises:
-        AssertionError: If N_samples is not an integer, f_min > f_max, or fs <= 0.
+        A complex time-domain array representing the band-limited noise.
     """
-    assert isinstance(N_samples, int), "Samples must be an integer."
-    assert f_min <= f_max
-    assert fs > 0
+    if not isinstance(N_samples, int):
+        raise TypeError("N_samples must be an integer.")
+    if f_min > f_max:
+        raise ValueError("f_min must not be greater than f_max.")
+    if fs <= 0:
+        raise ValueError("Sampling frequency fs must be positive.")
 
-    freqs = fft.fftfreq(N_samples, 1 / fs)
-    f = np.zeros(N_samples, dtype=np.complex64)
-    indices = np.where(np.logical_and(freqs >= f_min, freqs <= f_max))[0]
-    random_phase = 2 * np.pi * np.random.rand(indices.size)
+    freqs = fft.fftfreq(N_samples, d=1 / fs)
+    spectrum = np.zeros(N_samples, dtype=np.complex64)
 
-    f[indices] = np.exp(1j * random_phase)
-    noise = fft.ifft(f)
+    # Create a boolean mask for frequencies within the specified band
+    frequency_band_mask = (freqs >= f_min) & (freqs <= f_max)
+
+    # For frequencies in the band, create phasors (complex numbers with magnitude 1)
+    num_freqs_in_band = np.sum(frequency_band_mask)
+    random_phases = 2 * np.pi * nr.rand(num_freqs_in_band)
+    spectrum[frequency_band_mask] = np.exp(1j * random_phases)
+
+    # Inverse FFT to get the time-domain signal
+    noise = fft.ifft(spectrum)
 
     if normalize:
-        return noise / np.abs(noise)
-    else:
-        return noise
+        magnitude = np.abs(noise)
+        # Avoid division by zero for elements with zero magnitude
+        return np.divide(
+            noise,
+            magnitude,
+            out=np.zeros_like(noise, dtype=np.complex64),
+            where=(magnitude != 0),
+        )
+
+    return noise
 
 
-def guassian_complex_noise(mu, sigma, p, N_samples, fs, normalize=False):
+def gaussian_complex_noise(
+    mu: float, sigma: float, p: float, N_samples: int, fs: float, normalize: bool = False
+) -> np.ndarray:
     """
-    Generates complex noise with a Power Spectral Density (PSD) shaped by a Gaussian envelope.
+    Generates complex noise with a Power Spectral Density (PSD) shaped by a
+    generalized Gaussian envelope.
 
     Args:
-        mu (float): Center frequency of the Gaussian PSD in Hz.
-        sigma (float): Standard deviation of the Gaussian distribution.
-        p (float): Order of the Gaussian distribution (p=1 for standard Gaussian).
-        N_samples (int): Total number of samples to generate.
-        fs (float): Sampling frequency in Hz.
-        normalize (bool, optional): If True, normalizes the output signal to unit
-            magnitude. Defaults to False.
+        mu: Center frequency of the Gaussian PSD in Hz.
+        sigma: Standard deviation of the Gaussian distribution.
+        p: Order of the Gaussian distribution (p=1 for standard Gaussian).
+        N_samples: Total number of samples to generate.
+        fs: Sampling frequency in Hz.
+        normalize: If True, normalizes the output signal to have a pointwise
+            magnitude of one. Defaults to False.
 
     Returns:
-        np.ndarray: A complex time-domain array with Gaussian-shaped spectral content.
-
-    Raises:
-        AssertionError: If N_samples is not an integer or fs <= 0.
+        A complex time-domain array with Gaussian-shaped spectral content.
     """
-    assert isinstance(N_samples, int), "Samples must be an integer."
-    assert fs > 0
+    if not isinstance(N_samples, int):
+        raise TypeError("N_samples must be an integer.")
+    if fs <= 0:
+        raise ValueError("Sampling frequency fs must be positive.")
 
-    freqs = fft.fftfreq(N_samples, 1 / fs)
-    f = (1 / (sigma * np.sqrt(2 * c.PI)) *
-         np.exp(-(((freqs - mu) ** 2 / (2 * sigma**2)) ** p))).astype(np.complex64)
+    freqs = fft.fftfreq(N_samples, d=1 / fs)
 
-    # Apply random phase to each frequency component
-    f *= np.exp(1j * 2 * c.PI * np.random.rand(f.size))
+    # Calculate the magnitude of the spectrum based on a generalized Gaussian shape
+    gaussian_term = ((freqs - mu) ** 2) / (2 * sigma**2)
+    magnitude_spectrum = np.exp(-(gaussian_term**p))
 
-    noise = fft.ifft(f) * np.sqrt(N_samples)
+    # The original included a scaling factor from the normal distribution PDF.
+    # While not strictly necessary for shaping, we keep it for consistency.
+    pdf_scaling_factor = 1 / (sigma * np.sqrt(2 * c.PI))
+    magnitude_spectrum *= pdf_scaling_factor
+
+    # Apply a random phase to each frequency component to create the complex spectrum
+    random_phases = 2 * c.PI * nr.rand(N_samples)
+    spectrum = magnitude_spectrum * np.exp(1j * random_phases)
+    spectrum = spectrum.astype(np.complex64)
+
+    # Inverse FFT to get the time-domain signal.
+    # Scaling by sqrt(N_samples) helps preserve power according to Parseval's theorem.
+    noise = fft.ifft(spectrum) * np.sqrt(N_samples)
 
     if normalize:
-        return noise / np.abs(noise)
-    else:
-        return noise
+        magnitude = np.abs(noise)
+        # Avoid division by zero for elements with zero magnitude
+        return np.divide(
+            noise,
+            magnitude,
+            out=np.zeros_like(noise, dtype=np.complex64),
+            where=(magnitude != 0),
+        )
+
+    return noise

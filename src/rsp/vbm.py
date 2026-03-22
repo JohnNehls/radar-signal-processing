@@ -2,7 +2,7 @@ import numpy as np
 from numpy.linalg import norm
 import logging
 from . import constants as c
-from .noise import band_limited_complex_noise, guassian_complex_noise
+from .noise import band_limited_complex_noise, gaussian_complex_noise
 from .waveform import lfm_pulse
 
 logger = logging.getLogger(__name__)
@@ -67,7 +67,7 @@ def _gaussian_bandwidth_phase(N_pulses, f_delta, PRF):
         A 1D numpy array of complex numbers with shape (N_pulses,), representing
         the Gaussian band-limited noise. The output is normalized to have unit power.
     """
-    return guassian_complex_noise(0, f_delta / 2, 1, N_pulses, PRF, normalize=True)
+    return gaussian_complex_noise(0, f_delta / 2, 1, N_pulses, PRF, normalize=True)
 
 
 def _gaussian_bandwidth_phase_normalized(N_pulses, f_delta, PRF):
@@ -87,7 +87,7 @@ def _gaussian_bandwidth_phase_normalized(N_pulses, f_delta, PRF):
         A 1D numpy array of complex numbers with shape (N_pulses,) representing
         the normalized Gaussian noise.
     """
-    slowtime_noise = guassian_complex_noise(0, f_delta / 2, 1, N_pulses, PRF, normalize=False)
+    slowtime_noise = gaussian_complex_noise(0, f_delta / 2, 1, N_pulses, PRF, normalize=False)
     slowtime_noise = slowtime_noise / norm(slowtime_noise) * np.sqrt(slowtime_noise.size)
     return slowtime_noise
 
