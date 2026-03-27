@@ -60,7 +60,7 @@ for sv in steer_vec:
     dc_list.append(total_dc)
 
 for i in range(len(steer_vec)):
-    rdmh.plot_rdm(rdot_axis, r_axis, dc_list[i], f"{i=}", cbarMin=-100, volt2dbm=True)
+    rdmh.plot_rdm(rdot_axis, r_axis, dc_list[i], f"{i=}", cbar_min=-100, volt_to_dbm=True)
 
 rho = 2 * np.pi * dx
 sum = dc_list[0] + dc_list[1]

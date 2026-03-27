@@ -1,6 +1,8 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import signal
+from typing import Tuple, Dict, List, Any
+
 from . import constants as c
 from . import waveform as wvf
 from .waveform_helpers import add_waveform_at_index
@@ -9,332 +11,322 @@ from .range_equation import snr_range_eqn, signal_range_eqn
 from . import vbm
 
 
-def plot_rtm(r_axis, data, title):
+def plot_rtm(r_axis: np.ndarray, data: np.ndarray, title: str) -> None:
     """Plots the magnitude and phase of a range-time matrix (RTM).
 
     The RTM shows radar data before Doppler processing, with range on one
     axis and pulse number (slow-time) on the other.
 
     Args:
-        r_axis (np.ndarray): 1D array of range values in meters.
-        data (np.ndarray): 2D complex array representing the RTM.
-                           Shape should be (num_range_bins, num_pulses).
-        title (str): The title for the plot.
-
-    Returns:
-        None
+        r_axis: 1D array of range values in meters.
+        data: 2D complex array representing the RTM, with shape
+              (num_range_bins, num_pulses).
+        title: The title for the plot.
     """
     pulses = range(data.shape[1])
-    fig, ax = plt.subplots(1, 2)
+    fig, (ax_mag, ax_phase) = plt.subplots(1, 2, figsize=(12, 5))
     fig.suptitle(title)
-    p = ax[0].pcolormesh(pulses, r_axis * 1e-3, abs(data))
-    ax[0].set_xlabel("pulse number")
-    ax[0].set_ylabel("range [km]")
-    ax[0].set_title("magnitude")
-    fig.colorbar(p)
-    ax[1].pcolormesh(pulses, r_axis * 1e-3, np.angle(data))
-    ax[1].set_xlabel("pulse number")
-    ax[1].set_ylabel("range [km]")
-    ax[1].set_title("phase")
+
+    mag_plot = ax_mag.pcolormesh(pulses, r_axis * 1e-3, np.abs(data))
+    ax_mag.set_xlabel("Pulse Number")
+    ax_mag.set_ylabel("Range [km]")
+    ax_mag.set_title("Magnitude")
+    fig.colorbar(mag_plot, ax=ax_mag)
+
+    phase_plot = ax_phase.pcolormesh(pulses, r_axis * 1e-3, np.angle(data))
+    ax_phase.set_xlabel("Pulse Number")
+    ax_phase.set_ylabel("Range [km]")
+    ax_phase.set_title("Phase")
+    fig.colorbar(phase_plot, ax=ax_phase)
+
     fig.tight_layout()
+    plt.show()
 
 
-def plot_rdm(rdot_axis, r_axis, data, title, cbarMin=-100, volt2dbm=True):
+def plot_rdm(
+    rdot_axis: np.ndarray,
+    r_axis: np.ndarray,
+    data: np.ndarray,
+    title: str,
+    cbar_min: float = -100,
+    volt_to_dbm: bool = True,
+) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a range-Doppler matrix (RDM).
 
     The RDM shows radar data after pulse compression and Doppler processing.
 
     Args:
-        rdot_axis (np.ndarray): 1D array of range-rate values in m/s.
-        r_axis (np.ndarray): 1D array of range values in meters.
-        data (np.ndarray): 2D complex array representing the RDM.
-        title (str): The title for the plot.
-        cbarMin (float, optional): The minimum value for the color bar.
-                                   Defaults to -100.
-        volt2dbm (bool, optional): If True, converts the data from volts
-                                   to dBm for plotting. Defaults to True.
+        rdot_axis: 1D array of range-rate values in m/s.
+        r_axis: 1D array of range values in meters.
+        data: 2D complex array representing the RDM.
+        title: The title for the plot.
+        cbar_min: The minimum value for the color bar. Defaults to -100.
+        volt_to_dbm: If True, converts data from voltage to dBm for plotting.
+                       If False, plots power in Watts. Defaults to True.
 
     Returns:
-        tuple[plt.Figure, plt.Axes]: The figure and axes objects of the plot.
+        The figure and axes objects of the plot.
     """
-    data = abs(data)  # complex -> real
+    magnitude_data = np.abs(data)
 
     fig, ax = plt.subplots(1, 1)
     fig.suptitle(title)
-    ax.set_xlabel("range rate [km/s]")
-    ax.set_ylabel("range [km]")
-    if volt2dbm:
-        zero_to_smallest_float(data)  # needed for signal_dc plots
-        data = 20 * np.log10(data / np.sqrt(1e-3 * c.RADAR_LOAD))
-        p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
-        p.set_clim(cbarMin, data.max())
-        cbar = fig.colorbar(p)
-        cbar.set_label("Power [dBm]")
+    ax.set_xlabel("Range Rate [km/s]")
+    ax.set_ylabel("Range [km]")
+
+    if volt_to_dbm:
+        zero_to_smallest_float(magnitude_data)
+        # P_dBm = 10*log10(P_W / 1mW) = 10*log10((V^2/R) / 1e-3)
+        plot_data = 20 * np.log10(magnitude_data / np.sqrt(1e-3 * c.RADAR_LOAD))
+        cbar_label = "Power [dBm]"
     else:
-        p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
-        p.set_clim(cbarMin, data.max())
-        cbar = fig.colorbar(p)
-        cbar.set_label("Power [W]")
+        # P_W = V^2 / R
+        plot_data = magnitude_data**2 / c.RADAR_LOAD
+        cbar_label = "Power [W]"
+
+    mesh = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, plot_data)
+    mesh.set_clim(cbar_min, plot_data.max())
+    cbar = fig.colorbar(mesh)
+    cbar.set_label(cbar_label)
 
     fig.tight_layout()
-
     return fig, ax
 
 
-def plot_rdm_snr(rdot_axis, r_axis, data, title, cbarMin=0, volt2db=True):
+def plot_rdm_snr(
+    rdot_axis: np.ndarray,
+    r_axis: np.ndarray,
+    data: np.ndarray,
+    title: str,
+    cbar_min: float = 0,
+    volt_ratio_to_db: bool = True,
+) -> Tuple[plt.Figure, plt.Axes]:
     """Plots a range-Doppler matrix in terms of Signal-to-Noise Ratio (SNR).
 
     Args:
-        rdot_axis (np.ndarray): 1D array of range-rate values in m/s.
-        r_axis (np.ndarray): 1D array of range values in meters.
-        data (np.ndarray): 2D array representing the RDM in SNR (linear units).
-        title (str): The title for the plot.
-        cbarMin (float, optional): The minimum value for the color bar.
-                                   Defaults to 0.
-        volt2db (bool, optional): If True, converts the SNR data to dB.
-                                  Defaults to True.
+        rdot_axis: 1D array of range-rate values in m/s.
+        r_axis: 1D array of range values in meters.
+        data: 2D array representing the RDM with amplitudes as a linear SNR
+              voltage ratio (i.e., S_voltage / N_voltage).
+        title: The title for the plot.
+        cbar_min: The minimum value for the color bar. Defaults to 0.
+        volt_ratio_to_db: If True, converts the SNR voltage ratio to dB.
+                            Defaults to True.
 
     Returns:
-        tuple[plt.Figure, plt.Axes]: The figure and axes objects of the plot.
+        The figure and axes objects of the plot.
     """
-    data = abs(data)  # complex -> real
+    snr_voltage_ratio = np.abs(data)
     fig, ax = plt.subplots(1, 1)
     fig.suptitle(title)
-    ax.set_xlabel("range rate [km/s]")
-    ax.set_ylabel("range [km]")
-    if volt2db:
-        zero_to_smallest_float(data)  # needed for signal_dc plots
-        data = 20 * np.log10(data)
-    p = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, data)
-    print("cbarmin")
-    p.set_clim(cbarMin, data.max())
-    cbar = fig.colorbar(p)
-    if volt2db:
-        cbar.set_label("SNR [dB]")
+    ax.set_xlabel("Range Rate [km/s]")
+    ax.set_ylabel("Range [km]")
+
+    if volt_ratio_to_db:
+        zero_to_smallest_float(snr_voltage_ratio)
+        plot_data = 20 * np.log10(snr_voltage_ratio)
+        cbar_label = "SNR [dB]"
     else:
-        cbar.set_label("SNR")
+        plot_data = snr_voltage_ratio
+        cbar_label = "SNR (Voltage Ratio)"
+
+    mesh = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, plot_data)
+    mesh.set_clim(cbar_min, plot_data.max())
+    cbar = fig.colorbar(mesh)
+    cbar.set_label(cbar_label)
 
     fig.tight_layout()
-
     return fig, ax
 
 
-def add_skin(datacube, wvf: dict, tgtInfo: dict, radar: dict, return_magnitude: float):
+def add_skin(
+    datacube: np.ndarray,
+    wvf: Dict,
+    tgt_info: Dict,
+    radar: Dict,
+    return_magnitude: float,
+):
     """Adds a direct radar reflection (skin return) from a target to the datacube.
 
     This function simulates the signal received by the radar after it reflects
     off a target. The function calculates the time delay and phase shift for each
     pulse and adds the appropriately modified waveform to the datacube.
-
     The datacube is modified in place.
 
     Args:
-        datacube (np.ndarray): 2D complex array to which the return is added.
-        wvf (dict): Dictionary containing waveform parameters, including the
-                    'pulse' (waveform sample array) and 'pulse_width'.
-        tgtInfo (dict): Dictionary with target information, including 'range',
-                        'rangeRate', and optionally 'sv' (steering vector).
-        radar (dict): Dictionary with radar parameters, such as 'sampRate',
-                      'Npulses', 'PRF', and 'fcar'.
-        return_magnitude (float): The voltage or SNR amplitude of the return.
+        datacube: 2D complex array to which the return is added.
+        wvf: Dictionary containing waveform parameters.
+        tgt_info: Dictionary with target information ('range', 'rangeRate', 'sv').
+        radar: Dictionary with radar parameters.
+        return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
     """
-    # time and range arrays
-    time_ar = np.arange(datacube.size) * 1 / radar["sampRate"]  # time of all samples in CPI
-    t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]  # time when pulses sent
+    full_time_axis = np.arange(datacube.size) / radar["sampRate"]
+    pulse_tx_times = np.arange(radar["Npulses"]) / radar["PRF"]
 
-    tgt_range_ar = tgtInfo["range"] + tgtInfo["rangeRate"] * t_slow_axis  # tgt range at pulse send
-    twoWay_time_delay_ar = 2 * tgt_range_ar / c.C  # time of travel from radar to tgt and back
-    pulse_return_time = t_slow_axis + twoWay_time_delay_ar  # time pulses return to radar
-    twoWay_phase_ar = -2 * c.PI * radar["fcar"] * twoWay_time_delay_ar  # Phase added due to
+    target_range_per_pulse = tgt_info["range"] + tgt_info["rangeRate"] * pulse_tx_times
+    two_way_delays = 2 * target_range_per_pulse / c.C
+    pulse_return_times = pulse_tx_times + two_way_delays
+    two_way_doppler_phases = -2 * np.pi * radar["fcar"] * two_way_delays
 
-    ## pulses timed from their start not their center, we compensate with pw/2 range offset
+    # Pulses are timed from their start; compensate with a half pulse-width offset.
     time_pw_offset = wvf["pulse_width"] / 2
 
-    # Due to the time axis being the non-continuous (slow) axis, we most do some transposing
-    tmpSignal = datacube.T.flatten()
+    # Due to the time axis being the non-continuous (slow) axis, we must transpose
+    flat_datacube = datacube.T.flatten()
 
     for i in range(radar["Npulses"]):
-        # TODO is this how these should be binned? Should they be interpolated onto grid?
-        # - (-1) below added to make return end up in correct range bin (lfm still off)
-        #   - see ../tests/5_1_skin_in_correct_rangedoppler_bin.py for details
-        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] + time_pw_offset))
-        if timeIndex > 0:
-            timeIndex -= 1
-        pulse = return_magnitude * wvf["pulse"] * np.exp(1j * twoWay_phase_ar[i])
-        pulse *= tgtInfo.get("sv", 1)  # account for linear array position
+        # Find the sample index corresponding to the pulse's return time.
+        # Note: The -1 adjustment is an empirical correction to align the return
+        # in the correct range bin for the simulation framework.
+        time_of_arrival = pulse_return_times[i] - time_pw_offset
+        return_sample_index = np.argmin(np.abs(full_time_axis - time_of_arrival))
+        if return_sample_index > 0:
+            return_sample_index -= 1
 
-        if timeIndex < datacube.size:  # else pulse is in next CPI
-            add_waveform_at_index(tmpSignal, pulse, timeIndex)
+        if return_sample_index < datacube.size:
+            phase_shifted_pulse = wvf["pulse"] * np.exp(1j * two_way_doppler_phases[i])
+            pulse = return_magnitude * phase_shifted_pulse
+            pulse *= tgt_info.get("sv", 1)  # Apply steering vector if available
 
-    tmpSignal = tmpSignal.reshape(tuple(reversed(datacube.shape))).T
+            add_waveform_at_index(flat_datacube, pulse, return_sample_index)
 
-    datacube[:] = tmpSignal[:]
+    # Reshape the flattened array back to the original datacube shape
+    datacube[:] = flat_datacube.reshape(tuple(reversed(datacube.shape))).T
 
 
-def add_memory(datacube, wvf: dict, radar: dict, returnInfo: dict, return_magnitude: float):
+def add_memory(
+    datacube: np.ndarray, wvf: Dict, radar: Dict, return_info: Dict, return_magnitude: float
+):
     """Adds a notional memory-based electronic attack (EA) return to the datacube.
 
-    This function simulates a Digital Radio Frequency Memory (DRFM) jammer that
-    records an incoming pulse and re-transmits it with modifications to deceive
-    the radar (e.g., range or Doppler offsets, Velocity Bin Masking).
-
+    This function simulates a DRFM jammer that records an incoming pulse and
+    re-transmits it with modifications to deceive the radar.
     The datacube is modified in place.
 
     Args:
-        datacube (np.ndarray): 2D complex array to which the return is added.
-        wvf (dict): Dictionary containing waveform parameters.
-        radar (dict): Dictionary with radar parameters.
-        returnInfo (dict): Dictionary with EA and target information, including
-                           'target', 'delay', 'range_offset', 'rdot_offset',
-                           'rdot_delta' (for VBM).
-        return_magnitude (float): The voltage or SNR amplitude of the return.
+        datacube: 2D complex array to which the return is added.
+        wvf: Dictionary containing waveform parameters.
+        radar: Dictionary with radar parameters.
+        return_info: Dictionary with EA and target information.
+        return_magnitude: The voltage or SNR amplitude of the return.
     """
-    print("TODO: verify add_memory account for linear array position")
-    print("Note: memory return amplitudes are notional")
-    if "rcs" in returnInfo["target"]:
-        print("Note: returnInfo['target']['rcs'] ignored for 'memory' returns")
+    target = return_info["target"]
+    full_time_axis = np.arange(datacube.size) / radar["sampRate"]
+    pulse_tx_times = np.arange(radar["Npulses"]) / radar["PRF"]
 
-    # time and range arrays
-    time_ar = np.arange(datacube.size) * 1 / radar["sampRate"]  # time of all samples in CPI
-    t_slow_axis = np.arange(radar["Npulses"]) * 1 / radar["PRF"]  # time when pulses sent
+    # Calculate timing and phase for the signal's one-way trip to the target
+    target_range_per_pulse = target["range"] + target["rangeRate"] * pulse_tx_times
+    one_way_delays = target_range_per_pulse / c.C
+    skin_return_times = pulse_tx_times + 2 * one_way_delays
+    one_way_propagation_phases = -2 * np.pi * radar["fcar"] * one_way_delays
 
-    # tgt range at pulse send
-    tgt_range_ar = returnInfo["target"]["range"] + returnInfo["target"]["rangeRate"] * t_slow_axis
-    oneWay_time_delay_ar = tgt_range_ar / c.C  # time of travel from radar to tgt
-    # TODO this should be changed to when pod transmits, not when pulse was transmitted
-    pulse_return_time = t_slow_axis + 2 * oneWay_time_delay_ar  # time pulses return to radar
-    oneWay_phase_ar = -2 * c.PI * radar["fcar"] * oneWay_time_delay_ar  # Phase added due to
-
-    ## pulses timed from their start not their center, we compensate with pw/2 range offset
     time_pw_offset = wvf["pulse_width"] / 2
 
-    # Make output offset from skin return #############################################
-    # - remove x2 for absolute rdot
-    f_rdot = 2 * radar["fcar"] / c.C * returnInfo.get("rdot_offset", 0)
+    # Doppler frequency shift for range-rate offset
+    doppler_freq_offset = 2 * radar["fcar"] / c.C * return_info.get("rdot_offset", 0)
 
-    # Achieve Velocity Bin Masking (VBM) by adding pahse in slow time #################
-    if "rdot_delta" in returnInfo.keys():
-        # there are several methods implemented, lfm is best, see vbm.py
-        vbm_noise_function = returnInfo.get("vbm_noise_function", vbm._lfm_phase)
+    # Phase modulation for Velocity Bin Masking (VBM)
+    if "rdot_delta" in return_info:
+        vbm_noise_function = return_info.get("vbm_noise_function", vbm._lfm_phase)
         slowtime_noise = vbm.slowtime_noise(
             radar["Npulses"],
             radar["fcar"],
-            returnInfo["rdot_delta"],
+            return_info["rdot_delta"],
             radar["PRF"],
             noiseFun=vbm_noise_function,
         )
-
     else:
-        slowtime_noise = np.ones(radar["Npulses"])  # default if no VBM
+        slowtime_noise = np.ones(radar["Npulses"])
 
-    # Delay the return ################################################################
-    # - can be negative, default is zero
-    delay = returnInfo.get("delay", 0)
-    delay += 2 * returnInfo.get("range_offset", 0) / c.C
+    # Additional time delay for range offset
+    total_delay = return_info.get("delay", 0) + 2 * return_info.get("range_offset", 0) / c.C
 
     stored_pulse = 0
-    stored_angle = 0  # initialize to stop lsp from complaining
-
-    # Due to the time axis being the non-continuous (slow) axis, we most do some transposing
-    tmpSignal = datacube.T.flatten()
+    stored_angle = 0
+    flat_datacube = datacube.T.flatten()
 
     for i in range(radar["Npulses"]):
-        # pulse recieved by the EW system
-        recieved_pulse = wvf["pulse"] * np.exp(1j * oneWay_phase_ar[i])
+        received_pulse = wvf["pulse"] * np.exp(1j * one_way_propagation_phases[i])
 
-        # Store first pulse and wait for next pulse
         if i == 0:
-            stored_pulse = recieved_pulse
+            stored_pulse = received_pulse
             continue
 
-        # Calculate 1-way phase difference between first two pulses
-        # - in a more complicated system, we'd look at the phase diff of max of match filter
         if i == 1:
-            stored_angle = np.angle(recieved_pulse) - np.angle(stored_pulse)
-            stored_angle = phase_negpi_pospi(stored_angle)
-            stored_angle = np.mean(stored_angle)
+            # Estimate target's Doppler phase shift between pulses
+            angle_diff = np.angle(received_pulse) - np.angle(stored_pulse)
+            stored_angle = np.mean(phase_negpi_pospi(angle_diff))
 
-        # Create base pulse
-        # - TODO set amplitude base on pod parameters
+        # Start with the stored pulse waveform
         pulse = return_magnitude * stored_pulse
-        pulse *= returnInfo["target"].get("sv", 1)  # account for linear array position
+        pulse *= target.get("sv", 1)
+        pulse *= slowtime_noise[i]  # Apply VBM phase
+        pulse *= np.exp(1j * i * stored_angle)  # Apply target's Doppler
+        pulse *= np.exp(-1j * i * 2 * np.pi * doppler_freq_offset / radar["PRF"])  # Apply rdot offset
+        pulse *= np.exp(1j * one_way_propagation_phases[i])  # Apply 1-way phase back to radar
 
-        # add slowtime noise (VBM)
-        pulse = pulse * slowtime_noise[i]
+        time_of_arrival = skin_return_times[i] + total_delay - time_pw_offset
+        return_sample_index = np.argmin(np.abs(full_time_axis - time_of_arrival))
+        if return_sample_index > 0:
+            return_sample_index -= 1
 
-        # add stored pulse difference rdot
-        pulse = pulse * (np.exp(1j * i * stored_angle))
+        if return_sample_index < datacube.size:
+            add_waveform_at_index(flat_datacube, pulse, return_sample_index)
 
-        # add rdot offset
-        pulse = pulse * (np.exp(-1j * i * 2 * c.PI * f_rdot / radar["PRF"]))
+    datacube[:] = flat_datacube.reshape(tuple(reversed(datacube.shape))).T
 
-        # add 1-way propagation phase back to radar
-        pulse = pulse * np.exp(1j * oneWay_phase_ar[i])
-
-        # TODO is this how these should be binned? Should they be interpolated onto grid?
-        # - Like skin index, -1 was added to better match expected results
-        #   - see ../tests/5_2_memory_in_correct_rangedoppler_bin.py for details
-        timeIndex = np.argmin(abs(time_ar - pulse_return_time[i] - delay + time_pw_offset))
-        if timeIndex > 0:
-            timeIndex -= 1
-        if timeIndex < datacube.size:  # else pulse is in next CPI
-            add_waveform_at_index(tmpSignal, pulse, timeIndex)
-
-    tmpSignal = tmpSignal.reshape(tuple(reversed(datacube.shape))).T
-
-    datacube[:] = tmpSignal[:]
-
-
-def create_window(inShape: tuple, plot=True):
+def create_window(shape: Tuple[int, int],
+                  cheby_atten_db: float = 60.0,
+                  plot: bool = False) -> np.ndarray:
     """Creates a 2D Dolph-Chebyshev window for sidelobe reduction.
 
-    The window is applied along the slow-time (pulse) dimension to reduce
-    Doppler sidelobes.
+    The window is applied along the slow-time (pulse) dimension.
 
     Args:
-        inShape (tuple): The desired shape of the output window (num_range_bins,
-                         num_pulses).
-        plot (bool, optional): If True, displays a plot of the generated
-                               window. Defaults to True.
+        shape: Desired shape of the output window (num_range_bins, num_pulses).
+        cheby_atten_db: Sidelobe attenuation in dB for the Chebyshev window.
+        plot: If True, displays a plot of the generated window.
 
     Returns:
-        np.ndarray: The 2D window matrix of shape `inShape`.
+        The 2D window matrix of shape `shape`.
     """
-    assert len(inShape) == 2
-    # more window options are used in the window comparison in examples/tests/
-    chwin = signal.windows.chebwin(inShape[1], 60)
-    chwin_norm = chwin / np.mean(chwin)
-    chwin_norm = chwin_norm.reshape((1, chwin.size))
-    tmp = np.ones((inShape[0], 1))
-    chwin_norm_mat = tmp @ chwin_norm
+    assert len(shape) == 2, "Shape must be a 2-element tuple."
+    num_range_bins, num_pulses = shape
+
+    cheby_win_1d = signal.windows.chebwin(num_pulses, cheby_atten_db)
+    normalized_win = cheby_win_1d / np.mean(cheby_win_1d)
+    window_matrix = np.tile(normalized_win, (num_range_bins, 1))
+
     if plot:
         plt.figure()
-        plt.title("Window")
-        plt.imshow(chwin_norm_mat)
-        plt.xlabel("slow time")
-        plt.ylabel("fast time")
-        plt.colorbar()
+        plt.title(f"Dolph-Chebyshev Window ({cheby_atten_db} dB)")
+        plt.imshow(window_matrix)
+        plt.xlabel("Slow Time (Pulses)")
+        plt.ylabel("Fast Time (Range Bins)")
+        plt.colorbar(label="Amplitude")
+        plt.show()
 
-    return chwin_norm_mat
+    return window_matrix
 
 
-def skin_snr_amplitude(radar, target, waveform):
-    """Calculates the expected SNR amplitude for a skin return.
+def skin_snr_amplitude(radar: Dict, target: Dict, waveform: Dict) -> float:
+    """Calculates the required per-pulse voltage amplitude to achieve a target SNR.
 
-    Uses the radar range equation to determine the signal-to-noise ratio
-    for a single pulse, then adjusts for coherent integration over multiple
-    pulses.
+    Uses the radar range equation to find the SNR after processing, then works
+    backward to determine the necessary per-pulse signal amplitude to inject
+    into the simulation datacube.
 
     Args:
-        radar (dict): Dictionary of radar parameters.
-        target (dict): Dictionary of target parameters, including 'rcs' and 'range'.
-        waveform (dict): Dictionary of waveform parameters, including
-                         'time_BW_product'.
+        radar: Dictionary of radar parameters.
+        target: Dictionary of target parameters.
+        waveform: Dictionary of waveform parameters.
 
     Returns:
-        float: The expected SNR as a linear voltage ratio.
+        The required per-pulse SNR as a linear voltage ratio.
     """
-    SNR_onepulse = snr_range_eqn(
+    # Assumes the range equation provides the total SNR after coherent integration
+    # over all pulses in the Coherent Processing Interval (CPI).
+    snr_after_integration = snr_range_eqn(
         radar["txPower"],
         radar["txGain"],
         radar["rxGain"],
@@ -347,52 +339,49 @@ def skin_snr_amplitude(radar, target, waveform):
         radar["opTemp"],
         waveform["time_BW_product"],
     )
-    #TODO Is skin_snr calculated correctly?
-    return np.sqrt(SNR_onepulse / radar["Npulses"])
 
+    # To find the required per-pulse amplitude, we first find the per-pulse SNR
+    # by dividing by the number of pulses (the coherent integration gain).
+    snr_per_pulse = snr_after_integration / radar["Npulses"]
 
-def add_returns_snr(datacube, waveform, return_list, radar):
-    """Adds multiple returns to a datacube, with amplitudes in terms of SNR.
+    # The voltage amplitude for a single pulse is the square root of the per-pulse
+    # SNR (power ratio), assuming a normalized noise power of 1.0.
+    return np.sqrt(snr_per_pulse)
 
-    Iterates through a list of returns (e.g., skin, memory) and adds each
-    to the datacube. The amplitude of each return is calculated based on
-    the expected SNR. The datacube is modified in place.
+def add_returns_snr(datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Dict):
+    """Adds multiple returns to a datacube, with amplitudes based on SNR.
 
-    Note: The SNR for memory returns is notional and not physically based.
+    The datacube is modified in place.
 
     Args:
-        datacube (np.ndarray): The 2D complex datacube to modify.
-        waveform (dict): Dictionary of waveform parameters.
-        return_list (list[dict]): A list of dictionaries, where each dictionary
-                                  describes a return to be added.
-        radar (dict): Dictionary of radar parameters.
+        datacube: The 2D complex datacube to modify.
+        waveform: Dictionary of waveform parameters.
+        return_list: A list of dictionaries describing each return.
+        radar: Dictionary of radar parameters.
     """
-    for returnItem in return_list:
-        snr_volt_amp = skin_snr_amplitude(radar, returnItem["target"], waveform)
-        if returnItem["type"] == "skin":
-            add_skin(datacube, waveform, returnItem["target"], radar, snr_volt_amp)
-        elif returnItem["type"] == "memory":
-            print("Note: Memory return SNR amplitudes are notional!")
-            add_memory(datacube, waveform, radar, returnItem, snr_volt_amp)
+    for item in return_list:
+        if item["type"] == "skin":
+            snr_volt_amp = skin_snr_amplitude(radar, item["target"], waveform)
+            add_skin(datacube, waveform, item["target"], radar, snr_volt_amp)
+        elif item["type"] == "memory":
+            print("Note: Using notional SNR for memory return amplitude.")
+            snr_volt_amp = skin_snr_amplitude(radar, item["target"], waveform)
+            add_memory(datacube, waveform, radar, item, snr_volt_amp)
         else:
-            print(f"{returnItem['type']=} not known, no return added.")
+            print(f"Return type '{item['type']}' not recognized. No return added.")
 
 
-def skin_voltage_amplitude(radar, target):
+def skin_voltage_amplitude(radar: Dict, target: Dict) -> float:
     """Calculates the received voltage amplitude of a skin return.
 
-    Uses the radar range equation to determine the received power from a target
-    and converts it to voltage assuming a specific radar load impedance.
-
     Args:
-        radar (dict): Dictionary of radar parameters, icluding 'txPower', 'txGain',
-                      'rxGain', 'Noisefactor', 'totalLosses' and 'opTemp'.
-        target (dict): Dictionary of target parameters, including 'rcs' and 'range'.
+        radar: Dictionary of radar parameters.
+        target: Dictionary of target parameters.
 
     Returns:
-        float: The received voltage amplitude.
+        The received voltage amplitude.
     """
-    rxPower = signal_range_eqn(
+    rx_power = signal_range_eqn(
         radar["txPower"],
         radar["txGain"],
         radar["rxGain"],
@@ -401,8 +390,7 @@ def skin_voltage_amplitude(radar, target):
         target["range"],
         radar["totalLosses"],
     )
-    print(f"{rxPower=: .2e}")
-    return np.sqrt(c.RADAR_LOAD * rxPower)
+    return np.sqrt(c.RADAR_LOAD * rx_power)
 
 
 def memory_voltage_amplitude(platform, radar, target):
@@ -434,82 +422,71 @@ def memory_voltage_amplitude(platform, radar, target):
     return np.sqrt(c.RADAR_LOAD * rxMemPower)
 
 
-def add_returns(datacube, waveform, return_list, radar):
+def add_returns(datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Dict):
     """Adds multiple returns to a datacube, with physically-based voltage amplitudes.
 
-    Iterates through a list of returns (e.g., skin, memory) and adds each
-    to the datacube. The amplitude of each return is calculated based on the
-    radar range equation to find the received voltage. The datacube is
-    modified in place.
+    The datacube is modified in place.
 
     Args:
-        datacube (np.ndarray): The 2D complex datacube to modify.
-        waveform (dict): Dictionary of waveform parameters.
-        return_list (list[dict]): A list of dictionaries, where each dictionary
-                                  describes a return to be added.
-        radar (dict): Dictionary of radar parameters.
+        datacube: The 2D complex datacube to modify.
+        waveform: Dictionary of waveform parameters.
+        return_list: A list of dictionaries describing each return.
+        radar: Dictionary of radar parameters.
     """
-    for returnItem in return_list:
-        if returnItem["type"] == "skin":
-            rx_skin_amp = skin_voltage_amplitude(radar, returnItem["target"])
-            add_skin(datacube, waveform, returnItem["target"], radar, rx_skin_amp)
-        elif returnItem["type"] == "memory":
-            # radar below should should be replaced by EW system
-            rx_mem_amp = memory_voltage_amplitude(
-                returnItem["platform"], radar, returnItem["target"]
-            )
-            add_memory(datacube, waveform, radar, returnItem, rx_mem_amp)
+    for item in return_list:
+        if item["type"] == "skin":
+            rx_skin_amp = skin_voltage_amplitude(radar, item["target"])
+            add_skin(datacube, waveform, item["target"], radar, rx_skin_amp)
+        elif item["type"] == "memory":
+            rx_mem_amp = memory_voltage_amplitude(item["platform"], radar, item["target"])
+            add_memory(datacube, waveform, radar, item, rx_mem_amp)
         else:
-            print(f"{returnItem['type']=} not known, no return added.")
+            print(f"Return type '{item['type']}' not recognized. No return added.")
 
 
-def process_waveform_dict(waveform: dict, radar: dict):
+def process_waveform_dict(waveform: Dict[str, Any], radar: Dict[str, Any]):
     """Generates waveform samples and computes parameters based on a dictionary.
 
-    This function acts as a factory, creating the actual pulse waveform array
-    and calculating key properties like time-bandwidth product and pulse width
-    based on the 'type' specified in the waveform dictionary.
-
-    The input `waveform` dictionary is updated in-place with the following keys:
-    'pulse', 'time_BW_product', 'pulse_width'.
+    This function acts as a factory, creating the pulse array and calculating
+    key properties based on the 'type' specified in the waveform dictionary.
+    The input `waveform` dictionary is updated in-place.
 
     Args:
-        waveform (dict): Dictionary defining the waveform type and its specific
-                         parameters (e.g., 'bw', 'nchips', 'T').
-        radar (dict): Dictionary of radar parameters, including 'sampRate'.
+        waveform: Dictionary defining the waveform type and its parameters.
+                  It will be updated with 'pulse', 'time_BW_product', 'pulse_width'.
+        radar: Dictionary of radar parameters.
 
     Raises:
-        Exception: If the waveform 'type' is not recognized.
+        ValueError: If the waveform 'type' is not recognized.
     """
-    if waveform["type"] == "uncoded":
-        _, pulse_wvf = wvf.uncoded_pulse(radar["sampRate"], waveform["bw"])
+    samp_rate = radar["sampRate"]
+    wvf_type = waveform["type"]
+
+    if wvf_type == "uncoded":
+        _, pulse_wvf = wvf.uncoded_pulse(samp_rate, waveform["bw"])
         waveform["pulse"] = pulse_wvf
         waveform["time_BW_product"] = 1
         waveform["pulse_width"] = 1 / waveform["bw"]
 
-    elif waveform["type"] == "barker":
-        _, pulse_wvf = wvf.barker_coded_pulse(
-            radar["sampRate"], waveform["bw"], waveform["nchips"]
-        )
+    elif wvf_type == "barker":
+        _, pulse_wvf = wvf.barker_coded_pulse(samp_rate, waveform["bw"], waveform["nchips"])
         waveform["pulse"] = pulse_wvf
         waveform["time_BW_product"] = waveform["nchips"]
-        waveform["pulse_width"] = 1 / waveform["bw"] * waveform["nchips"]
+        waveform["pulse_width"] = waveform["nchips"] / waveform["bw"]
 
-    elif waveform["type"] == "random":
-        _, pulse_wvf = wvf.random_coded_pulse(
-            radar["sampRate"], waveform["bw"], waveform["nchips"]
-        )
+    elif wvf_type == "random":
+        _, pulse_wvf = wvf.random_coded_pulse(samp_rate, waveform["bw"], waveform["nchips"])
         waveform["pulse"] = pulse_wvf
         waveform["time_BW_product"] = waveform["nchips"]
-        waveform["pulse_width"] = 1 / waveform["bw"] * waveform["nchips"]
+        waveform["pulse_width"] = waveform["nchips"] / waveform["bw"]
 
-    elif waveform["type"] == "lfm":
+    elif wvf_type == "lfm":
         _, pulse_wvf = wvf.lfm_pulse(
-            radar["sampRate"], waveform["bw"], waveform["T"], waveform["chirpUpDown"]
+            samp_rate, waveform["bw"], waveform["T"], waveform["chirpUpDown"]
         )
         waveform["pulse"] = pulse_wvf
         waveform["time_BW_product"] = waveform["bw"] * waveform["T"]
         waveform["pulse_width"] = waveform["T"]
 
     else:
-        raise Exception(f"waveform type {waveform['type']} not found.")
+        raise ValueError(f"Waveform type '{wvf_type}' not recognized.")

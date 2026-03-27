@@ -149,14 +149,14 @@ def gen(
 
     if debug:
         if snr:
-            plot_rdm_snr(rdot_axis, r_axis, signal_dc, "Noiseless RDM", cbarMin=0)
+            plot_rdm_snr(rdot_axis, r_axis, signal_dc, "Noiseless RDM", cbar_min=0)
             noise_checks(signal_dc, noise_dc, total_dc)
         else:
             plot_rdm(rdot_axis, r_axis, signal_dc, "Noiseless RDM")
     if plot or debug:
         if snr:
             plot_rdm_snr(
-                rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform['type']}", cbarMin=0
+                rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform['type']}", cbar_min=0
             )
             # if debug:
             check_expected_snr(radar, return_list[0]["target"], waveform)  # first return item
