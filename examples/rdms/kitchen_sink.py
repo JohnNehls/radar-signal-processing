@@ -24,7 +24,6 @@ radar = {
 }
 
 # Example waveform configurations, the last un-commented on will be used for the RDM
-waveform = {"type": None}  # noise test
 waveform = {"type": "uncoded", "bw": bw}
 waveform = {"type": "barker", "nchips": 13, "bw": bw}
 waveform = {"type": "random", "nchips": 13, "bw": bw}
