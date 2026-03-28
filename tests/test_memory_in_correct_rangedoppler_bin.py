@@ -2,10 +2,12 @@ import numpy as np
 import pytest
 import rsp.pulse_doppler_radar as pdr
 from rsp import rdm
+from rsp.pulse_doppler_radar import Radar
+from rsp.waveform import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
 
 BW = 10e6
 
-RADAR = {
+RADAR: Radar = {
     "fcar": 10e9,
     "txPower": 1e3,
     "txGain": 10 ** (30 / 10),
@@ -33,11 +35,11 @@ RETURN = {
 }
 
 WAVEFORMS = [
-    {"type": "uncoded", "bw": BW},
-    {"type": "barker", "nchips": 5, "bw": BW},
-    {"type": "barker", "nchips": 13, "bw": BW},
-    {"type": "random", "nchips": 13, "bw": BW},
-    {"type": "lfm", "bw": BW, "T": 10 / 40e6, "chirpUpDown": 1},
+    uncoded_waveform(BW),
+    barker_waveform(BW, nchips=5),
+    barker_waveform(BW, nchips=13),
+    random_waveform(BW, nchips=13),
+    lfm_waveform(BW, T=10 / 40e6, chirpUpDown=1),
 ]
 
 

@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
+from rsp.waveform import uncoded_waveform
 
 ################################################################################
 # Doppler noise is LFM in slow time
@@ -24,7 +25,7 @@ radar: Radar = {
     "dwell_time": 2e-3,
 }
 
-waveform = {"type": "uncoded", "bw": bw}
+waveform = uncoded_waveform(bw)
 
 return_list = [
     {

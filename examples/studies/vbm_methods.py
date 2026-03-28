@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
+from rsp.waveform import uncoded_waveform
 import rsp.vbm as vbm
 
 ################################################################################
@@ -24,7 +25,7 @@ radar: Radar = {
     "dwell_time": 5e-3,
 }
 
-waveform = {"type": "uncoded", "bw": bw}
+waveform = uncoded_waveform(bw)
 
 mem_dict = {"type": "memory",
             "target": {"range": 0.2e3, "rangeRate": 0.0e3},

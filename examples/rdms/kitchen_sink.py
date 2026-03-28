@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
+from rsp.waveform import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
 import numpy as np
 
 ################################################################################
@@ -25,10 +26,10 @@ radar: Radar = {
 }
 
 # Example waveform configurations, the last un-commented on will be used for the RDM
-waveform = {"type": "uncoded", "bw": bw}
-waveform = {"type": "barker", "nchips": 13, "bw": bw}
-waveform = {"type": "random", "nchips": 13, "bw": bw}
-waveform = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}
+waveform = uncoded_waveform(bw)
+waveform = barker_waveform(bw, nchips=13)
+waveform = random_waveform(bw, nchips=13)
+waveform = lfm_waveform(bw, T=10 / 40e6, chirpUpDown=1)
 
 target_dict = {"type": "skin", "target": {"range": 3.5e3,
                                           "rangeRate": 0.5e3,

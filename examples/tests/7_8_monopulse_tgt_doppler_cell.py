@@ -6,6 +6,7 @@ import numpy as np
 import rsp.uniform_linear_arrays as ula
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
+from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
 import rsp.rdm_helpers as rdmh
 
 # Can make plotting non-blocking with an input flag
@@ -41,9 +42,9 @@ radar: Radar = {
 
 return_list = [{"type": "skin", "target": {"range": 2.4e3, "rangeRate": 0.2e3, "rcs": 10}}]
 
-waveform = {"type": "uncoded", "bw": bw}  # high 1
-waveform = {"type": "barker", "nchips": 13, "bw": bw}  # high 1
-waveform = {"type": "lfm", "bw": bw, "T": 10 / 40e6, "chirpUpDown": 1}  ## high 2
+waveform = uncoded_waveform(bw)                        # high 1
+waveform = barker_waveform(bw, nchips=13)              # high 1
+waveform = lfm_waveform(bw, T=10 / 40e6, chirpUpDown=1)  # high 2
 
 tgt_angle = 5
 dx = 1 / 2  # seperation of array elements in terms of wavelength

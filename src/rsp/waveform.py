@@ -207,3 +207,59 @@ def lfm_pulse(sampleRate, BW, T, chirpUpDown, normalize=True):
         mag = mag / norm(mag)
 
     return t, mag
+
+
+# --- Waveform dict factories ---------------------------------------------------
+
+def uncoded_waveform(bw: float) -> dict:
+    """Returns a waveform dict for an uncoded rectangular pulse.
+
+    Args:
+        bw: Pulse bandwidth in Hz. Pulse duration is 1/bw.
+
+    Returns:
+        Waveform dict for use with rdm.gen.
+    """
+    return {"type": "uncoded", "bw": bw}
+
+
+def barker_waveform(bw: float, nchips: int) -> dict:
+    """Returns a waveform dict for a Barker-coded pulse.
+
+    Args:
+        bw: Chip bandwidth in Hz. Chip duration is 1/bw.
+        nchips: Number of chips. Must be a valid Barker length (2,3,4,5,7,11,13).
+
+    Returns:
+        Waveform dict for use with rdm.gen.
+    """
+    assert nchips in BARKER_DICT, f"nchips={nchips} is not a valid Barker code length."
+    return {"type": "barker", "bw": bw, "nchips": nchips}
+
+
+def random_waveform(bw: float, nchips: int) -> dict:
+    """Returns a waveform dict for a random binary phase-coded pulse.
+
+    Args:
+        bw: Chip bandwidth in Hz. Chip duration is 1/bw.
+        nchips: Number of chips.
+
+    Returns:
+        Waveform dict for use with rdm.gen.
+    """
+    return {"type": "random", "bw": bw, "nchips": nchips}
+
+
+def lfm_waveform(bw: float, T: float, chirpUpDown: int) -> dict:
+    """Returns a waveform dict for a Linear Frequency Modulated (LFM) pulse.
+
+    Args:
+        bw: Bandwidth of the frequency sweep in Hz.
+        T: Pulse duration in seconds.
+        chirpUpDown: 1 for up-chirp, -1 for down-chirp.
+
+    Returns:
+        Waveform dict for use with rdm.gen.
+    """
+    assert chirpUpDown in [1, -1], "chirpUpDown must be 1 (up) or -1 (down)."
+    return {"type": "lfm", "bw": bw, "T": T, "chirpUpDown": chirpUpDown}

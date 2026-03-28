@@ -3,6 +3,7 @@
 import matplotlib.pyplot as plt
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
+from rsp.waveform import lfm_waveform
 
 ################################################################################
 # skin example
@@ -23,7 +24,7 @@ radar: Radar = {
     "dwell_time": 2e-3,
 }
 
-waveform = {"type": "lfm", "bw": bw, "T": 1.0e-6, "chirpUpDown": 1}
+waveform = lfm_waveform(bw, T=1.0e-6, chirpUpDown=1)
 
 return_list = [{"type": "skin", "target": {"range": 3.5e3, "rangeRate": 1.0e3, "rcs": 10}}]
 

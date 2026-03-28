@@ -2,10 +2,12 @@ import numpy as np
 import pytest
 import rsp.uniform_linear_arrays as ula
 from rsp import rdm
+from rsp.pulse_doppler_radar import Radar
+from rsp.waveform import lfm_waveform
 
 BW = 10e6
 
-RADAR = {
+RADAR: Radar = {
     "fcar": 10e9,
     "txPower": 1e3,
     "txGain": 10 ** (30 / 10),
@@ -18,7 +20,7 @@ RADAR = {
     "dwell_time": 2e-3,
 }
 
-WAVEFORM = {"type": "lfm", "bw": BW, "T": 10 / 40e6, "chirpUpDown": 1}
+WAVEFORM = lfm_waveform(BW, T=10 / 40e6, chirpUpDown=1)
 TGT_ANGLE = 5  # degrees
 DX = 1 / 2  # element separation in wavelengths
 
