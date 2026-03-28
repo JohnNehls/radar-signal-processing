@@ -393,33 +393,35 @@ def skin_voltage_amplitude(radar: Dict, target: Dict) -> float:
     return np.sqrt(c.RADAR_LOAD * rx_power)
 
 
-def memory_voltage_amplitude(platform, radar, target):
+def memory_voltage_amplitude(platform: Dict, radar: Dict, target: Dict) -> float:
     """Calculates the received voltage amplitude of a memory-based EA return.
 
-    Uses a one-way range equation to model the signal received by the radar
-    from an EA platform (jammer).
+    Models the one-way communication link from the EA platform to the radar.
 
     Args:
-        platform (dict): Dictionary of the EA platform's parameters, such as
-                         'txPower', 'txGain', 'totalLosses'.
-        radar (dict): Dictionary of the radar's parameters, used for 'rxGain'
-                      and 'fcar'.
-        target (dict): Dictionary of the target's parameters, used for 'range'.
+        platform: Dictionary of the EA platform's parameters.
+        radar: Dictionary of the radar's parameters (as receiver).
+        target: Dictionary of the target's parameters (for range).
 
     Returns:
-        float: The received voltage amplitude from the EA platform.
+        The received voltage amplitude from the EA platform.
     """
-    rxMemPower = signal_range_eqn(
+    # To model a one-way link using the two-way radar range equation,
+    # we can use an effective RCS that cancels the extra 1/(4*pi*R^2) term.
+    # The effective RCS is sigma = 4 * pi * R^2.
+    range_m = target["range"]
+    equivalent_rcs = 4 * np.pi * range_m**2
+
+    rx_power = signal_range_eqn(
         platform["txPower"],
         platform["txGain"],
         radar["rxGain"],
-        1,
-        c.C / radar["fcar"],  # same as radar if memory
-        target["range"] / 2,  # only one-way propagation
+        equivalent_rcs,
+        c.C / radar["fcar"],
+        range_m,
         platform["totalLosses"],
     )
-    print(f"{rxMemPower=: .2e}")
-    return np.sqrt(c.RADAR_LOAD * rxMemPower)
+    return np.sqrt(c.RADAR_LOAD * rx_power)
 
 
 def add_returns(datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Dict):

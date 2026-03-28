@@ -25,19 +25,14 @@ radar = {
 
 waveform = {"type": "uncoded", "bw": bw}
 
-return_list = [
-    {
-        "type": "memory",
-        "target": {"range": 0.2e3, "rangeRate": 0.0e3, "rcs": 10},
-        "rdot_delta": 1.0e3,
-        "rdot_offset": 0.0e3,
-        "platform": {
-            "txPower": 2.0e3,
-            "txGain": 10 ** (30 / 10),
-            "totalLosses": 10 ** (3 / 10),
-        },
-    }
-]
+mem_dict = {"type": "memory",
+            "target": {"range": 0.2e3, "rangeRate": 0.0e3},
+            "rdot_delta": 1.0e3,
+            "rdot_offset": 0.0e3,
+            "platform": {
+                "txPower": 1.0e3,
+                "txGain": 10 ** (5 / 10),
+                "totalLosses": 10 ** (3 / 10)}}
 
 vbm_name_function_dict = {
     "random phase VBM": vbm._random_phase,
@@ -48,9 +43,10 @@ vbm_name_function_dict = {
 }
 
 for name, func in vbm_name_function_dict.items():
-    return_list[0]["vbm_noise_function"] = func
-    rdm.gen(radar, waveform, return_list, debug=False)
+    mem_dict["vbm_noise_function"] = func
+    rdm.gen(radar, waveform, [mem_dict], debug=False)
     ax = plt.gca()
     ax.set_title(name)
 
+print(f"Note:LFM phase VBM is the only method to match the perscribed {mem_dict['rdot_delta']} [m/s] VBM width.")
 plt.show()

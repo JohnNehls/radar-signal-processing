@@ -26,16 +26,14 @@ radar = {
 waveform = {"type": "lfm", "bw": bw, "T": 1.5e-6, "chirpUpDown": 1}
 
 return_list = [
-    {
-        "type": "memory",
-        "target": {"range": 0.5e3, "rangeRate": 0.0e3, "rcs": 10},
-        "rdot_delta": 0.5e3,
-        "rdot_offset": 0.0e3,
-        "platform": {
-            "txPower": 2.0e3,
-            "txGain": 10 ** (30 / 10),
-            "totalLosses": 10 ** (3 / 10),
-        },
+    {"type": "memory",
+     "target": {"range": 0.5e3, "rangeRate": 0.0e3},
+     "rdot_delta": 0.5e3,
+     "rdot_offset": 0.0e3,
+     "platform": {
+         "txPower": 2.0,
+         "txGain": 10 ** (5 / 10),
+         "totalLosses": 10 ** (3 / 10)}
     }
 ]
 
