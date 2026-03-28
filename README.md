@@ -45,9 +45,14 @@ pip install radar-signal-processing/
         [tests](examples/tests).
 
 ## Testing RSP
+-   To run each of the pytests, run the following:
 
--   To run each python script in [tests](examples/tests), [examples](examples),
-    and [studies](examples/studies) to test for errors, run the following:
+``` shell
+ python -m pytest tests/ -v
+ ```
+
+-   To run the Python scripts used in validating the rsp library in [tests](examples/tests), 
+    [examples](examples), and [studies](examples/studies) to test for errors, run the following:
 
 ``` shell
 ./examples/tests/run_all_tests.sh
