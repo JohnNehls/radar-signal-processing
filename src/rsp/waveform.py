@@ -13,7 +13,9 @@ BARKER_DICT = {
 }
 
 
-def uncoded_pulse(sampleRate, BW, normalize=True):
+def uncoded_pulse(
+    sampleRate: float, BW: float, normalize: bool = True
+) -> tuple[np.ndarray, np.ndarray]:
     """Generates a simple, baseband rectangular (uncoded) pulse.
 
     Args:
@@ -45,7 +47,9 @@ def uncoded_pulse(sampleRate, BW, normalize=True):
     return t, mag
 
 
-def complex_tone_pulse(sampleRate, BW, fc, normalize=True):
+def complex_tone_pulse(
+    sampleRate: float, BW: float, fc: float, normalize: bool = True
+) -> tuple[np.ndarray, np.ndarray]:
     """Generates a complex-valued pulse with a constant frequency offset.
 
     This function creates a rectangular pulse and modulates it with a complex
@@ -71,7 +75,9 @@ def complex_tone_pulse(sampleRate, BW, fc, normalize=True):
     return t, mag_c
 
 
-def coded_pulse(sampleRate, BW, code, normalize=True):
+def coded_pulse(
+    sampleRate: float, BW: float, code: list[int], normalize: bool = True
+) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband, phase-coded pulse.
 
     The pulse is constructed by concatenating rectangular "chips", where each
@@ -114,7 +120,9 @@ def coded_pulse(sampleRate, BW, code, normalize=True):
     return t, mag
 
 
-def barker_coded_pulse(sampleRate, BW, nChips, normalize=True):
+def barker_coded_pulse(
+    sampleRate: float, BW: float, nChips: int, normalize: bool = True
+) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband, Barker-coded pulse.
 
     Barker codes are specific binary phase codes known for their low
@@ -146,7 +154,9 @@ def barker_coded_pulse(sampleRate, BW, nChips, normalize=True):
     )
 
 
-def random_coded_pulse(sampleRate, BW, nChips, normalize=True):
+def random_coded_pulse(
+    sampleRate: float, BW: float, nChips: int, normalize: bool = True
+) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband pulse with a random binary phase code.
 
     The code consists of a sequence of randomly chosen 1s and -1s.
@@ -172,7 +182,9 @@ def random_coded_pulse(sampleRate, BW, nChips, normalize=True):
     )
 
 
-def lfm_pulse(sampleRate, BW, T, chirpUpDown, normalize=True):
+def lfm_pulse(
+    sampleRate: float, BW: float, T: float, chirpUpDown: int, normalize: bool = True
+) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband Linear Frequency Modulated (LFM) pulse (chirp).
 
     The instantaneous frequency of the pulse varies linearly with time over the
@@ -211,7 +223,7 @@ def lfm_pulse(sampleRate, BW, T, chirpUpDown, normalize=True):
 
 # --- Waveform dict factories ---------------------------------------------------
 
-def uncoded_waveform(bw: float) -> dict:
+def uncoded_waveform(bw: float) -> dict[str, object]:
     """Returns a waveform dict for an uncoded rectangular pulse.
 
     Args:
@@ -223,7 +235,7 @@ def uncoded_waveform(bw: float) -> dict:
     return {"type": "uncoded", "bw": bw}
 
 
-def barker_waveform(bw: float, nchips: int) -> dict:
+def barker_waveform(bw: float, nchips: int) -> dict[str, object]:
     """Returns a waveform dict for a Barker-coded pulse.
 
     Args:
@@ -237,7 +249,7 @@ def barker_waveform(bw: float, nchips: int) -> dict:
     return {"type": "barker", "bw": bw, "nchips": nchips}
 
 
-def random_waveform(bw: float, nchips: int) -> dict:
+def random_waveform(bw: float, nchips: int) -> dict[str, object]:
     """Returns a waveform dict for a random binary phase-coded pulse.
 
     Args:
@@ -250,7 +262,7 @@ def random_waveform(bw: float, nchips: int) -> dict:
     return {"type": "random", "bw": bw, "nchips": nchips}
 
 
-def lfm_waveform(bw: float, T: float, chirpUpDown: int) -> dict:
+def lfm_waveform(bw: float, T: float, chirpUpDown: int) -> dict[str, object]:
     """Returns a waveform dict for a Linear Frequency Modulated (LFM) pulse.
 
     Args:

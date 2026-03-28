@@ -1,6 +1,7 @@
 import numpy as np
 from numpy.linalg import norm
 import logging
+from typing import Callable
 from . import constants as c
 from .noise import band_limited_complex_noise, gaussian_complex_noise
 from .waveform import lfm_pulse
@@ -11,7 +12,7 @@ logger = logging.getLogger(__name__)
 ####################################################################################################
 ### Start: noise techniques to achieve VBM in order of complexity ###
 ####################################################################################################
-def _random_phase(N_pulses, *args):
+def _random_phase(N_pulses: int, *args) -> np.ndarray:
     """Generates a sequence of complex numbers with random phase.
 
     This function creates a noise sequence where each element has a unit
@@ -31,7 +32,7 @@ def _random_phase(N_pulses, *args):
     return np.exp(1j * rand_phase)
 
 
-def _uniform_bandwidth_phase(N_pulses, f_delta, PRF):
+def _uniform_bandwidth_phase(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
     """Generates band-limited noise with a uniform spectral distribution.
 
     This creates a complex noise sequence whose power is concentrated within a
@@ -50,7 +51,7 @@ def _uniform_bandwidth_phase(N_pulses, f_delta, PRF):
     return band_limited_complex_noise(-f_delta / 2, +f_delta / 2, N_pulses, PRF, normalize=True)
 
 
-def _gaussian_bandwidth_phase(N_pulses, f_delta, PRF):
+def _gaussian_bandwidth_phase(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
     """Generates band-limited noise with a Gaussian spectral distribution.
 
     This creates a complex noise sequence whose power is concentrated within a
@@ -70,7 +71,7 @@ def _gaussian_bandwidth_phase(N_pulses, f_delta, PRF):
     return gaussian_complex_noise(0, f_delta / 2, 1, N_pulses, PRF, normalize=True)
 
 
-def _gaussian_bandwidth_phase_normalized(N_pulses, f_delta, PRF):
+def _gaussian_bandwidth_phase_normalized(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
     """Generates Gaussian noise, then normalizes the sequence magnitude.
 
     This function first generates a complex noise sequence with a Gaussian
@@ -92,7 +93,7 @@ def _gaussian_bandwidth_phase_normalized(N_pulses, f_delta, PRF):
     return slowtime_noise
 
 
-def _lfm_phase(N_pulses, f_delta, PRF):
+def _lfm_phase(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
     """Generates a slow-time LFM waveform to be used as VBM noise.
 
     This method creates a Linear Frequency Modulated (LFM) pulse across the
@@ -118,7 +119,7 @@ def _lfm_phase(N_pulses, f_delta, PRF):
 ####################################################################################################
 
 
-def calc_f_delta(fcar, rdot_delta):
+def calc_f_delta(fcar: float, rdot_delta: float) -> float:
     """Calculates the Doppler frequency spread from a range-rate spread.
 
     This function converts a spread in target radial velocities (range-rate delta)
@@ -134,7 +135,9 @@ def calc_f_delta(fcar, rdot_delta):
     return 2 * fcar / c.C * rdot_delta
 
 
-def slowtime_noise(N_pulses, fcar, rdot_delta, PRF, noiseFun=_lfm_phase):
+def slowtime_noise(
+    N_pulses: int, fcar: float, rdot_delta: float, PRF: float, noiseFun: Callable = _lfm_phase
+) -> np.ndarray:
     """Generates a slow-time noise sequence for Velocity Band Modulation (VBM).
 
     This function acts as a wrapper to generate various types of complex noise

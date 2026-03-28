@@ -2,7 +2,7 @@ import numpy as np
 from . import constants as c
 
 
-def power2db(power: float):
+def power2db(power: float) -> float:
     """Converts power from watts to decibels (dB).
 
     The conversion is calculated as 10 * log10(power).
@@ -16,7 +16,7 @@ def power2db(power: float):
     return 10 * np.log10(power)
 
 
-def db2power(db: float):
+def db2power(db: float) -> float:
     """Converts power from decibels (dB) to watts.
 
     The conversion is calculated as 10**(db / 10).
@@ -30,7 +30,7 @@ def db2power(db: float):
     return 10 ** (db / 10)
 
 
-def volt2db(voltage: float):
+def volt2db(voltage: float) -> float:
     """Converts a voltage or amplitude ratio to decibels (dB).
 
     The conversion is calculated as 20 * log10(voltage). This is typically
@@ -45,7 +45,7 @@ def volt2db(voltage: float):
     return 20 * np.log10(voltage)
 
 
-def db2volt(db: float):
+def db2volt(db: float) -> float:
     """Converts a decibel (dB) value to a voltage or amplitude ratio.
 
     The conversion is calculated as 10**(db / 20).
@@ -59,7 +59,7 @@ def db2volt(db: float):
     return 10 ** (db / 20)
 
 
-def phase_negpi_pospi(phase):
+def phase_negpi_pospi(phase: float | np.ndarray) -> np.ndarray:
     """Wraps phase angles to the interval [-pi, pi).
 
     Args:
@@ -81,7 +81,7 @@ def phase_negpi_pospi(phase):
     return phase
 
 
-def phase_zero_twopi(phase):
+def phase_zero_twopi(phase: float | np.ndarray) -> np.ndarray:
     """Wraps phase angles to the interval [0, 2*pi).
 
     Args:
@@ -95,7 +95,7 @@ def phase_zero_twopi(phase):
     return phase
 
 
-def zero_to_smallest_float(array, value=1e-16):
+def zero_to_smallest_float(array: np.ndarray, value: float = 1e-16) -> None:
     """Replaces all zero elements in a NumPy array with a small float value.
 
     This operation is performed in-place. It is often used to avoid

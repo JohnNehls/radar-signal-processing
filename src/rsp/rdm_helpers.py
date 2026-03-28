@@ -5,6 +5,7 @@ from typing import Tuple, Dict, List, Any
 
 from . import constants as c
 from . import waveform as wvf
+from .pulse_doppler_radar import Radar
 from .waveform_helpers import add_waveform_at_index
 from .utilities import phase_negpi_pospi, zero_to_smallest_float
 from .range_equation import snr_range_eqn, signal_range_eqn
@@ -143,9 +144,9 @@ def add_skin(
     datacube: np.ndarray,
     wvf: Dict,
     tgt_info: Dict,
-    radar: Dict,
+    radar: Radar,
     return_magnitude: float,
-):
+) -> None:
     """Adds a direct radar reflection (skin return) from a target to the datacube.
 
     This function simulates the signal received by the radar after it reflects
@@ -195,8 +196,8 @@ def add_skin(
 
 
 def add_memory(
-    datacube: np.ndarray, wvf: Dict, radar: Dict, return_info: Dict, return_magnitude: float
-):
+    datacube: np.ndarray, wvf: Dict, radar: Radar, return_info: Dict, return_magnitude: float
+) -> None:
     """Adds a notional memory-based electronic attack (EA) return to the datacube.
 
     This function simulates a DRFM jammer that records an incoming pulse and
@@ -309,7 +310,7 @@ def create_window(shape: Tuple[int, int],
     return window_matrix
 
 
-def skin_snr_amplitude(radar: Dict, target: Dict, waveform: Dict) -> float:
+def skin_snr_amplitude(radar: Radar, target: Dict, waveform: Dict) -> float:
     """Calculates the required per-pulse voltage amplitude to achieve a target SNR.
 
     Uses the radar range equation to find the SNR after processing, then works
@@ -348,7 +349,7 @@ def skin_snr_amplitude(radar: Dict, target: Dict, waveform: Dict) -> float:
     # SNR (power ratio), assuming a normalized noise power of 1.0.
     return np.sqrt(snr_per_pulse)
 
-def add_returns_snr(datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Dict):
+def add_returns_snr(datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Radar) -> None:
     """Adds multiple returns to a datacube, with amplitudes based on SNR.
 
     The datacube is modified in place.
@@ -371,7 +372,7 @@ def add_returns_snr(datacube: np.ndarray, waveform: Dict, return_list: List[Dict
             print(f"Return type '{item['type']}' not recognized. No return added.")
 
 
-def skin_voltage_amplitude(radar: Dict, target: Dict) -> float:
+def skin_voltage_amplitude(radar: Radar, target: Dict) -> float:
     """Calculates the received voltage amplitude of a skin return.
 
     Args:
@@ -393,7 +394,7 @@ def skin_voltage_amplitude(radar: Dict, target: Dict) -> float:
     return np.sqrt(c.RADAR_LOAD * rx_power)
 
 
-def memory_voltage_amplitude(platform: Dict, radar: Dict, target: Dict) -> float:
+def memory_voltage_amplitude(platform: Dict, radar: Radar, target: Dict) -> float:
     """Calculates the received voltage amplitude of a memory-based EA return.
 
     Models the one-way communication link from the EA platform to the radar.
@@ -424,7 +425,7 @@ def memory_voltage_amplitude(platform: Dict, radar: Dict, target: Dict) -> float
     return np.sqrt(c.RADAR_LOAD * rx_power)
 
 
-def add_returns(datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Dict):
+def add_returns(datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Radar) -> None:
     """Adds multiple returns to a datacube, with physically-based voltage amplitudes.
 
     The datacube is modified in place.
@@ -446,7 +447,7 @@ def add_returns(datacube: np.ndarray, waveform: Dict, return_list: List[Dict], r
             print(f"Return type '{item['type']}' not recognized. No return added.")
 
 
-def process_waveform_dict(waveform: Dict[str, Any], radar: Dict[str, Any]):
+def process_waveform_dict(waveform: Dict[str, Any], radar: Radar) -> None:
     """Generates waveform samples and computes parameters based on a dictionary.
 
     This function acts as a factory, creating the pulse array and calculating

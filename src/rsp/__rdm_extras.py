@@ -2,9 +2,10 @@ import numpy as np
 from scipy import fft
 from . import constants as c
 from .range_equation import snr_range_eqn, snr_range_eqn_cp
+from .pulse_doppler_radar import Radar
 
 
-def noise_checks(signal_dc, noise_dc, total_dc):
+def noise_checks(signal_dc: np.ndarray, noise_dc: np.ndarray, total_dc: np.ndarray) -> None:
     """Prints various noise and signal-to-noise ratio (SNR) checks.
 
     Args:
@@ -25,7 +26,7 @@ def noise_checks(signal_dc, noise_dc, total_dc):
     print(f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
 
 
-def check_expected_snr(radar, target, waveform):
+def check_expected_snr(radar: Radar, target: dict, waveform: dict) -> None:
     """Calculates and prints expected SNR based on the radar equation.
 
     Args:

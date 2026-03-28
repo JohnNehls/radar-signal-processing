@@ -23,11 +23,12 @@ class Radar:
     dwell_time: float  # Coherent dwell time [s]
     Npulses: int = field(init=False)  # Computed from dwell_time and PRF
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
+        """Compute Npulses from dwell_time and PRF."""
         self.Npulses = int(math.ceil(self.dwell_time * self.PRF))
 
 
-def range_unambiguous(PRF):
+def range_unambiguous(PRF: float) -> float:
     """
     Calculate the maximum unambiguous range for a given pulse repetition frequency.
 
@@ -40,7 +41,7 @@ def range_unambiguous(PRF):
     return c.C / (2 * PRF)
 
 
-def range_resolution(B):
+def range_resolution(B: float) -> float:
     """
     Calculate the slant range resolution based on the signal bandwidth.
 
@@ -53,7 +54,7 @@ def range_resolution(B):
     return c.C / (2 * B)
 
 
-def range_aliased(range, PRF):
+def range_aliased(range: float, PRF: float) -> float:
     """
     Calculate the apparent target range as it appears after range wrap-around.
 
@@ -67,7 +68,7 @@ def range_aliased(range, PRF):
     return range % range_unambiguous(PRF)
 
 
-def frequency_delta_doppler(rangeRate, f0):
+def frequency_delta_doppler(rangeRate: float, f0: float) -> float:
     """
     Calculate the Doppler frequency shift resulting from target motion.
 
@@ -81,7 +82,7 @@ def frequency_delta_doppler(rangeRate, f0):
     return f0 * (-2 * rangeRate / c.C)
 
 
-def frequency_aliased(freq, fs):
+def frequency_aliased(freq: float, fs: float) -> float:
     """
     Calculate the apparent frequency after aliasing into the Nyquist interval [-fs/2, fs/2].
 
@@ -99,7 +100,7 @@ def frequency_aliased(freq, fs):
         return f
 
 
-def rangeRate_pm_unambiguous(PRF, f0):
+def rangeRate_pm_unambiguous(PRF: float, f0: float) -> float:
     """
     Calculate the unambiguous radial velocity (range rate) limits (+/-).
 
@@ -113,7 +114,7 @@ def rangeRate_pm_unambiguous(PRF, f0):
     return PRF * c.C / (4 * f0)
 
 
-def rangeRate_aliased_rrmax(rangeRate, rangeRate_max):
+def rangeRate_aliased_rrmax(rangeRate: float, rangeRate_max: float) -> float:
     """
     Calculate the apparent range rate after aliasing within specified velocity bounds.
 
@@ -131,7 +132,7 @@ def rangeRate_aliased_rrmax(rangeRate, rangeRate_max):
         return r
 
 
-def rangeRate_aliased_prf_f0(rangeRate, PRF, f0):
+def rangeRate_aliased_prf_f0(rangeRate: float, PRF: float, f0: float) -> float:
     """
     Calculate the apparent range rate after aliasing based on system parameters.
 
@@ -146,7 +147,7 @@ def rangeRate_aliased_prf_f0(rangeRate, PRF, f0):
     return rangeRate_aliased_rrmax(rangeRate, rangeRate_pm_unambiguous(PRF, f0))
 
 
-def first_echo_pulse_bin(range, PRF):
+def first_echo_pulse_bin(range: float, PRF: float) -> int:
     """
     Determine the pulse index (slow-time bin) in which the first target return arrives.
 

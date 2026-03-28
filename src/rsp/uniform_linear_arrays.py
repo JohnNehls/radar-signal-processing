@@ -4,7 +4,7 @@ from . import constants as c
 from scipy import interpolate
 
 
-def steering_vector(el_pos, theta):
+def steering_vector(el_pos: np.ndarray, theta: float) -> np.ndarray:
     """
     Computes the Vandermonde steering vector for a linear array.
 
@@ -23,7 +23,13 @@ def steering_vector(el_pos, theta):
     return np.exp(-1j * 2 * np.pi * np.sin(theta_rad) * el_pos)
 
 
-def linear_antenna_gain(el_pos, weight_vec=None, N_theta=10000, steer_angle=0, plot=False):
+def linear_antenna_gain(
+    el_pos: np.ndarray,
+    weight_vec: np.ndarray | None = None,
+    N_theta: int = 10000,
+    steer_angle: float = 0,
+    plot: bool = False,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Calculates the complex voltage gain pattern for a linear antenna array.
 
@@ -70,7 +76,14 @@ def linear_antenna_gain(el_pos, weight_vec=None, N_theta=10000, steer_angle=0, p
     return np.rad2deg(theta_grid), Af
 
 
-def linear_antenna_gain_meters(el_pos, fc, weights=None, Ntheta=10000, steer_angle=0, plot=False):
+def linear_antenna_gain_meters(
+    el_pos: np.ndarray,
+    fc: float,
+    weights: np.ndarray | None = None,
+    Ntheta: int = 10000,
+    steer_angle: float = 0,
+    plot: bool = False,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Calculates gain pattern from element positions in meters and frequency.
 
@@ -101,7 +114,14 @@ def linear_antenna_gain_meters(el_pos, fc, weights=None, Ntheta=10000, steer_ang
     )
 
 
-def linear_antenna_gain_N_db(N_el, dx, weights=None, Ntheta=10000, steer_angle=0, plot=False):
+def linear_antenna_gain_N_db(
+    N_el: int,
+    dx: float,
+    weights: np.ndarray | None = None,
+    Ntheta: int = 10000,
+    steer_angle: float = 0,
+    plot: bool = False,
+) -> tuple[np.ndarray, np.ndarray]:
     """
     Calculates gain pattern in dBi for a uniform linear array.
 
@@ -134,7 +154,7 @@ def linear_antenna_gain_N_db(N_el, dx, weights=None, Ntheta=10000, steer_angle=0
     return thetas, 20 * np.log10(abs(gain))
 
 
-def array_phase_center(position_ar, weight_ar):
+def array_phase_center(position_ar: np.ndarray, weight_ar: np.ndarray) -> float:
     """
     Calculates the phase center of an antenna array.
 
@@ -155,7 +175,9 @@ def array_phase_center(position_ar, weight_ar):
     return np.sum(abs(weight_ar) * position_ar) / np.sum(weight_ar)
 
 
-def apply_timeshift_due_to_element_position(signal_ar, fs, element_position, tgt_angle):
+def apply_timeshift_due_to_element_position(
+    signal_ar: np.ndarray, fs: float, element_position: float, tgt_angle: float
+) -> np.ndarray:
     """
     Applies a time shift to a signal based on element position and angle.
 

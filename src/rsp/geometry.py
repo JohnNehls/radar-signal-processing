@@ -2,7 +2,9 @@ import numpy as np
 from numpy.linalg import norm
 
 
-def range_and_rangerate(plat_pos: list, plat_vel: list, tgt_pos: list, tgt_vel: list):
+def range_and_rangerate(
+    plat_pos: list, plat_vel: list, tgt_pos: list, tgt_vel: list
+) -> tuple[np.ndarray, float, float]:
     """
     Calculate the range vector, range magnitude, and range-rate of a target relative to a platform.
 

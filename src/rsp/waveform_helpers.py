@@ -8,7 +8,9 @@ from scipy import signal
 logger = logging.getLogger(__name__)
 
 
-def zeropad_waveform(t, waveform, N_pad):
+def zeropad_waveform(
+    t: np.ndarray, waveform: np.ndarray, N_pad: int
+) -> tuple[np.ndarray, np.ndarray]:
     """Zeropads a waveform and adjusts the corresponding time array.
 
     This function appends a specified number of zeros to the end of a waveform
@@ -32,7 +34,7 @@ def zeropad_waveform(t, waveform, N_pad):
     return t, waveform
 
 
-def moving_average(waveform, N_elements):
+def moving_average(waveform: np.ndarray, N_elements: int) -> np.ndarray:
     """Calculates the moving average of a waveform.
 
     This function smooths the input waveform by convolving it with a uniform
@@ -51,7 +53,13 @@ def moving_average(waveform, N_elements):
     return ave
 
 
-def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2):
+def find_width(
+    x: np.ndarray,
+    y: np.ndarray,
+    interp_max: int = 5,
+    interp_count: int = 0,
+    interp_scale: int = 2,
+) -> tuple[float, float, float] | list[float]:
     """Recursively finds the full width at half maximum (FWHM) of a signal.
 
     This function calculates the width of a pulse by finding the points where the
@@ -111,7 +119,14 @@ def find_width(x, y, interp_max=5, interp_count=0, interp_scale=2):
         return find_width(newx, newy, interp_max, interp_count + 1)
 
 
-def plot_pulse_and_spectrum(t, mag, title=None, Npad=0, printBandwidth=True, spec_dec=False):
+def plot_pulse_and_spectrum(
+    t: np.ndarray,
+    mag: np.ndarray,
+    title: str | None = None,
+    Npad: int = 0,
+    printBandwidth: bool = True,
+    spec_dec: bool = False,
+) -> tuple[plt.Figure, np.ndarray]:
     """Plots a signal in the time and frequency domains.
 
     Generates a two-panel plot showing the signal's magnitude over time and its
@@ -187,7 +202,7 @@ def plot_pulse_and_spectrum(t, mag, title=None, Npad=0, printBandwidth=True, spe
     return fig, ax
 
 
-def autocorrelate_waveform(waveform):
+def autocorrelate_waveform(waveform: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Calculates the autocorrelation of a waveform using the FFT method.
 
     The autocorrelation is computed by multiplying the Fourier Transform of the
@@ -213,7 +228,12 @@ def autocorrelate_waveform(waveform):
     return autoCor, index_shift
 
 
-def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
+def plot_pulse_and_xcorrelation(
+    t: np.ndarray,
+    mag: np.ndarray,
+    title: str | None = None,
+    printWidth: bool = True,
+) -> tuple[plt.Figure, np.ndarray]:
     """Plots a signal and its autocorrelation.
 
     Generates a two-panel plot showing the signal's magnitude over time and its
@@ -273,7 +293,7 @@ def plot_pulse_and_xcorrelation(t, mag, title=None, printWidth=True):
     return fig, ax
 
 
-def add_waveform_at_index(ar, waveform, index):
+def add_waveform_at_index(ar: np.ndarray, waveform: np.ndarray, index: int) -> np.ndarray:
     """Adds a waveform to an array at a specified starting index.
 
     This function modifies the target array `ar` in-place by adding the
@@ -303,7 +323,7 @@ def add_waveform_at_index(ar, waveform, index):
     return ar
 
 
-def matchfilter_with_waveform(ar, waveform):
+def matchfilter_with_waveform(ar: np.ndarray, waveform: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
     """Performs matched filtering of a signal with a given waveform.
 
     This function applies a matched filter to the input array `ar` using the

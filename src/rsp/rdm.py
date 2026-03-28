@@ -18,7 +18,7 @@ def gen(
     plot: bool = True,
     debug: bool = False,
     snr: bool = False,
-):
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Generate a Range-Doppler Map (RDM) for a single Coherent Processing Interval (CPI).
 
     Simulates received radar data for one or more targets moving at constant
