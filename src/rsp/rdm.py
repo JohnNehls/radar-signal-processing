@@ -1,13 +1,144 @@
 import numpy as np
+import matplotlib.pyplot as plt
+from typing import Tuple
+
 from . import constants as c
-from .rdm_helpers import plot_rtm, plot_rdm, plot_rdm_snr
 from .rf_datacube import number_range_bins, range_axis, dataCube
 from .rf_datacube import matchfilter, doppler_process
 from .range_equation import noise_power
 from .noise import unity_variance_complex_noise
-from .rdm_helpers import add_returns, add_returns_snr, process_waveform_dict, create_window
-from .__rdm_extras import noise_checks, check_expected_snr
+from .utilities import zero_to_smallest_float
+from ._rdm_internals import add_returns, add_returns_snr, process_waveform_dict, create_window
+from ._rdm_extras import noise_checks, check_expected_snr
 from .pulse_doppler_radar import Radar
+
+
+def plot_rtm(r_axis: np.ndarray, data: np.ndarray, title: str) -> None:
+    """Plots the magnitude and phase of a range-time matrix (RTM).
+
+    The RTM shows radar data before Doppler processing, with range on one
+    axis and pulse number (slow-time) on the other.
+
+    Args:
+        r_axis: 1D array of range values in meters.
+        data: 2D complex array representing the RTM, with shape
+              (num_range_bins, num_pulses).
+        title: The title for the plot.
+    """
+    pulses = range(data.shape[1])
+    fig, (ax_mag, ax_phase) = plt.subplots(1, 2, figsize=(12, 5))
+    fig.suptitle(title)
+
+    mag_plot = ax_mag.pcolormesh(pulses, r_axis * 1e-3, np.abs(data))
+    ax_mag.set_xlabel("Pulse Number")
+    ax_mag.set_ylabel("Range [km]")
+    ax_mag.set_title("Magnitude")
+    fig.colorbar(mag_plot, ax=ax_mag)
+
+    phase_plot = ax_phase.pcolormesh(pulses, r_axis * 1e-3, np.angle(data))
+    ax_phase.set_xlabel("Pulse Number")
+    ax_phase.set_ylabel("Range [km]")
+    ax_phase.set_title("Phase")
+    fig.colorbar(phase_plot, ax=ax_phase)
+
+    fig.tight_layout()
+    plt.show()
+
+
+def plot_rdm(
+    rdot_axis: np.ndarray,
+    r_axis: np.ndarray,
+    data: np.ndarray,
+    title: str,
+    cbar_min: float = -100,
+    volt_to_dbm: bool = True,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """Plots a range-Doppler matrix (RDM).
+
+    The RDM shows radar data after pulse compression and Doppler processing.
+
+    Args:
+        rdot_axis: 1D array of range-rate values in m/s.
+        r_axis: 1D array of range values in meters.
+        data: 2D complex array representing the RDM.
+        title: The title for the plot.
+        cbar_min: The minimum value for the color bar. Defaults to -100.
+        volt_to_dbm: If True, converts data from voltage to dBm for plotting.
+                       If False, plots power in Watts. Defaults to True.
+
+    Returns:
+        The figure and axes objects of the plot.
+    """
+    magnitude_data = np.abs(data)
+
+    fig, ax = plt.subplots(1, 1)
+    fig.suptitle(title)
+    ax.set_xlabel("Range Rate [km/s]")
+    ax.set_ylabel("Range [km]")
+
+    if volt_to_dbm:
+        zero_to_smallest_float(magnitude_data)
+        # P_dBm = 10*log10(P_W / 1mW) = 10*log10((V^2/R) / 1e-3)
+        plot_data = 20 * np.log10(magnitude_data / np.sqrt(1e-3 * c.RADAR_LOAD))
+        cbar_label = "Power [dBm]"
+    else:
+        # P_W = V^2 / R
+        plot_data = magnitude_data**2 / c.RADAR_LOAD
+        cbar_label = "Power [W]"
+
+    mesh = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, plot_data)
+    mesh.set_clim(cbar_min, plot_data.max())
+    cbar = fig.colorbar(mesh)
+    cbar.set_label(cbar_label)
+
+    fig.tight_layout()
+    return fig, ax
+
+
+def plot_rdm_snr(
+    rdot_axis: np.ndarray,
+    r_axis: np.ndarray,
+    data: np.ndarray,
+    title: str,
+    cbar_min: float = 0,
+    volt_ratio_to_db: bool = True,
+) -> Tuple[plt.Figure, plt.Axes]:
+    """Plots a range-Doppler matrix in terms of Signal-to-Noise Ratio (SNR).
+
+    Args:
+        rdot_axis: 1D array of range-rate values in m/s.
+        r_axis: 1D array of range values in meters.
+        data: 2D array representing the RDM with amplitudes as a linear SNR
+              voltage ratio (i.e., S_voltage / N_voltage).
+        title: The title for the plot.
+        cbar_min: The minimum value for the color bar. Defaults to 0.
+        volt_ratio_to_db: If True, converts the SNR voltage ratio to dB.
+                            Defaults to True.
+
+    Returns:
+        The figure and axes objects of the plot.
+    """
+    snr_voltage_ratio = np.abs(data)
+    fig, ax = plt.subplots(1, 1)
+    fig.suptitle(title)
+    ax.set_xlabel("Range Rate [km/s]")
+    ax.set_ylabel("Range [km]")
+
+    if volt_ratio_to_db:
+        zero_to_smallest_float(snr_voltage_ratio)
+        plot_data = 20 * np.log10(snr_voltage_ratio)
+        cbar_label = "SNR [dB]"
+    else:
+        plot_data = snr_voltage_ratio
+        cbar_label = "SNR (Voltage Ratio)"
+
+    mesh = ax.pcolormesh(rdot_axis * 1e-3, r_axis * 1e-3, plot_data)
+    mesh.set_clim(cbar_min, plot_data.max())
+    cbar = fig.colorbar(mesh)
+    cbar.set_label(cbar_label)
+
+    fig.tight_layout()
+    return fig, ax
 
 
 def gen(

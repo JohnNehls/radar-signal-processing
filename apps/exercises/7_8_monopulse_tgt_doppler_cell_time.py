@@ -7,11 +7,11 @@ from rsp import constants as c
 import rsp.uniform_linear_arrays as ula
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
-from rsp.rdm_helpers import plot_rdm
+from rsp.rdm import plot_rdm
 from rsp.rf_datacube import number_range_bins, range_axis, dataCube
 from rsp.rf_datacube import matchfilter, doppler_process
 from rsp.range_equation import noise_power
-from rsp.rdm_helpers import create_window, add_returns, process_waveform_dict
+from rsp._rdm_internals import create_window, add_returns, process_waveform_dict
 
 
 # Can make plotting non-blocking with an input flag
