@@ -1,0 +1,44 @@
+To improve the project and its documentation, consider these
+enhancements:
+
+* 0. Source document
+
+- *General Document:* Convert the source document to markdown and make
+  it my own-- embed our figures
+
+* 1. Documentation & UX
+- *Quick Start Code:* Add a 5-10 line Python snippet directly in the
+  README showing how to generate a basic RDM.
+- *Visuals:* Include a screenshot or GIF of a generated Range-Doppler
+  Map. Radar is visual; seeing the output builds immediate interest.
+- *API Reference:* Use [[https://pdoc.dev/][pdoc]] or
+  [[https://www.sphinx-doc.org/][Sphinx]] to generate searchable HTML
+  documentation from your docstrings.
+
+* 2. Code & Architecture
+- *Type Hinting:* Ensure all functions use Python type hints (e.g.,
+  =np.ndarray=) to improve IDE autocompletion and clarity.
+- *Vectorization:* Ensure heavy computations (FFTs, phase shifts) are
+  fully vectorized using NumPy to maintain performance.
+- *Unit Tests:* Move tests from =examples/tests= to a standard =/tests=
+  directory and use a framework like =pytest=.
+
+* 3. Features
+- *Monopulse Study*: LFM should introduce phase defference between reciver array positions and introduce errors into monopulse -- May have looked into this already!
+- *Combine target geometry with steering vector for higher-fidelity RDM*
+- *Windowing Functions:* Explicitly support different windows (Hamming,
+  Hann, Taylor) for sidelobe control in the RDM.
+- *CFAR Algorithms:* Implement Constant False Alarm Rate (CFAR)
+  detection (e.g., CA-CFAR, OS-CFAR) as a logical next step after RDM
+  generation.
+- *GPU Support:* For large data cubes, consider optional
+  [[https://cupy.dev/][CuPy]] support for GPU-accelerated FFTs.
+
+* 4. Project Maintenance
+- *CI/CD:* Add a GitHub Action (=.github/workflows/test.yml=) to run
+  your tests automatically on every push.
+- *Issue Tracking:* Move the "Known Test Failures" from the README to
+  GitHub Issues. A README should ideally highlight what works.
+- *PyPI:* Register the package on PyPI so users can simply run
+  =pip install radar-signal-processing=.
+* 5.
