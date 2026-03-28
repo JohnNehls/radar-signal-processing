@@ -27,18 +27,18 @@ else:
 
 bw = 10e6
 
-radar: Radar = {
-    "fcar": 10e9,
-    "txPower": 1e3,
-    "txGain": 10 ** (30 / 10),
-    "rxGain": 10 ** (30 / 10),
-    "opTemp": 290,
-    "sampRate": 2 * bw,
-    "noiseFactor": 10 ** (8 / 10),
-    "totalLosses": 10 ** (8 / 10),
-    "PRF": 50e3,
-    "dwell_time": 2e-3,
-}
+radar = Radar(
+    fcar=10e9,
+    txPower=1e3,
+    txGain=10 ** (30 / 10),
+    rxGain=10 ** (30 / 10),
+    opTemp=290,
+    sampRate=2 * bw,
+    noiseFactor=10 ** (8 / 10),
+    totalLosses=10 ** (8 / 10),
+    PRF=50e3,
+    dwell_time=2e-3,
+)
 
 return_list = [{"type": "skin", "target": {"range": 2.4e3, "rangeRate": 0.2e3, "rcs": 10}}]
 

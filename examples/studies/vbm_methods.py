@@ -12,18 +12,18 @@ import rsp.vbm as vbm
 
 bw = 5e6
 
-radar: Radar = {
-    "fcar": 10e9,
-    "txPower": 1e3,
-    "txGain": 10 ** (30 / 10),
-    "rxGain": 10 ** (30 / 10),
-    "opTemp": 290,
-    "sampRate": 2 * bw,
-    "noiseFactor": 10 ** (8 / 10),
-    "totalLosses": 10 ** (8 / 10),
-    "PRF": 500e3,
-    "dwell_time": 5e-3,
-}
+radar = Radar(
+    fcar=10e9,
+    txPower=1e3,
+    txGain=10 ** (30 / 10),
+    rxGain=10 ** (30 / 10),
+    opTemp=290,
+    sampRate=2 * bw,
+    noiseFactor=10 ** (8 / 10),
+    totalLosses=10 ** (8 / 10),
+    PRF=500e3,
+    dwell_time=5e-3,
+)
 
 waveform = uncoded_waveform(bw)
 

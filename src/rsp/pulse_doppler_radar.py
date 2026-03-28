@@ -1,11 +1,14 @@
-from typing import TypedDict
+import math
+from dataclasses import dataclass, field
 from . import constants as c
 
 
-class Radar(TypedDict):
+@dataclass
+class Radar:
     """Pulse-Doppler radar system parameters.
 
     All gain/loss fields are linear (not dB).
+    Npulses is computed automatically from dwell_time and PRF.
     """
 
     fcar: float        # Carrier frequency [Hz]
@@ -18,6 +21,10 @@ class Radar(TypedDict):
     totalLosses: float # Total system losses [linear]
     PRF: float         # Pulse repetition frequency [Hz]
     dwell_time: float  # Coherent dwell time [s]
+    Npulses: int = field(init=False)  # Computed from dwell_time and PRF
+
+    def __post_init__(self):
+        self.Npulses = int(math.ceil(self.dwell_time * self.PRF))
 
 
 def range_unambiguous(PRF):

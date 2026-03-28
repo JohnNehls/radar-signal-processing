@@ -7,18 +7,18 @@ from rsp.waveform import uncoded_waveform, barker_waveform, random_waveform, lfm
 
 BW = 10e6
 
-RADAR: Radar = {
-    "fcar": 10e9,
-    "txPower": 1e3,
-    "txGain": 10 ** (30 / 10),
-    "rxGain": 10 ** (30 / 10),
-    "opTemp": 290,
-    "sampRate": 2 * BW,
-    "noiseFactor": 10 ** (8 / 10),
-    "totalLosses": 10 ** (8 / 10),
-    "PRF": 50e3,
-    "dwell_time": 2e-3,
-}
+RADAR = Radar(
+    fcar=10e9,
+    txPower=1e3,
+    txGain=10 ** (30 / 10),
+    rxGain=10 ** (30 / 10),
+    opTemp=290,
+    sampRate=2 * BW,
+    noiseFactor=10 ** (8 / 10),
+    totalLosses=10 ** (8 / 10),
+    PRF=50e3,
+    dwell_time=2e-3,
+)
 
 RETURN = {
     "type": "memory",
@@ -46,9 +46,9 @@ WAVEFORMS = [
 def check_max_in_expected_bin(waveform):
     rdot_axis, r_axis, _total_dc, signal_dc = rdm.gen(RADAR, waveform, [RETURN], plot=False)
 
-    range_expected = pdr.range_aliased(RETURN["target"]["range"], RADAR["PRF"])
+    range_expected = pdr.range_aliased(RETURN["target"]["range"], RADAR.PRF)
     rangeRate_expected = pdr.rangeRate_aliased_prf_f0(
-        RETURN["target"]["rangeRate"], RADAR["PRF"], RADAR["fcar"]
+        RETURN["target"]["rangeRate"], RADAR.PRF, RADAR.fcar
     )
     i = np.argmin(abs(r_axis - range_expected))
     j = np.argmin(abs(rdot_axis - rangeRate_expected))

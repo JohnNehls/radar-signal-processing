@@ -7,18 +7,18 @@ from rsp.waveform import lfm_waveform
 
 BW = 10e6
 
-RADAR: Radar = {
-    "fcar": 10e9,
-    "txPower": 1e3,
-    "txGain": 10 ** (30 / 10),
-    "rxGain": 10 ** (30 / 10),
-    "opTemp": 290,
-    "sampRate": 2 * BW,
-    "noiseFactor": 10 ** (8 / 10),
-    "totalLosses": 10 ** (8 / 10),
-    "PRF": 50e3,
-    "dwell_time": 2e-3,
-}
+RADAR = Radar(
+    fcar=10e9,
+    txPower=1e3,
+    txGain=10 ** (30 / 10),
+    rxGain=10 ** (30 / 10),
+    opTemp=290,
+    sampRate=2 * BW,
+    noiseFactor=10 ** (8 / 10),
+    totalLosses=10 ** (8 / 10),
+    PRF=50e3,
+    dwell_time=2e-3,
+)
 
 WAVEFORM = lfm_waveform(BW, T=10 / 40e6, chirpUpDown=1)
 TGT_ANGLE = 5  # degrees

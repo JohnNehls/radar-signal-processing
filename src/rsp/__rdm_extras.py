@@ -35,34 +35,34 @@ def check_expected_snr(radar, target, waveform):
     """
     ## expected
     SNR_expected = snr_range_eqn_cp(
-        radar["txPower"],
-        radar["txGain"],
-        radar["rxGain"],
+        radar.txPower,
+        radar.txGain,
+        radar.rxGain,
         target["rcs"],
-        c.C / radar["fcar"],
+        c.C / radar.fcar,
         target["range"],
         waveform["bw"],
-        radar["noiseFactor"],
-        radar["totalLosses"],
-        radar["opTemp"],
-        radar["Npulses"],
+        radar.noiseFactor,
+        radar.totalLosses,
+        radar.opTemp,
+        radar.Npulses,
         waveform["time_BW_product"],
     )
     ## volatge used in return (recalculated)
     SNR_onepulse = snr_range_eqn(
-        radar["txPower"],
-        radar["txGain"],
-        radar["rxGain"],
+        radar.txPower,
+        radar.txGain,
+        radar.rxGain,
         target["rcs"],
-        c.C / radar["fcar"],
+        c.C / radar.fcar,
         target["range"],
         waveform["bw"],
-        radar["noiseFactor"],
-        radar["totalLosses"],
-        radar["opTemp"],
+        radar.noiseFactor,
+        radar.totalLosses,
+        radar.opTemp,
         waveform["time_BW_product"],
     )
-    SNR_volt = np.sqrt(SNR_onepulse / radar["Npulses"])
+    SNR_volt = np.sqrt(SNR_onepulse / radar.Npulses)
 
     print("SNR Check:")
     print(f"\t{10*np.log10(SNR_onepulse)=:.2f}")

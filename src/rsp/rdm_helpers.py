@@ -160,13 +160,13 @@ def add_skin(
         radar: Dictionary with radar parameters.
         return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
     """
-    full_time_axis = np.arange(datacube.size) / radar["sampRate"]
-    pulse_tx_times = np.arange(radar["Npulses"]) / radar["PRF"]
+    full_time_axis = np.arange(datacube.size) / radar.sampRate
+    pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
 
     target_range_per_pulse = tgt_info["range"] + tgt_info["rangeRate"] * pulse_tx_times
     two_way_delays = 2 * target_range_per_pulse / c.C
     pulse_return_times = pulse_tx_times + two_way_delays
-    two_way_doppler_phases = -2 * np.pi * radar["fcar"] * two_way_delays
+    two_way_doppler_phases = -2 * np.pi * radar.fcar * two_way_delays
 
     # Pulses are timed from their start; compensate with a half pulse-width offset.
     time_pw_offset = wvf["pulse_width"] / 2
@@ -174,7 +174,7 @@ def add_skin(
     # Due to the time axis being the non-continuous (slow) axis, we must transpose
     flat_datacube = datacube.T.flatten()
 
-    for i in range(radar["Npulses"]):
+    for i in range(radar.Npulses):
         # Find the sample index corresponding to the pulse's return time.
         # Note: The -1 adjustment is an empirical correction to align the return
         # in the correct range bin for the simulation framework.
@@ -211,32 +211,32 @@ def add_memory(
         return_magnitude: The voltage or SNR amplitude of the return.
     """
     target = return_info["target"]
-    full_time_axis = np.arange(datacube.size) / radar["sampRate"]
-    pulse_tx_times = np.arange(radar["Npulses"]) / radar["PRF"]
+    full_time_axis = np.arange(datacube.size) / radar.sampRate
+    pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
 
     # Calculate timing and phase for the signal's one-way trip to the target
     target_range_per_pulse = target["range"] + target["rangeRate"] * pulse_tx_times
     one_way_delays = target_range_per_pulse / c.C
     skin_return_times = pulse_tx_times + 2 * one_way_delays
-    one_way_propagation_phases = -2 * np.pi * radar["fcar"] * one_way_delays
+    one_way_propagation_phases = -2 * np.pi * radar.fcar * one_way_delays
 
     time_pw_offset = wvf["pulse_width"] / 2
 
     # Doppler frequency shift for range-rate offset
-    doppler_freq_offset = 2 * radar["fcar"] / c.C * return_info.get("rdot_offset", 0)
+    doppler_freq_offset = 2 * radar.fcar / c.C * return_info.get("rdot_offset", 0)
 
     # Phase modulation for Velocity Bin Masking (VBM)
     if "rdot_delta" in return_info:
         vbm_noise_function = return_info.get("vbm_noise_function", vbm._lfm_phase)
         slowtime_noise = vbm.slowtime_noise(
-            radar["Npulses"],
-            radar["fcar"],
+            radar.Npulses,
+            radar.fcar,
             return_info["rdot_delta"],
-            radar["PRF"],
+            radar.PRF,
             noiseFun=vbm_noise_function,
         )
     else:
-        slowtime_noise = np.ones(radar["Npulses"])
+        slowtime_noise = np.ones(radar.Npulses)
 
     # Additional time delay for range offset
     total_delay = return_info.get("delay", 0) + 2 * return_info.get("range_offset", 0) / c.C
@@ -245,7 +245,7 @@ def add_memory(
     stored_angle = 0
     flat_datacube = datacube.T.flatten()
 
-    for i in range(radar["Npulses"]):
+    for i in range(radar.Npulses):
         received_pulse = wvf["pulse"] * np.exp(1j * one_way_propagation_phases[i])
 
         if i == 0:
@@ -262,7 +262,7 @@ def add_memory(
         pulse *= target.get("sv", 1)
         pulse *= slowtime_noise[i]  # Apply VBM phase
         pulse *= np.exp(1j * i * stored_angle)  # Apply target's Doppler
-        pulse *= np.exp(-1j * i * 2 * np.pi * doppler_freq_offset / radar["PRF"])  # Apply rdot offset
+        pulse *= np.exp(-1j * i * 2 * np.pi * doppler_freq_offset / radar.PRF)  # Apply rdot offset
         pulse *= np.exp(1j * one_way_propagation_phases[i])  # Apply 1-way phase back to radar
 
         time_of_arrival = skin_return_times[i] + total_delay - time_pw_offset
@@ -327,22 +327,22 @@ def skin_snr_amplitude(radar: Dict, target: Dict, waveform: Dict) -> float:
     # Assumes the range equation provides the total SNR after coherent integration
     # over all pulses in the Coherent Processing Interval (CPI).
     snr_after_integration = snr_range_eqn(
-        radar["txPower"],
-        radar["txGain"],
-        radar["rxGain"],
+        radar.txPower,
+        radar.txGain,
+        radar.rxGain,
         target["rcs"],
-        c.C / radar["fcar"],
+        c.C / radar.fcar,
         target["range"],
         waveform["bw"],
-        radar["noiseFactor"],
-        radar["totalLosses"],
-        radar["opTemp"],
+        radar.noiseFactor,
+        radar.totalLosses,
+        radar.opTemp,
         waveform["time_BW_product"],
     )
 
     # To find the required per-pulse amplitude, we first find the per-pulse SNR
     # by dividing by the number of pulses (the coherent integration gain).
-    snr_per_pulse = snr_after_integration / radar["Npulses"]
+    snr_per_pulse = snr_after_integration / radar.Npulses
 
     # The voltage amplitude for a single pulse is the square root of the per-pulse
     # SNR (power ratio), assuming a normalized noise power of 1.0.
@@ -382,13 +382,13 @@ def skin_voltage_amplitude(radar: Dict, target: Dict) -> float:
         The received voltage amplitude.
     """
     rx_power = signal_range_eqn(
-        radar["txPower"],
-        radar["txGain"],
-        radar["rxGain"],
+        radar.txPower,
+        radar.txGain,
+        radar.rxGain,
         target["rcs"],
-        c.C / radar["fcar"],
+        c.C / radar.fcar,
         target["range"],
-        radar["totalLosses"],
+        radar.totalLosses,
     )
     return np.sqrt(c.RADAR_LOAD * rx_power)
 
@@ -415,9 +415,9 @@ def memory_voltage_amplitude(platform: Dict, radar: Dict, target: Dict) -> float
     rx_power = signal_range_eqn(
         platform["txPower"],
         platform["txGain"],
-        radar["rxGain"],
+        radar.rxGain,
         equivalent_rcs,
-        c.C / radar["fcar"],
+        c.C / radar.fcar,
         range_m,
         platform["totalLosses"],
     )
@@ -461,7 +461,7 @@ def process_waveform_dict(waveform: Dict[str, Any], radar: Dict[str, Any]):
     Raises:
         ValueError: If the waveform 'type' is not recognized.
     """
-    samp_rate = radar["sampRate"]
+    samp_rate = radar.sampRate
     wvf_type = waveform["type"]
 
     if wvf_type == "uncoded":
