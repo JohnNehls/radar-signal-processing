@@ -29,7 +29,7 @@ pip install radar-signal-processing/
 
 ### requirements
 
--   Python \>= 3.10
+-   Python \>= 3.11
 -   Python packages listed in [pyproject.toml](pyproject.toml)
 -   A few of the tests utilize LaTeX, thus it may need to be installed
     in order for them to run
@@ -37,12 +37,12 @@ pip install radar-signal-processing/
 ## Usage
 
 -   **RDM generator**
-    -   For examples of basic usage, see the [examples](examples).
-        -   [kitchen_sink_.py](examples/rdms/kitchen_sink.py) is a
+    -   For examples of basic usage, see the [apps](apps).
+        -   [kitchen_sink_.py](apps/rdms/kitchen_sink.py) is a
             script with all waveform and return options written out
 -   **Everything else**
-    -   For example of the other functions of the project, see
-        [tests](examples/tests).
+    -   For examples of the other functions of the project, see
+        [exercises](apps/exercises).
 
 ## Testing RSP
 -   To run each of the pytests, run the following:
@@ -51,20 +51,19 @@ pip install radar-signal-processing/
  python -m pytest tests/ -v
  ```
 
--   To run the Python scripts used in validating the rsp library in [tests](examples/tests), 
-    [examples](examples), and [studies](examples/studies) to test for errors, run the following:
+-   To ensure the main applications in [apps](apps/) run without errors and check for qualitative errors in the rdms, run the following:
 
 ``` shell
-./examples/tests/run_all_tests.sh
+./apps/run_apps.sh
 ```
 
-### Known Test Failures
+### Known Exercise Failures
 
-1.  [6_0_rdm_keystone.py](examples/tests/6_0_rdm_keystone.py)
+1.  [6_0_rdm_keystone.py](apps/exercises/6_0_rdm_keystone.py)
 
     -   Not yet implemented
 
-2.  [7_4_linear_arrays_ifft_array_factor.py](examples/tests/7_4_linear_arrays_ifft_array_factor.py)
+2.  [7_4_linear_arrays_ifft_array_factor.py](apps/exercises/7_4_linear_arrays_ifft_array_factor.py)
 
     -   Not yet implemented
 

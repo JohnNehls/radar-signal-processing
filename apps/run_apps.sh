@@ -43,12 +43,12 @@ run_python_files() {
 # Get the path of the directory holding this script
 DIR_NAME=$(dirname $0)
 
-echo -e "${B_BLUE}################## test files in ./tests #####################################${NC}"
-run_python_files ${DIR_NAME}
+echo -e "${B_BLUE}################## test files in ./exercises #####################################${NC}"
+run_python_files ${DIR_NAME}/exercises
 
 echo -e "${B_BLUE}################## inspect plots in ./rdms ###############################${NC}"
-run_python_files ${DIR_NAME}/../rdms
+run_python_files ${DIR_NAME}/rdms
 
 # Studies take a relativly long time to run, check less frequently
 echo -e "${B_BLUE}################## inspect plots in ./studies ################################${NC}"
-run_python_files ${DIR_NAME}/../studies
+run_python_files ${DIR_NAME}/studies
