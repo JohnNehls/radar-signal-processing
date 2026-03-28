@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import rsp.uniform_linear_arrays as ula
 from rsp import rdm
+from rsp.pulse_doppler_radar import Radar
 import rsp.rdm_helpers as rdmh
 
 # Can make plotting non-blocking with an input flag
@@ -25,7 +26,7 @@ else:
 
 bw = 10e6
 
-radar = {
+radar: Radar = {
     "fcar": 10e9,
     "txPower": 1e3,
     "txGain": 10 ** (30 / 10),

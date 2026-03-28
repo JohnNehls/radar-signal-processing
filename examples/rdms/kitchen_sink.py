@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 from rsp import rdm
+from rsp.pulse_doppler_radar import Radar
 import numpy as np
 
 ################################################################################
@@ -10,7 +11,7 @@ import numpy as np
 
 bw = 10e6
 
-radar = {
+radar: Radar = {
     "fcar": 10e9,
     "txPower": 5e3,
     "txGain": 10 ** (30 / 10),

@@ -2,6 +2,7 @@
 
 import matplotlib.pyplot as plt
 from rsp import rdm
+from rsp.pulse_doppler_radar import Radar
 
 ################################################################################
 # Doppler noise is LFM in slow time
@@ -10,7 +11,7 @@ from rsp import rdm
 
 bw = 10e6
 
-radar = {
+radar: Radar = {
     "fcar": 10e9,
     "txPower": 1e3,
     "txGain": 10 ** (30 / 10),

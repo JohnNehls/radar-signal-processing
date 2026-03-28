@@ -1,4 +1,23 @@
+from typing import TypedDict
 from . import constants as c
+
+
+class Radar(TypedDict):
+    """Pulse-Doppler radar system parameters.
+
+    All gain/loss fields are linear (not dB).
+    """
+
+    fcar: float        # Carrier frequency [Hz]
+    txPower: float     # Transmit power [W]
+    txGain: float      # Transmit antenna gain [linear]
+    rxGain: float      # Receive antenna gain [linear]
+    opTemp: float      # Operating temperature [K]
+    sampRate: float    # Sampling rate [Hz]
+    noiseFactor: float # Receiver noise factor [linear]
+    totalLosses: float # Total system losses [linear]
+    PRF: float         # Pulse repetition frequency [Hz]
+    dwell_time: float  # Coherent dwell time [s]
 
 
 def range_unambiguous(PRF):

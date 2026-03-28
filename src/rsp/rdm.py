@@ -7,10 +7,11 @@ from .range_equation import noise_power
 from .noise import unity_variance_complex_noise
 from .rdm_helpers import add_returns, add_returns_snr, process_waveform_dict, create_window
 from .__rdm_extras import noise_checks, check_expected_snr
+from .pulse_doppler_radar import Radar
 
 
 def gen(
-    radar: dict,
+    radar: Radar,
     waveform: dict,
     return_list: list,
     seed: int = 0,
@@ -26,26 +27,9 @@ def gen(
 
     Parameters
     ----------
-    radar : dict
-        A dictionary containing the radar system parameters. Expected keys are:
-        'fcar' : float
-            Carrier frequency in Hertz (Hz).
-        'txPower' : float
-            Transmit power in Watts (W).
-        'txGain' : float
-            Transmit antenna gain in decibels (dB).
-        'rxGain' : float
-            Receive antenna gain in decibels (dB).
-        'opTemp' : float
-            Operating temperature in Kelvin (K).
-        'sampRate' : float
-            Sampling rate in Hertz (Hz).
-        'noiseFactor' : float
-            Receiver noise factor in decibels (dB).
-        'totalLosses' : float
-            Total system losses in decibels (dB).
-        'PRF' : float
-            Pulse Repetition Frequency in Hertz (Hz).
+    radar : Radar
+        Radar system parameters. See :class:`rsp.pulse_doppler_radar.Radar` for
+        the full set of required keys and their units.
     waveform : dict
         A dictionary describing the transmitted waveform. Must contain a 'type'
         key, with other keys dependent on the type.
