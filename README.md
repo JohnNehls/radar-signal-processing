@@ -16,6 +16,7 @@ made.
 -   [pulse doppler radar](src/rsp/pulse_doppler_radar.py)
 -   [radar range equation](src/rsp/range_equation.py)
 -   [uniform linear array antennas](src/rsp/uniform_linear_arrays.py)
+-   [monopulse angle estimation](src/rsp/monopulse.py)
 -   [geometry](src/rsp/geometry.py)
 -   [velocity bin masking (VBM)](src/rsp/vbm.py)
 -   [noise](src/rsp/noise.py)

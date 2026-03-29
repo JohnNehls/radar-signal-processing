@@ -4,6 +4,7 @@ import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 import rsp.uniform_linear_arrays as ula
+import rsp.monopulse as mp
 from rsp.noise import unity_variance_complex_noise
 
 
@@ -52,14 +53,10 @@ for snr_db in snr_db_list:
     plt.plot(np.real(recieved_signals[0]), label=f"snr={snr_db}")
 
     ## time-domain signal monopulse
-    dx = array_pos[1] - array_pos[0]  # seperation of array elements
-    rho = 2 * np.pi * dx
-    sum = recieved_signals[0] + recieved_signals[1]
-    delta = recieved_signals[0] - recieved_signals[1]
-    v_theta = np.arctan(2 * (delta / sum).imag) / (rho)  # ALGEBRA ERROR IN DOC
-    measured_theta = np.arcsin(v_theta)
+    dx = array_pos[1] - array_pos[0]  # separation of array elements
+    measured_theta = mp.monopulse_angle_deg(recieved_signals[0], recieved_signals[1], dx)
 
-    measured_error = abs(np.rad2deg(measured_theta) - tgt_angle)
+    measured_error = abs(measured_theta - tgt_angle)
     error_mean_list.append(np.mean(measured_error))
     error_std_list.append(np.std(measured_error))
 
@@ -73,15 +70,10 @@ for snr_db in snr_db_list:
     for sig in recieved_signals:
         f_recieved_signals.append(np.fft.fft(sig * signal.windows.chebwin(sig.size, 60)))
 
-    sum = f_recieved_signals[0] + f_recieved_signals[1]
-    delta = f_recieved_signals[0] - f_recieved_signals[1]
-    v_theta = np.arctan(2 * (delta / sum).imag) / (rho)  # ALGEBRA ERROR IN DOC
-
     # monopulse only accurate in bins containing power -- only look at max index
-    f_max_index = np.argmax((abs(f_recieved_signals[0])))  # not ness same max as signal 1
-
-    f_measured_theta = np.arcsin(v_theta)[f_max_index]
-    f_measured_error = abs(np.rad2deg(f_measured_theta) - tgt_angle)
+    f_max_index = np.argmax(np.abs(f_recieved_signals[0]))
+    f_measured_theta = mp.monopulse_angle_at_peak_deg(f_recieved_signals[0], f_recieved_signals[1], dx)
+    f_measured_error = abs(f_measured_theta - tgt_angle)
     f_error_list.append(f_measured_error)
 
     ## freq-domain angle estimate from phase only

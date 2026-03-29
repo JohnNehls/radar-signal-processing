@@ -4,6 +4,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import rsp.uniform_linear_arrays as ula
 import rsp.rdm as rdm
+import rsp.monopulse as mp
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
 
@@ -57,13 +58,7 @@ for sv in steer_vec:
 for i in range(len(steer_vec)):
     rdm.plot_rdm(rdot_axis, r_axis, dc_list[i], f"{i=}", cbar_min=-100, volt_to_dbm=True)
 
-rho = 2 * np.pi * dx
-sum = dc_list[0] + dc_list[1]
-delta = dc_list[0] - dc_list[1]
-v_theta = np.arctan(2 * (delta / sum).imag) / (rho)  # ALGEBRA ERROR IN DOC
-f_max_index = np.where(abs(dc_list[0]) == abs(dc_list[0]).max())
-
-f_measured_theta = np.rad2deg(np.arcsin(v_theta)[f_max_index])
+f_measured_theta = mp.monopulse_angle_at_peak_deg(dc_list[0], dc_list[1], dx)
 f_measured_error = abs(f_measured_theta - tgt_angle)
 
 print(f"{f_measured_theta=} degrees")

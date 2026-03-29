@@ -3,6 +3,7 @@
 import numpy as np
 import matplotlib.pyplot as plt
 import rsp.uniform_linear_arrays as ula
+import rsp.monopulse as mp
 from rsp.noise import unity_variance_complex_noise
 
 
@@ -39,14 +40,10 @@ for snr_db in snr_db_list:
         )
     plt.plot(recieved_signals[0], label=f"snr={snr_db}")
 
-    dx = array_pos[1] - array_pos[0]  # seperation of array elements
-    rho = 2 * np.pi * dx
-    sum = recieved_signals[0] + recieved_signals[1]
-    delta = recieved_signals[0] - recieved_signals[1]
-    v_theta = np.arctan(2 * (delta / sum).imag) / (rho)  # ALGEBRA ERROR IN DOC
-    measured_theta = np.arcsin(v_theta)
+    dx = array_pos[1] - array_pos[0]  # separation of array elements
+    measured_theta = mp.monopulse_angle_deg(recieved_signals[0], recieved_signals[1], dx)
 
-    measured_error = abs(np.rad2deg(measured_theta) - tgt_angle)
+    measured_error = abs(measured_theta - tgt_angle)
     error_mean_list.append(np.mean(measured_error))
     error_std_list.append(np.std(measured_error))
 

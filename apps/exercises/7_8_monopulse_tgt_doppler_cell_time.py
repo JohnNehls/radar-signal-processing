@@ -7,6 +7,7 @@ import rsp.uniform_linear_arrays as ula
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
 from rsp.rdm import plot_rdm
+import rsp.monopulse as mp
 from rsp.rf_datacube import number_range_bins, range_axis, dataCube
 from rsp.rf_datacube import matchfilter, doppler_process
 from rsp.range_equation import noise_power
@@ -118,16 +119,8 @@ rdot_axis = -c.C * f_axis / (2 * radar.fcar)
 
 ########## Monopulse on the RDMs #######################################################
 def monopulse(dx, dc_list, tgt_angle):
-    rho = 2 * np.pi * dx
-    sum = dc_list[0] + dc_list[1]
-    delta = dc_list[0] - dc_list[1]
-    v_theta = np.arctan(2 * (delta / sum).imag) / (rho)  # ALGEBRA ERROR IN DOC
-    theta = np.arcsin(v_theta)
-
-    f_max_index = np.where(abs(dc_list[0]) == abs(dc_list[0]).max())
-    f_measured_theta = np.rad2deg(theta[f_max_index])
+    f_measured_theta = mp.monopulse_angle_at_peak_deg(dc_list[0], dc_list[1], dx)
     f_measured_error = abs(f_measured_theta - tgt_angle)
-
     print(f"\t{f_measured_theta=} degrees")
     print(f"\t{f_measured_error=} degrees")
 
