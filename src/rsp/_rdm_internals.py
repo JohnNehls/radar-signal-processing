@@ -43,12 +43,10 @@ def add_skin(
     # Pulses are timed from their start; compensate with a half pulse-width offset.
     time_pw_offset = wvf["pulse_width"] / 2
 
-    # Vectorize index computation: uniform time axis -> direct arithmetic (O(1) per pulse)
-    # Note: The -1 adjustment is an empirical correction to align the return
-    # in the correct range bin for the simulation framework.
+    # The range axis is 1-indexed: r_axis[k] = (k+1)*dR, so the injection index
+    # must be one less than round(t*fs) to land the MF peak in the correct bin.
     times_of_arrival = pulse_return_times - time_pw_offset
-    return_sample_indices = np.round(times_of_arrival * radar.sampRate).astype(int)
-    return_sample_indices[return_sample_indices > 0] -= 1
+    return_sample_indices = np.round(times_of_arrival * radar.sampRate).astype(int) - 1
 
     # Due to the time axis being the non-continuous (slow) axis, we must transpose
     flat_datacube = datacube.T.flatten()
@@ -109,11 +107,11 @@ def add_memory(
     # Additional time delay for range offset
     total_delay = return_info.get("delay", 0) + 2 * return_info.get("range_offset", 0) / c.C
 
-    # Vectorize index computation: uniform time axis -> direct arithmetic (O(1) per pulse)
+    # The range axis is 1-indexed: r_axis[k] = (k+1)*dR, so the injection index
+    # must be one less than round(t*fs) to land the MF peak in the correct bin.
     pulse_indices = np.arange(radar.Npulses)
     times_of_arrival = skin_return_times + total_delay - time_pw_offset
-    return_sample_indices = np.round(times_of_arrival * radar.sampRate).astype(int)
-    return_sample_indices[return_sample_indices > 0] -= 1
+    return_sample_indices = np.round(times_of_arrival * radar.sampRate).astype(int) - 1
 
     # Precompute per-pulse rdot-offset phase shift vector
     rdot_phase = np.exp(-1j * pulse_indices * 2 * np.pi * doppler_freq_offset / radar.PRF)
