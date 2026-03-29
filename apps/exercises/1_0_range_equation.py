@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from rsp.constants import PI, C
 import rsp.range_equation as re
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 ## problem 1 #############################################################
 # given
@@ -137,4 +131,4 @@ c.set_label("minimum detectable target range [km]")
 plt.xlabel("target RCS [dBsm]")
 plt.ylabel("CPI time [ms]")
 
-plt.show(block=BLOCK)
+plt.show()

@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 import numpy.fft as fft
 
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 # Start experimenting
 Nel = 40
@@ -33,6 +27,6 @@ faxis = np.linspace(-vtheta_max, vtheta_max, Nel)
 
 plt.plot(faxis, abs(af), "-o")
 
-plt.show(block=BLOCK)
+plt.show()
 
 raise Exception("This funcionality/test is incomplete")

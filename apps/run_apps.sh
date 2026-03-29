@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+
+export MPLBACKEND=Agg  # makes plt.show() becomes a no-op when running a python script
+
 B_RED='\033[1;31m'
 B_GREEN='\033[1;32m'
 B_BLUE='\033[1;34m'
@@ -21,9 +24,8 @@ run_python_files() {
     for file in "$dir_path"/*.py
     do
         echo -e "${B_WHITE}Running $file...${NC}"
-	# no block check is added to files int ./tests
-	# Ignore stdout and warnings, print errors
-        python -W ignore "$file" "--no-block" > /dev/null
+        # Ignore stdout and warnings, print errors
+        python -W ignore "$file" > /dev/null
 
         # Check if the last command was successful
         if [ $? -ne 0 ]; then

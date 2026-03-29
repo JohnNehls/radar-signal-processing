@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import matplotlib.pyplot as plt
 import rsp.uniform_linear_arrays as ula
 
@@ -10,11 +9,6 @@ import rsp.uniform_linear_arrays as ula
 #   - in phase, for planewave p = np.exp(1j* d sin(angle)/lambda )
 #   - since our waveform may be mulit-chromatic, we use time rather than distance and wavelenthg
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 
 plt.rcParams["text.usetex"] = True
@@ -55,4 +49,4 @@ plt.grid()
 plt.tight_layout()
 
 
-plt.show(block=BLOCK)
+plt.show()

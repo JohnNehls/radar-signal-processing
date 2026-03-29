@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from rsp import pulse_doppler_radar as pdr
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 plt.rcParams["text.usetex"] = True
 
@@ -128,4 +122,4 @@ plt.legend()
 plt.grid()
 
 plt.tight_layout()
-plt.show(block=BLOCK)
+plt.show()

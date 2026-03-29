@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-import sys
 from scipy import signal
 import numpy as np
 import matplotlib.pyplot as plt
 import rsp.uniform_linear_arrays as ula
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 plt.rcParams["text.usetex"] = True
 
@@ -31,4 +25,4 @@ plt.xlabel("Array Element Position [m]")
 plt.ylabel("Weight")
 plt.legend()
 plt.tight_layout()
-plt.show(block=BLOCK)
+plt.show()

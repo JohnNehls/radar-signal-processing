@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 
-import sys
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 import rsp.uniform_linear_arrays as ula
 from rsp.noise import unity_variance_complex_noise
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 ################################################################################
 # Examples which show thow that monopulse can be done after FFT and in and RDM
@@ -122,4 +116,4 @@ for ax in axs:
     ax.set_ylabel("Angle [Deg]")
 
 plt.tight_layout()
-plt.show(block=BLOCK)
+plt.show()

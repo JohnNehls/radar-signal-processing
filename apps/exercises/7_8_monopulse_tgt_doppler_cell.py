@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import matplotlib.pyplot as plt
 import numpy as np
 import rsp.uniform_linear_arrays as ula
@@ -9,11 +8,6 @@ from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
 import rsp.rdm as rdm
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 
 ################################################################################
@@ -76,4 +70,4 @@ f_measured_error = abs(f_measured_theta - tgt_angle)
 print(f"{f_measured_theta=} degrees")
 print(f"{f_measured_error=} degrees")
 
-plt.show(block=BLOCK)
+plt.show()

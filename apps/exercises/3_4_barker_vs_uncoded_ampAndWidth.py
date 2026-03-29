@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 
-import sys
 import matplotlib.pyplot as plt
 from rsp.waveform_helpers import matchfilter_with_waveform, zeropad_waveform
 from rsp.waveform import uncoded_pulse, barker_coded_pulse
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 print("##############################")
 print("Problem 4: Compare Barker 13 to uncoded pulse")
@@ -45,4 +39,4 @@ plt.tight_layout()
 for a in ax:
     a.grid()
 
-plt.show(block=BLOCK)
+plt.show()

@@ -1,15 +1,9 @@
 #!/usr/bin/env python
 
-import sys
 import matplotlib.pyplot as plt
 from rsp.waveform_helpers import plot_pulse_and_spectrum, plot_pulse_and_xcorrelation
 from rsp.waveform import uncoded_pulse, barker_coded_pulse, random_coded_pulse, lfm_pulse
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 ############################################
 # Problem 1: write the pulse functions and plot
@@ -54,4 +48,4 @@ fig, ax = plot_pulse_and_spectrum(
 plot_pulse_and_xcorrelation(
     t_lfm, mag_lfm, f"S3P1 LFM pulse: {chirpUpDown=}, {T=}, {sampleRate=}, {BW=}"
 )
-plt.show(block=BLOCK)
+plt.show()

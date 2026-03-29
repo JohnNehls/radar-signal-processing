@@ -1,16 +1,10 @@
 #!/usr/bin/env python
 
-import sys
 import numpy as np
 import matplotlib.pyplot as plt
 from rsp.rf_datacube import dataCube, doppler_process
 from rsp.constants import PI
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 print("##########################")
 print("Test datacube processing")
@@ -47,4 +41,4 @@ print("TODO: create a test that checks the max of RDM is in the correct bin")
 # if maxBin != [x,y]:
 #     raise Exception("RDM processed incorrectly")
 
-plt.show(block=BLOCK)
+plt.show()

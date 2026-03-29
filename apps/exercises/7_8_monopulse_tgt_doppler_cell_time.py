@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import matplotlib.pyplot as plt
 import numpy as np
 from rsp import constants as c
@@ -14,11 +13,6 @@ from rsp.range_equation import noise_power
 from rsp._rdm_internals import create_window, add_returns, process_waveform_dict
 
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 ################################################################################
 # Show that the effect of considering the time delay
@@ -143,4 +137,4 @@ monopulse(dx, signal_dc_ula_list_timeshift, tgt_angle)
 
 plot_rdm(rdot_axis, r_axis, signal_dc_ula_list[0], "Noiseless RDM")
 
-plt.show(block=BLOCK)
+plt.show()

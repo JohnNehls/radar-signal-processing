@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import sys
 import matplotlib.pyplot as plt
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
@@ -12,11 +11,6 @@ from rsp.waveform import lfm_waveform
 # - Matlab solution is incorrect due to not accounting for time-bandwidth prod in SNR
 # - Matlab solution neglects range walk off, our SNR may be off when rangeRate>>0
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 bw = 10e6
 
@@ -39,4 +33,4 @@ return_list = [{"type": "skin", "target": {"range": 3.5e3, "rangeRate": 0.0e3, "
 
 rdm.gen(radar, waveform, return_list, snr=True, debug=True)
 
-plt.show(block=BLOCK)
+plt.show()

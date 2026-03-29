@@ -1,17 +1,11 @@
 #!/usr/bin/env python
 
-import sys
 import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 from rsp.waveform import uncoded_pulse
 from rsp.waveform_helpers import plot_pulse_and_spectrum
 
-# Can make plotting non-blocking with an input flag
-if sys.argv[-1].lower() == "--no-block":
-    BLOCK = False
-else:
-    BLOCK = True
 
 print("##########################")
 print("Test windowing")
@@ -48,4 +42,4 @@ plot_pulse_and_spectrum(t_u, mag_bhwin, "bhwin filtered pulse", Npad, spec_dec=T
 print("Taylor (should be smaller BW)")
 plot_pulse_and_spectrum(t_u, mag_tywin, "tywin filtered pulse", Npad, spec_dec=True)
 
-plt.show(block=BLOCK)
+plt.show()
