@@ -90,6 +90,8 @@ plt.plot(fun(signal_dc_ula_list[0].T.flatten()), label="neg position")
 plt.plot(fun(signal_dc_ula_list[1].T.flatten()), label="pos position")
 plt.plot(fun(signal_dc_ula_list_timeshift[0].T.flatten()), "--", label="timeshift neg position")
 plt.plot(fun(signal_dc_ula_list_timeshift[1].T.flatten()), "--", label="timeshift pos position")
+plt.xlabel("sample")
+plt.ylabel("amplitude")
 plt.legend()
 
 # list of datacubes to process

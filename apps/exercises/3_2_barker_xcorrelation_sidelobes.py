@@ -32,7 +32,7 @@ iu, conv_u = matchfilter_with_waveform(mag_u, mag_u)
 conv_u = abs(conv_u)
 ax[1].plot(iu, conv_u, "-x", label="uncoded")
 ax[1].set_xlabel("index offset")
-ax[1].set_xlabel("magnitude")
+ax[1].set_ylabel("magnitude")
 ax[1].set_title("xcorrelation")
 
 for nChip in BARKER_DICT.keys():

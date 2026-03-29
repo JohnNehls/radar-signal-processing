@@ -19,6 +19,7 @@ pos_ar = np.linspace(2, 8, Nel) * 1e-3
 phase_cent = ula.array_phase_center(pos_ar, chebWindow)
 
 plt.figure()
+plt.title("Array Weights and Phase Center")
 plt.plot(pos_ar, chebWindow, "o", label="weights")
 plt.axvline(x=phase_cent, linestyle="dashed", color="k", label="phase center")
 plt.xlabel("Array Element Position [m]")

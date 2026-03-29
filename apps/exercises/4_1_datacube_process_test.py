@@ -24,17 +24,19 @@ dc[98, :] = np.exp(2j * PI * PRF / 4 * t_ar)
 fig, ax = plt.subplots(1, 2)
 fig.suptitle("test datacube processing")
 ax[0].set_title("unprocessed datacube")
-ax[0].imshow(abs(dc), origin="lower")
+im = ax[0].imshow(abs(dc), origin="lower")
 ax[0].set_xlabel("slow time [PRI]")
 ax[0].set_ylabel("fast time [fs]")
+fig.colorbar(im, ax=ax[0])
 
 # process datacube in place
 f_ax, r_ax = doppler_process(dc, fs)
 
 ax[1].set_title("processed datacube")
-ax[1].pcolormesh(f_ax * 1e-6, r_ax, abs(dc))
+mesh = ax[1].pcolormesh(f_ax * 1e-6, r_ax, abs(dc))
 ax[1].set_xlabel("frequency [MHz]")
 ax[1].set_ylabel("range [m]")
+fig.colorbar(mesh, ax=ax[1])
 plt.tight_layout()
 
 print("TODO: create a test that checks the max of RDM is in the correct bin")
