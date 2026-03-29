@@ -39,4 +39,4 @@ def test_monopulse_rdm_angle_error_within_threshold():
     measured_theta = mp.monopulse_angle_at_peak_deg(dc_list[0], dc_list[1], DX)
     error = abs(measured_theta - TGT_ANGLE)
 
-    assert np.mean(error) < 1.0
+    assert error < 1.0
