@@ -49,7 +49,10 @@ for index, Pt in enumerate(Pt_ar):
     ax[index].set_xlabel("target distance [km]")
     ax[index].set_ylabel("SNR dB")
     ax[index].grid()
-    ax[index].legend(loc="upper right")
+
+handles, labels = ax[0].get_legend_handles_labels()
+fig.legend(handles, labels, loc="lower center", ncols=len(labels), bbox_to_anchor=(0.5, -0.05))
+plt.tight_layout()
 
 ## problem 2 #############################################################
 # given
@@ -78,7 +81,10 @@ for index, Tcpi in enumerate(Tcpi_ar):
     ax[index].set_xlabel("target distance [km]")
     ax[index].set_ylabel("SNR dB")
     ax[index].grid()
-    ax[index].legend(loc="upper right")
+
+handles, labels = ax[0].get_legend_handles_labels()
+fig.legend(handles, labels, loc="lower center", ncols=len(labels), bbox_to_anchor=(0.5, -0.05))
+plt.tight_layout()
 
 ## problem 3 #############################################################
 # given
