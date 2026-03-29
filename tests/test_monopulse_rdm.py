@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import rsp.uniform_linear_arrays as ula
+import rsp.monopulse as mp
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import lfm_waveform
@@ -35,13 +36,7 @@ def test_monopulse_rdm_angle_error_within_threshold():
         _, _, total_dc, _ = rdm.gen(RADAR, WAVEFORM, return_list, snr=True, debug=False, plot=False, seed=i)
         dc_list.append(total_dc)
 
-    rho = 2 * np.pi * DX
-    sum_dc = dc_list[0] + dc_list[1]
-    delta_dc = dc_list[0] - dc_list[1]
-    v_theta = np.arctan(2 * (delta_dc / sum_dc).imag) / rho
-
-    f_max_index = np.where(abs(dc_list[0]) == abs(dc_list[0]).max())
-    measured_theta = np.rad2deg(np.arcsin(v_theta)[f_max_index])
+    measured_theta = mp.monopulse_angle_at_peak_deg(dc_list[0], dc_list[1], DX)
     error = abs(measured_theta - TGT_ANGLE)
 
     assert np.mean(error) < 1.0

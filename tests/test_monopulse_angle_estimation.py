@@ -1,6 +1,7 @@
 import numpy as np
 import pytest
 import rsp.uniform_linear_arrays as ula
+import rsp.monopulse as mp
 from rsp.noise import unity_variance_complex_noise
 
 TGT_ANGLE = 2  # degrees
@@ -21,13 +22,8 @@ def _monopulse_mean_error_deg(snr_db, seed):
     ]
 
     dx = ARRAY_POS[1] - ARRAY_POS[0]
-    rho = 2 * np.pi * dx
-    sum_ch = received[0] + received[1]
-    delta_ch = received[0] - received[1]
-    v_theta = np.arctan(2 * (delta_ch / sum_ch).imag) / rho
-    measured_theta = np.arcsin(v_theta)
-
-    return np.mean(abs(np.rad2deg(measured_theta) - TGT_ANGLE))
+    measured_theta = mp.monopulse_angle_deg(received[0], received[1], dx)
+    return np.mean(abs(measured_theta - TGT_ANGLE))
 
 def test_angle_error_decreases_with_snr():
     # Mean angle error should increase monotonically as SNR decreases
