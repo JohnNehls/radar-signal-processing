@@ -9,7 +9,6 @@ import numpy.fft as fft
 # Start experimenting
 Nel = 40
 dx = 1 / 2
-M = 100
 
 L = (Nel - 1) * dx
 

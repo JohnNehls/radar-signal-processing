@@ -22,7 +22,6 @@ el_pos = np.linspace(-L / 2, L / 2, Nel)  # wavelengths
 
 assert Nel % 2 == 0
 sub_arrays = [el_pos[: int(Nel / 2)], el_pos[int(Nel / 2) :]]
-weight = np.ones(int(Nel / 2))
 
 sub_array_gain = []
 for sub_array in sub_arrays:

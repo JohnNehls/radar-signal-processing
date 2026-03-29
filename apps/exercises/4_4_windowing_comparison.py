@@ -13,12 +13,9 @@ print("##########################")
 # given
 fs = 100e6  # sampling frequency in Hz
 BW = 11e6
-outLength = 1
 
 # make pulse
 t_u, mag_u = uncoded_pulse(fs, BW)
-
-idx = np.where(mag_u != 0)[0].shape[0]
 
 # create windows
 chwin = signal.windows.chebwin(mag_u.size, 60)

@@ -3,10 +3,9 @@
 import matplotlib.pyplot as plt
 import numpy as np
 import rsp.uniform_linear_arrays as ula
-from rsp import rdm
+import rsp.rdm as rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
-import rsp.rdm as rdm
 
 
 
