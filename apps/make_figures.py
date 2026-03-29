@@ -1,9 +1,9 @@
 #!/usr/bin/env python
-"""Run each exercise script and save all figures it produces to docs/figures/.
+"""Run each exercise script, save all figures to docs/<name>_figures/, and
+write an org-mode document (docs/<name>_figures.org) embedding every figure
+under a heading named after its source script.
 
-By default only figures are saved. Pass -o to also write an org-mode document
-(docs/exercises.org) that embeds every figure under a heading named after its
-source script.
+Use -n NAME to set a prefix (default: "figures").
 
 Scripts ending in _no_test.py are skipped.
 """
@@ -20,15 +20,28 @@ import matplotlib.pyplot as plt
 parser = argparse.ArgumentParser(
     description=(
         "Run every exercise script in apps/exercises/ and save the figures "
-        "they produce as PNGs to docs/figures/. "
+        "they produce as PNGs to docs/<name>_figures/. "
         "Scripts ending in _no_test.py are skipped."
     )
 )
+parser.add_argument(
+    "-n", "--name",
+    default=None,
+    metavar="NAME",
+    help=(
+        "Prefix for output directory and org file. "
+        "'-n test' writes to docs/test_figures/ and docs/test_figures.org. "
+        "Defaults to 'figures' (docs/figures/ and docs/figures.org)."
+    ),
+)
 args = parser.parse_args()
 
+prefix = f"{args.name}_figures" if args.name else "figures"
+
 EXERCISES_DIR = Path(__file__).parent / "exercises"
-OUT_DIR = Path(__file__).parent.parent / "docs" / "figures"
-ORG_FILE = Path(__file__).parent.parent / "docs" / "figures.org"
+DOCS_DIR = Path(__file__).parent.parent / "docs"
+OUT_DIR = DOCS_DIR / prefix
+ORG_FILE = DOCS_DIR / f"{prefix}.org"
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
@@ -62,8 +75,8 @@ for script in scripts:
 
 with ORG_FILE.open("w") as f:
     f.write("#+TITLE: Exercise Figures\n")
+    f.write("#+STARTUP: inlineimages\n")
     f.write("#+OPTIONS: ^:nil\n\n")
-
     for stem, png_paths, error in results:
         f.write(f"* {stem}\n\n")
         if error:
@@ -72,7 +85,7 @@ with ORG_FILE.open("w") as f:
             f.write("(no figures produced)\n\n")
         else:
             for p in png_paths:
-                f.write(f"[[file:figures/{p.name}]]\n\n")
+                f.write(f"[[file:{prefix}/{p.name}]]\n\n")
 print(f"Org file written to {ORG_FILE}")
 
 errors = sum(1 for _, _, e in results if e is not None)
