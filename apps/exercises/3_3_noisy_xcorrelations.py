@@ -42,7 +42,7 @@ print(f"\t{10*np.log10(np.var(noise_1))=}")
 
 m_index_shift, mf = matchfilter_with_waveform(noise_1, mag_u)
 
-fig, ax = plt.subplots(1, 3)
+fig, ax = plt.subplots(1, 3, figsize=(12, 4))
 fig.suptitle(f"S3P3 case 1: uncoded pulse at index{indx_1}")
 ax[0].plot(np.real(noise_1), "-o")
 ax[0].set_title("noise")
@@ -86,7 +86,7 @@ add_waveform_at_index(noise_2, mag_u_s, indx_3)  # add in place
 
 _, mf = matchfilter_with_waveform(noise_2, mag_u)
 
-fig, ax = plt.subplots(1, 4)
+fig, ax = plt.subplots(1, 4, figsize=(15, 4))
 fig.suptitle(f"S3P3 case 2: uncoded pulses @ index: {indx_1}, {indx_2}, {indx_3} -- check SNR")
 ax[0].plot(np.real(noise_2), "-o")
 ax[0].set_title("noise")
@@ -129,7 +129,7 @@ _, mag_b = barker_coded_pulse(sampleRate, BW, 13)
 mag_b_s = 10 ** (SNR / 20) * mag_b
 add_waveform_at_index(noise_3, mag_b_s, bpsk_idx)  # add in place
 
-fig, ax = plt.subplots(1, 5)
+fig, ax = plt.subplots(1, 5, figsize=(18, 4))
 fig.suptitle("S3P3 case 3")
 ax[0].plot(abs(noise_3))
 ax[0].set_title("signal + noise")

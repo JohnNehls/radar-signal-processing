@@ -21,7 +21,7 @@ Npad = 50
 tu, mag_u = uncoded_pulse(sampleRate, BW)
 tu, mag_u = zeropad_waveform(tu, mag_u, Npad)
 
-fig, ax = plt.subplots(1, 2)
+fig, ax = plt.subplots(1, 2, figsize=(10, 4))
 fig.suptitle("S3P2 Barker sidelobe check")
 ax[0].plot(tu, mag_u, label="uncoded")
 ax[0].set_xlabel("time [s]")
