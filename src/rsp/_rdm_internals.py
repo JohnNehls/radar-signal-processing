@@ -33,7 +33,6 @@ def add_skin(
         radar: Radar system parameters.
         return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
     """
-    full_time_axis = np.arange(datacube.size) / radar.sampRate
     pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
 
     target_range_per_pulse = tgt_info["range"] + tgt_info["rangeRate"] * pulse_tx_times
@@ -44,24 +43,21 @@ def add_skin(
     # Pulses are timed from their start; compensate with a half pulse-width offset.
     time_pw_offset = wvf["pulse_width"] / 2
 
+    # Vectorize index computation: uniform time axis -> direct arithmetic (O(1) per pulse)
+    # Note: The -1 adjustment is an empirical correction to align the return
+    # in the correct range bin for the simulation framework.
+    times_of_arrival = pulse_return_times - time_pw_offset
+    return_sample_indices = np.round(times_of_arrival * radar.sampRate).astype(int)
+    return_sample_indices[return_sample_indices > 0] -= 1
+
     # Due to the time axis being the non-continuous (slow) axis, we must transpose
     flat_datacube = datacube.T.flatten()
+    sv = tgt_info.get("sv", 1)
 
     for i in range(radar.Npulses):
-        # Find the sample index corresponding to the pulse's return time.
-        # Note: The -1 adjustment is an empirical correction to align the return
-        # in the correct range bin for the simulation framework.
-        time_of_arrival = pulse_return_times[i] - time_pw_offset
-        return_sample_index = np.argmin(np.abs(full_time_axis - time_of_arrival))
-        if return_sample_index > 0:
-            return_sample_index -= 1
-
-        if return_sample_index < datacube.size:
-            phase_shifted_pulse = wvf["pulse"] * np.exp(1j * two_way_doppler_phases[i])
-            pulse = return_magnitude * phase_shifted_pulse
-            pulse *= tgt_info.get("sv", 1)  # Apply steering vector if available
-
-            add_waveform_at_index(flat_datacube, pulse, return_sample_index)
+        if return_sample_indices[i] < datacube.size:
+            pulse = return_magnitude * wvf["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * sv
+            add_waveform_at_index(flat_datacube, pulse, return_sample_indices[i])
 
     # Reshape the flattened array back to the original datacube shape
     datacube[:] = flat_datacube.reshape(tuple(reversed(datacube.shape))).T
@@ -84,7 +80,6 @@ def add_memory(
         return_magnitude: The voltage or SNR amplitude of the return.
     """
     target = return_info["target"]
-    full_time_axis = np.arange(datacube.size) / radar.sampRate
     pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
 
     # Calculate timing and phase for the signal's one-way trip to the target
@@ -114,8 +109,18 @@ def add_memory(
     # Additional time delay for range offset
     total_delay = return_info.get("delay", 0) + 2 * return_info.get("range_offset", 0) / c.C
 
+    # Vectorize index computation: uniform time axis -> direct arithmetic (O(1) per pulse)
+    pulse_indices = np.arange(radar.Npulses)
+    times_of_arrival = skin_return_times + total_delay - time_pw_offset
+    return_sample_indices = np.round(times_of_arrival * radar.sampRate).astype(int)
+    return_sample_indices[return_sample_indices > 0] -= 1
+
+    # Precompute per-pulse rdot-offset phase shift vector
+    rdot_phase = np.exp(-1j * pulse_indices * 2 * np.pi * doppler_freq_offset / radar.PRF)
+
     stored_pulse = 0
     stored_angle = 0
+    sv = target.get("sv", 1)
     flat_datacube = datacube.T.flatten()
 
     for i in range(radar.Npulses):
@@ -130,21 +135,18 @@ def add_memory(
             angle_diff = np.angle(received_pulse) - np.angle(stored_pulse)
             stored_angle = np.mean(phase_negpi_pospi(angle_diff))
 
-        # Start with the stored pulse waveform
-        pulse = return_magnitude * stored_pulse
-        pulse *= target.get("sv", 1)
-        pulse *= slowtime_noise[i]  # Apply VBM phase
-        pulse *= np.exp(1j * i * stored_angle)  # Apply target's Doppler
-        pulse *= np.exp(-1j * i * 2 * np.pi * doppler_freq_offset / radar.PRF)  # Apply rdot offset
-        pulse *= np.exp(1j * one_way_propagation_phases[i])  # Apply 1-way phase back to radar
+        pulse = (
+            return_magnitude
+            * stored_pulse
+            * sv
+            * slowtime_noise[i]
+            * np.exp(1j * i * stored_angle)
+            * rdot_phase[i]
+            * np.exp(1j * one_way_propagation_phases[i])
+        )
 
-        time_of_arrival = skin_return_times[i] + total_delay - time_pw_offset
-        return_sample_index = np.argmin(np.abs(full_time_axis - time_of_arrival))
-        if return_sample_index > 0:
-            return_sample_index -= 1
-
-        if return_sample_index < datacube.size:
-            add_waveform_at_index(flat_datacube, pulse, return_sample_index)
+        if return_sample_indices[i] < datacube.size:
+            add_waveform_at_index(flat_datacube, pulse, return_sample_indices[i])
 
     datacube[:] = flat_datacube.reshape(tuple(reversed(datacube.shape))).T
 

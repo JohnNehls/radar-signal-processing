@@ -105,13 +105,9 @@ def coded_pulse(
     dt = 1 / sampleRate
     samplesPerChip = round(Tc * sampleRate)
 
-    mag = np.zeros((nChips, samplesPerChip))
-
-    for i, val in enumerate(code):
-        assert val == 1 or val == -1, "ValueError: Code value must be either 1 or -1."
-        mag[i, :] = val
-
-    mag = mag.flatten()
+    code_array = np.asarray(code)
+    assert np.all(np.abs(code_array) == 1), "ValueError: Code values must be either 1 or -1."
+    mag = np.repeat(code_array, samplesPerChip).astype(float)
     t = np.arange(mag.size) * dt
 
     if normalize:

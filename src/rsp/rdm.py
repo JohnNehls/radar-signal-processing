@@ -217,7 +217,7 @@ def gen(
 
     ########## Apply the match filter ##############################################################
     for dc in rdm_list:
-        matchfilter(dc, waveform["pulse"], pedantic=True)
+        matchfilter(dc, waveform["pulse"], pedantic=False)
 
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: match filtered")
