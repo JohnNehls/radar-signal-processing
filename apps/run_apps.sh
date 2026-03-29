@@ -9,6 +9,8 @@ B_BLUE='\033[1;34m'
 B_WHITE='\033[1m'
 NC='\033[0m'
 
+overall_success=1
+
 # Function to run Python files in a specified directory
 run_python_files() {
     local dir_path=$1
@@ -23,14 +25,20 @@ run_python_files() {
     # Loop through all Python files in the specified directory
     for file in "$dir_path"/*.py
     do
+        # Skip files ending with _no_test.py
+        if [[ "$file" == *_no_test.py ]]; then
+            echo -e "${B_WHITE}Skipping $file${NC}"
+            continue
+        fi
+
         echo -e "${B_WHITE}Running $file...${NC}"
         # Ignore stdout and warnings, print errors
         python -W ignore "$file" > /dev/null
 
         # Check if the last command was successful
         if [ $? -ne 0 ]; then
-            # echo -e "${RED}Error: $file failed to run successfully${NC}\n"
             success=0
+            overall_success=0
         fi
     done
 
@@ -43,7 +51,7 @@ run_python_files() {
 }
 
 # Get the path of the directory holding this script
-DIR_NAME=$(dirname $0)
+DIR_NAME=$(dirname "$0")
 
 echo -e "${B_BLUE}################## test files in ./exercises #####################################${NC}"
 run_python_files ${DIR_NAME}/exercises
@@ -54,3 +62,7 @@ run_python_files ${DIR_NAME}/rdms
 # Studies take a relativly long time to run, check less frequently
 echo -e "${B_BLUE}################## inspect plots in ./studies ################################${NC}"
 run_python_files ${DIR_NAME}/studies
+
+if [ $overall_success -ne 1 ]; then
+    exit 1
+fi

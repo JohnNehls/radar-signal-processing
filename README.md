@@ -57,15 +57,10 @@ pip install radar-signal-processing/
 ./apps/run_apps.sh
 ```
 
-### Known Exercise Failures
-
-1.  [6_0_rdm_keystone.py](apps/exercises/6_0_rdm_keystone.py)
-
-    -   Not yet implemented
-
-2.  [7_4_linear_arrays_ifft_array_factor.py](apps/exercises/7_4_linear_arrays_ifft_array_factor.py)
-
-    -   Not yet implemented
+    This script runs all Python files in `apps/exercises/`, `apps/rdms/`, and
+    `apps/studies/` with the `Agg` matplotlib backend so no display is required.
+    Any file whose name ends with `_no_test.py` is skipped-- usually due to the exercise
+	not being finished. The script exits with a non-zero status if any file fails.
 
 ## Contributing
 
