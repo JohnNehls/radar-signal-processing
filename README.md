@@ -13,10 +13,13 @@ made.
 
 -   [RDM generation](src/rsp/rdm.py)
 -   [waveform generation](src/rsp/waveform.py)
--   [pulse doppler](src/rsp/pulse_doppler_radar.py)
+-   [pulse doppler radar](src/rsp/pulse_doppler_radar.py)
 -   [radar range equation](src/rsp/range_equation.py)
 -   [uniform linear array antennas](src/rsp/uniform_linear_arrays.py)
+-   [geometry](src/rsp/geometry.py)
+-   [velocity bin masking (VBM)](src/rsp/vbm.py)
 -   [noise](src/rsp/noise.py)
+-   [utilities](src/rsp/utilities.py)
 
 ## Installation
 
@@ -31,14 +34,14 @@ pip install radar-signal-processing/
 
 -   Python \>= 3.11
 -   Python packages listed in [pyproject.toml](pyproject.toml)
--   A few of the tests utilize LaTeX, thus it may need to be installed
-    in order for them to run
+-   A few of the exercises utilize LaTeX for plot labels, thus it may
+    need to be installed in order for them to run
 
 ## Usage
 
 -   **RDM generator**
     -   For examples of basic usage, see the [apps](apps).
-        -   [kitchen_sink_.py](apps/rdms/kitchen_sink.py) is a
+        -   [kitchen_sink.py](apps/rdms/kitchen_sink.py) is a
             script with all waveform and return options written out
 -   **Everything else**
     -   For examples of the other functions of the project, see
