@@ -199,7 +199,6 @@ def apply_timeshift_due_to_element_position(
     """
     range_diff = element_position * np.sin(np.deg2rad(tgt_angle))
     time_shift = range_diff / c.C
-    print(f"{time_shift=}")
     time_ar = np.arange(len(signal_ar)) / fs
     shifted_time = time_ar + time_shift
     interp_fun = interpolate.interp1d(time_ar, signal_ar, kind="cubic", fill_value="extrapolate")

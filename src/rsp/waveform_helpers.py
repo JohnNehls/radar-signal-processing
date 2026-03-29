@@ -196,8 +196,6 @@ def plot_pulse_and_spectrum(
         print("\tbandwidth:")
         PW, f_start, f_end = find_width(f, abs(MAG))
         print(f"\t{PW=:.1e} {f_start=:.1e} {f_end=:.1e}")
-        # PW_av, f_start_av, f_end_av = find_width(f, abs(moving_average(abs(MAG), 3)))
-        # print(f"\t{PW_av=:.1e} {f_start_av=:.1e} {f_end_av=:.1e}")
 
     return fig, ax
 

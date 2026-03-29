@@ -145,7 +145,6 @@ def barker_coded_pulse(
         AssertionError: If nChips is not a valid Barker code length.
     """
     assert nChips in BARKER_DICT, f"Error: {nChips=} is not a valid Barker code."
-    assert nChips == len(BARKER_DICT[nChips]), "Error: Barker dict is incorrect"
     return coded_pulse(
         sampleRate,
         BW,

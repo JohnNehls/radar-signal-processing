@@ -74,10 +74,7 @@ def phase_negpi_pospi(phase: float | np.ndarray) -> np.ndarray:
 
     phase = np.array(phase)
     phase = phase % (2 * c.PI)
-    # phase = phase.tolist()
-    for i, p in enumerate(phase):
-        if p >= c.PI:
-            phase[i] = p - 2 * c.PI
+    phase[phase >= c.PI] -= 2 * c.PI
     return phase
 
 
