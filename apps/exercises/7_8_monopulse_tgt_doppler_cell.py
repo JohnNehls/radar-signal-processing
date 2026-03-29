@@ -7,6 +7,7 @@ import rsp.rdm as rdm
 import rsp.monopulse as mp
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
+from rsp.returns import Target, SkinReturn
 
 
 
@@ -34,8 +35,6 @@ radar = Radar(
     dwell_time=2e-3,
 )
 
-return_list = [{"type": "skin", "target": {"range": 2.4e3, "rangeRate": 0.2e3, "rcs": 10}}]
-
 waveform = uncoded_waveform(bw)                        # high 1
 waveform = barker_waveform(bw, nchips=13)              # high 1
 waveform = lfm_waveform(bw, T=10 / 40e6, chirpUpDown=1)  # high 2
@@ -49,7 +48,7 @@ dc_list = []
 
 for sv in steer_vec:
     rseed = np.random.randint(1000)
-    return_list[0]["target"]["sv"] = sv  # sv component to "target"
+    return_list = [SkinReturn(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10, sv=sv))]
     rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
         radar, waveform, return_list, snr=True, debug=False, plot=False, seed=rseed
     )

@@ -3,6 +3,7 @@ from scipy import fft
 from . import constants as c
 from .range_equation import snr_range_eqn, snr_range_eqn_cp
 from .pulse_doppler_radar import Radar
+from .returns import Target
 
 
 def noise_checks(signal_dc: np.ndarray, noise_dc: np.ndarray, total_dc: np.ndarray) -> None:
@@ -26,22 +27,22 @@ def noise_checks(signal_dc: np.ndarray, noise_dc: np.ndarray, total_dc: np.ndarr
     print(f"\t{20*np.log10(np.max(abs(total_dc)))=:.2f}")
 
 
-def check_expected_snr(radar: Radar, target: dict, waveform: dict) -> None:
+def check_expected_snr(radar: Radar, target: Target, waveform: dict) -> None:
     """Calculates and prints expected SNR based on the radar equation.
 
     Args:
-        radar (dict): A dictionary of radar system parameters.
-        target (dict): A dictionary of target parameters.
-        waveform (dict): A dictionary of waveform parameters.
+        radar: Radar system parameters.
+        target: Target kinematics and scattering parameters.
+        waveform: Dictionary of waveform parameters.
     """
     ## expected
     SNR_expected = snr_range_eqn_cp(
         radar.txPower,
         radar.txGain,
         radar.rxGain,
-        target["rcs"],
+        target.rcs,
         c.C / radar.fcar,
-        target["range"],
+        target.range,
         waveform["bw"],
         radar.noiseFactor,
         radar.totalLosses,
@@ -54,9 +55,9 @@ def check_expected_snr(radar: Radar, target: dict, waveform: dict) -> None:
         radar.txPower,
         radar.txGain,
         radar.rxGain,
-        target["rcs"],
+        target.rcs,
         c.C / radar.fcar,
-        target["range"],
+        target.range,
         waveform["bw"],
         radar.noiseFactor,
         radar.totalLosses,

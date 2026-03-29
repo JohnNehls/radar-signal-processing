@@ -10,12 +10,13 @@ from .utilities import phase_negpi_pospi
 from .range_equation import snr_range_eqn, signal_range_eqn
 from . import vbm
 from .pulse_doppler_radar import Radar
+from .returns import Target, EaPlatform, SkinReturn, MemoryReturn
 
 
 def add_skin(
     datacube: np.ndarray,
     wvf: Dict,
-    tgt_info: Dict,
+    tgt_info: Target,
     radar: Radar,
     return_magnitude: float,
 ) -> None:
@@ -29,13 +30,13 @@ def add_skin(
     Args:
         datacube: 2D complex array to which the return is added.
         wvf: Dictionary containing waveform parameters.
-        tgt_info: Dictionary with target information ('range', 'rangeRate', 'sv').
+        tgt_info: Target kinematics and scattering parameters.
         radar: Radar system parameters.
         return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
     """
     pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
 
-    target_range_per_pulse = tgt_info["range"] + tgt_info["rangeRate"] * pulse_tx_times
+    target_range_per_pulse = tgt_info.range + tgt_info.rangeRate * pulse_tx_times
     two_way_delays = 2 * target_range_per_pulse / c.C
     pulse_return_times = pulse_tx_times + two_way_delays
     two_way_doppler_phases = -2 * np.pi * radar.fcar * two_way_delays
@@ -50,11 +51,10 @@ def add_skin(
 
     # Due to the time axis being the non-continuous (slow) axis, we must transpose
     flat_datacube = datacube.T.flatten()
-    sv = tgt_info.get("sv", 1)
 
     for i in range(radar.Npulses):
         if return_sample_indices[i] < datacube.size:
-            pulse = return_magnitude * wvf["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * sv
+            pulse = return_magnitude * wvf["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
             add_waveform_at_index(flat_datacube, pulse, return_sample_indices[i])
 
     # Reshape the flattened array back to the original datacube shape
@@ -62,7 +62,7 @@ def add_skin(
 
 
 def add_memory(
-    datacube: np.ndarray, wvf: Dict, radar: Radar, return_info: Dict, return_magnitude: float
+    datacube: np.ndarray, wvf: Dict, radar: Radar, return_info: MemoryReturn, return_magnitude: float
 ) -> None:
     """Adds a notional memory-based electronic attack (EA) return to the datacube.
 
@@ -74,14 +74,14 @@ def add_memory(
         datacube: 2D complex array to which the return is added.
         wvf: Dictionary containing waveform parameters.
         radar: Radar system parameters.
-        return_info: Dictionary with EA and target information.
+        return_info: MemoryReturn describing the EA and target parameters.
         return_magnitude: The voltage or SNR amplitude of the return.
     """
-    target = return_info["target"]
+    target = return_info.target
     pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
 
     # Calculate timing and phase for the signal's one-way trip to the target
-    target_range_per_pulse = target["range"] + target["rangeRate"] * pulse_tx_times
+    target_range_per_pulse = target.range + target.rangeRate * pulse_tx_times
     one_way_delays = target_range_per_pulse / c.C
     skin_return_times = pulse_tx_times + 2 * one_way_delays
     one_way_propagation_phases = -2 * np.pi * radar.fcar * one_way_delays
@@ -89,15 +89,15 @@ def add_memory(
     time_pw_offset = wvf["pulse_width"] / 2
 
     # Doppler frequency shift for range-rate offset
-    doppler_freq_offset = 2 * radar.fcar / c.C * return_info.get("rdot_offset", 0)
+    doppler_freq_offset = 2 * radar.fcar / c.C * return_info.rdot_offset
 
     # Phase modulation for Velocity Bin Masking (VBM)
-    if "rdot_delta" in return_info:
-        vbm_noise_function = return_info.get("vbm_noise_function", vbm._lfm_phase)
+    if return_info.rdot_delta is not None:
+        vbm_noise_function = return_info.vbm_noise_function or vbm._lfm_phase
         slowtime_noise = vbm.slowtime_noise(
             radar.Npulses,
             radar.fcar,
-            return_info["rdot_delta"],
+            return_info.rdot_delta,
             radar.PRF,
             noiseFun=vbm_noise_function,
         )
@@ -105,7 +105,7 @@ def add_memory(
         slowtime_noise = np.ones(radar.Npulses)
 
     # Additional time delay for range offset
-    total_delay = return_info.get("delay", 0) + 2 * return_info.get("range_offset", 0) / c.C
+    total_delay = return_info.delay + 2 * return_info.range_offset / c.C
 
     # The range axis is 1-indexed: r_axis[k] = (k+1)*dR, so the injection index
     # must be one less than round(t*fs) to land the MF peak in the correct bin.
@@ -118,7 +118,6 @@ def add_memory(
 
     stored_pulse = 0
     stored_angle = 0
-    sv = target.get("sv", 1)
     flat_datacube = datacube.T.flatten()
 
     for i in range(radar.Npulses):
@@ -136,7 +135,7 @@ def add_memory(
         pulse = (
             return_magnitude
             * stored_pulse
-            * sv
+            * target.sv
             * slowtime_noise[i]
             * np.exp(1j * i * stored_angle)
             * rdot_phase[i]
@@ -183,7 +182,7 @@ def create_window(
     return window_matrix
 
 
-def skin_snr_amplitude(radar: Radar, target: Dict, waveform: Dict) -> float:
+def skin_snr_amplitude(radar: Radar, target: Target, waveform: Dict) -> float:
     """Calculates the required per-pulse voltage amplitude to achieve a target SNR.
 
     Uses the radar range equation to find the SNR after processing, then works
@@ -192,7 +191,7 @@ def skin_snr_amplitude(radar: Radar, target: Dict, waveform: Dict) -> float:
 
     Args:
         radar: Radar system parameters.
-        target: Dictionary of target parameters.
+        target: Target kinematics and scattering parameters.
         waveform: Dictionary of waveform parameters.
 
     Returns:
@@ -204,9 +203,9 @@ def skin_snr_amplitude(radar: Radar, target: Dict, waveform: Dict) -> float:
         radar.txPower,
         radar.txGain,
         radar.rxGain,
-        target["rcs"],
+        target.rcs,
         c.C / radar.fcar,
-        target["range"],
+        target.range,
         waveform["bw"],
         radar.noiseFactor,
         radar.totalLosses,
@@ -224,7 +223,7 @@ def skin_snr_amplitude(radar: Radar, target: Dict, waveform: Dict) -> float:
 
 
 def add_returns_snr(
-    datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Radar
+    datacube: np.ndarray, waveform: Dict, return_list: List, radar: Radar
 ) -> None:
     """Adds multiple returns to a datacube, with amplitudes based on SNR.
 
@@ -233,27 +232,27 @@ def add_returns_snr(
     Args:
         datacube: The 2D complex datacube to modify.
         waveform: Dictionary of waveform parameters.
-        return_list: A list of dictionaries describing each return.
+        return_list: A list of SkinReturn or MemoryReturn objects.
         radar: Radar system parameters.
     """
     for item in return_list:
-        if item["type"] == "skin":
-            snr_volt_amp = skin_snr_amplitude(radar, item["target"], waveform)
-            add_skin(datacube, waveform, item["target"], radar, snr_volt_amp)
-        elif item["type"] == "memory":
+        if isinstance(item, SkinReturn):
+            snr_volt_amp = skin_snr_amplitude(radar, item.target, waveform)
+            add_skin(datacube, waveform, item.target, radar, snr_volt_amp)
+        elif isinstance(item, MemoryReturn):
             print("Note: Using notional SNR for memory return amplitude.")
-            snr_volt_amp = skin_snr_amplitude(radar, item["target"], waveform)
+            snr_volt_amp = skin_snr_amplitude(radar, item.target, waveform)
             add_memory(datacube, waveform, radar, item, snr_volt_amp)
         else:
-            print(f"Return type '{item['type']}' not recognized. No return added.")
+            print(f"Return type '{type(item).__name__}' not recognized. No return added.")
 
 
-def skin_voltage_amplitude(radar: Radar, target: Dict) -> float:
+def skin_voltage_amplitude(radar: Radar, target: Target) -> float:
     """Calculates the received voltage amplitude of a skin return.
 
     Args:
         radar: Radar system parameters.
-        target: Dictionary of target parameters.
+        target: Target kinematics and scattering parameters.
 
     Returns:
         The received voltage amplitude.
@@ -262,23 +261,23 @@ def skin_voltage_amplitude(radar: Radar, target: Dict) -> float:
         radar.txPower,
         radar.txGain,
         radar.rxGain,
-        target["rcs"],
+        target.rcs,
         c.C / radar.fcar,
-        target["range"],
+        target.range,
         radar.totalLosses,
     )
     return np.sqrt(c.RADAR_LOAD * rx_power)
 
 
-def memory_voltage_amplitude(platform: Dict, radar: Radar, target: Dict) -> float:
+def memory_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target) -> float:
     """Calculates the received voltage amplitude of a memory-based EA return.
 
     Models the one-way communication link from the EA platform to the radar.
 
     Args:
-        platform: Dictionary of the EA platform's parameters.
+        platform: EA platform transmitter parameters.
         radar: Radar system parameters (as receiver).
-        target: Dictionary of the target's parameters (for range).
+        target: Target kinematics (range is used for path loss).
 
     Returns:
         The received voltage amplitude from the EA platform.
@@ -286,23 +285,23 @@ def memory_voltage_amplitude(platform: Dict, radar: Radar, target: Dict) -> floa
     # To model a one-way link using the two-way radar range equation,
     # we can use an effective RCS that cancels the extra 1/(4*pi*R^2) term.
     # The effective RCS is sigma = 4 * pi * R^2.
-    range_m = target["range"]
+    range_m = target.range
     equivalent_rcs = 4 * np.pi * range_m**2
 
     rx_power = signal_range_eqn(
-        platform["txPower"],
-        platform["txGain"],
+        platform.txPower,
+        platform.txGain,
         radar.rxGain,
         equivalent_rcs,
         c.C / radar.fcar,
         range_m,
-        platform["totalLosses"],
+        platform.totalLosses,
     )
     return np.sqrt(c.RADAR_LOAD * rx_power)
 
 
 def add_returns(
-    datacube: np.ndarray, waveform: Dict, return_list: List[Dict], radar: Radar
+    datacube: np.ndarray, waveform: Dict, return_list: List, radar: Radar
 ) -> None:
     """Adds multiple returns to a datacube, with physically-based voltage amplitudes.
 
@@ -311,18 +310,18 @@ def add_returns(
     Args:
         datacube: The 2D complex datacube to modify.
         waveform: Dictionary of waveform parameters.
-        return_list: A list of dictionaries describing each return.
+        return_list: A list of SkinReturn or MemoryReturn objects.
         radar: Radar system parameters.
     """
     for item in return_list:
-        if item["type"] == "skin":
-            rx_skin_amp = skin_voltage_amplitude(radar, item["target"])
-            add_skin(datacube, waveform, item["target"], radar, rx_skin_amp)
-        elif item["type"] == "memory":
-            rx_mem_amp = memory_voltage_amplitude(item["platform"], radar, item["target"])
+        if isinstance(item, SkinReturn):
+            rx_skin_amp = skin_voltage_amplitude(radar, item.target)
+            add_skin(datacube, waveform, item.target, radar, rx_skin_amp)
+        elif isinstance(item, MemoryReturn):
+            rx_mem_amp = memory_voltage_amplitude(item.platform, radar, item.target)
             add_memory(datacube, waveform, radar, item, rx_mem_amp)
         else:
-            print(f"Return type '{item['type']}' not recognized. No return added.")
+            print(f"Return type '{type(item).__name__}' not recognized. No return added.")
 
 
 def process_waveform_dict(waveform: Dict[str, Any], radar: Radar) -> None:

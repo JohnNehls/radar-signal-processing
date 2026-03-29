@@ -1,10 +1,11 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
+import numpy as np
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
-import numpy as np
+from rsp.returns import Target, EaPlatform, SkinReturn, MemoryReturn
 
 ################################################################################
 # Kitchen sink: script showing a sample of all of the options available
@@ -31,23 +32,18 @@ waveform = barker_waveform(bw, nchips=13)
 waveform = random_waveform(bw, nchips=13)
 waveform = lfm_waveform(bw, T=10 / 40e6, chirpUpDown=1)
 
-target_dict = {"type": "skin", "target": {"range": 3.5e3,
-                                          "rangeRate": 0.5e3,
-                                          "rcs": 10}}
-mem_on_target_dict = {"type": "memory",
-                      "target": {"range": target_dict['target']['range'],
-                                 "rangeRate": target_dict['target']['rangeRate'],
-                                 "sv": np.exp(1j * np.pi / 4)},
-                      "rdot_delta": 3.0e3,
-                      "rdot_offset": 0.3e3,
-                      "range_offset": -0.2e3,
-                      "delay": 1.33e-6,
-                      "platform": {
-                          "txPower": 1,
-                          "txGain": 10 ** (5 / 10),
-                          "totalLosses": 10 ** (5 / 10)}}
+skin_tgt = Target(range=3.5e3, rangeRate=0.5e3, rcs=10)
+target_dict = SkinReturn(target=skin_tgt)
+mem_on_target_dict = MemoryReturn(
+    target=Target(range=skin_tgt.range, rangeRate=skin_tgt.rangeRate, sv=np.exp(1j * np.pi / 4)),
+    rdot_delta=3.0e3,
+    rdot_offset=0.3e3,
+    range_offset=-0.2e3,
+    delay=1.33e-6,
+    platform=EaPlatform(txPower=1, txGain=10 ** (5 / 10), totalLosses=10 ** (5 / 10)),
+)
 
-return_list = [ target_dict, mem_on_target_dict]
+return_list = [target_dict, mem_on_target_dict]
 
 rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
     radar, waveform, return_list, seed=0, plot=True, debug=True, snr=False

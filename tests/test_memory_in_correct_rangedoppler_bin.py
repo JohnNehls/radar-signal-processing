@@ -4,6 +4,7 @@ import rsp.pulse_doppler_radar as pdr
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
+from rsp.returns import Target, EaPlatform, MemoryReturn
 
 BW = 10e6
 
@@ -20,19 +21,14 @@ RADAR = Radar(
     dwell_time=2e-3,
 )
 
-RETURN = {
-    "type": "memory",
-    "target": {"range": 8.4e3, "rangeRate": 2.0e3},
-    "rdot_delta": 0.1e3,
-    "rdot_offset": 0.0e3,
-    "range_offset": 0.0e3,
-    "delay": 0.0e-6,
-    "platform": {
-        "txPower": 5.0e3,
-        "txGain": 10 ** (30 / 10),
-        "totalLosses": 10 ** (3 / 10),
-    },
-}
+RETURN = MemoryReturn(
+    target=Target(range=8.4e3, rangeRate=2.0e3),
+    rdot_delta=0.1e3,
+    rdot_offset=0.0e3,
+    range_offset=0.0e3,
+    delay=0.0e-6,
+    platform=EaPlatform(txPower=5.0e3, txGain=10 ** (30 / 10), totalLosses=10 ** (3 / 10)),
+)
 
 WAVEFORMS = [
     uncoded_waveform(BW),
@@ -46,9 +42,9 @@ WAVEFORMS = [
 def check_max_in_expected_bin(waveform):
     rdot_axis, r_axis, _total_dc, signal_dc = rdm.gen(RADAR, waveform, [RETURN], plot=False)
 
-    range_expected = pdr.range_aliased(RETURN["target"]["range"], RADAR.PRF)
+    range_expected = pdr.range_aliased(RETURN.target.range, RADAR.PRF)
     rangeRate_expected = pdr.rangeRate_aliased_prf_f0(
-        RETURN["target"]["rangeRate"], RADAR.PRF, RADAR.fcar
+        RETURN.target.rangeRate, RADAR.PRF, RADAR.fcar
     )
     i = np.argmin(abs(r_axis - range_expected))
     j = np.argmin(abs(rdot_axis - rangeRate_expected))

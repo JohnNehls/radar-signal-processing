@@ -5,6 +5,7 @@ from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform
 import rsp.vbm as vbm
+from rsp.returns import Target, EaPlatform, MemoryReturn
 
 ################################################################################
 # Display each of the VBM noise methods in order of complexity
@@ -27,15 +28,6 @@ radar = Radar(
 
 waveform = uncoded_waveform(bw)
 
-mem_dict = {"type": "memory",
-            "target": {"range": 0.2e3, "rangeRate": 0.0e3},
-            "rdot_delta": 1.0e3,
-            "rdot_offset": 0.0e3,
-            "platform": {
-                "txPower": 1.0e3,
-                "txGain": 10 ** (5 / 10),
-                "totalLosses": 10 ** (3 / 10)}}
-
 vbm_name_function_dict = {
     "random phase VBM": vbm._random_phase,
     "uniform bandwidth phase VBM": vbm._uniform_bandwidth_phase,
@@ -44,11 +36,18 @@ vbm_name_function_dict = {
     "LFM phase VBM": vbm._lfm_phase,
 }
 
+rdot_delta = 1.0e3
 for name, func in vbm_name_function_dict.items():
-    mem_dict["vbm_noise_function"] = func
+    mem_dict = MemoryReturn(
+        target=Target(range=0.2e3, rangeRate=0.0e3),
+        rdot_delta=rdot_delta,
+        rdot_offset=0.0e3,
+        platform=EaPlatform(txPower=1.0e3, txGain=10 ** (5 / 10), totalLosses=10 ** (3 / 10)),
+        vbm_noise_function=func,
+    )
     rdm.gen(radar, waveform, [mem_dict], debug=False)
     ax = plt.gca()
     ax.set_title(name)
 
-print(f"Note:LFM phase VBM is the only method to match the perscribed {mem_dict['rdot_delta']} [m/s] VBM width.")
+print(f"Note:LFM phase VBM is the only method to match the perscribed {rdot_delta} [m/s] VBM width.")
 plt.show()

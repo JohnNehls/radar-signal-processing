@@ -2,5 +2,7 @@
 /build/
 *.egg-info
 /src/rsp/_version.py
+/docs/figures/
+/docs/figures.org
 /docs/*_figures/
 /docs/*_figures.org
