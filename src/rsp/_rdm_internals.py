@@ -1,5 +1,6 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from contextlib import contextmanager
 from scipy import signal
 from typing import Tuple, Dict, List, Any
 
@@ -11,6 +12,35 @@ from .range_equation import snr_range_eqn, signal_range_eqn
 from . import vbm
 from .pulse_doppler_radar import Radar
 from .returns import Target, EaPlatform, SkinReturn, MemoryReturn
+
+
+def _propagation_phase(delays: np.ndarray, fcar: float) -> np.ndarray:
+    """Returns the carrier phase accumulated over one-way or two-way propagation delays."""
+    return -2 * np.pi * fcar * delays
+
+
+def _return_sample_indices(return_times: np.ndarray, waveform: Dict, radar: Radar) -> np.ndarray:
+    """Converts pulse return times to flat datacube sample indices.
+
+    Subtracts half the pulse width since pulses are timed from their leading edge.
+    The range axis is 1-indexed — r_axis[k] = (k+1)*dR — so the injection index
+    must be one less than round(t*fs) to land the matched filter peak in the
+    correct bin.
+    """
+    times_of_arrival = return_times - waveform["pulse_width"] / 2
+    return np.round(times_of_arrival * radar.sampRate).astype(int) - 1
+
+
+@contextmanager
+def _flat_datacube(datacube: np.ndarray):
+    """Yields a flattened view of the datacube and writes it back on exit.
+
+    The datacube's slow-time axis is non-contiguous, so it must be transposed
+    before flattening to produce a contiguous pulse-major layout.
+    """
+    flat = datacube.T.flatten()
+    yield flat
+    datacube[:] = flat.reshape(tuple(reversed(datacube.shape))).T
 
 
 def add_skin(
@@ -35,30 +65,17 @@ def add_skin(
         return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
     """
     pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
-
     target_range_per_pulse = tgt_info.range + tgt_info.rangeRate * pulse_tx_times
     two_way_delays = 2 * target_range_per_pulse / c.C
     pulse_return_times = pulse_tx_times + two_way_delays
-    two_way_doppler_phases = -2 * np.pi * radar.fcar * two_way_delays
+    two_way_doppler_phases = _propagation_phase(two_way_delays, radar.fcar)
+    return_sample_indices = _return_sample_indices(pulse_return_times, wvf, radar)
 
-    # Pulses are timed from their start; compensate with a half pulse-width offset.
-    time_pw_offset = wvf["pulse_width"] / 2
-
-    # The range axis is 1-indexed: r_axis[k] = (k+1)*dR, so the injection index
-    # must be one less than round(t*fs) to land the MF peak in the correct bin.
-    times_of_arrival = pulse_return_times - time_pw_offset
-    return_sample_indices = np.round(times_of_arrival * radar.sampRate).astype(int) - 1
-
-    # Due to the time axis being the non-continuous (slow) axis, we must transpose
-    flat_datacube = datacube.T.flatten()
-
-    for i in range(radar.Npulses):
-        if return_sample_indices[i] < datacube.size:
-            pulse = return_magnitude * wvf["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
-            add_waveform_at_index(flat_datacube, pulse, return_sample_indices[i])
-
-    # Reshape the flattened array back to the original datacube shape
-    datacube[:] = flat_datacube.reshape(tuple(reversed(datacube.shape))).T
+    with _flat_datacube(datacube) as flat:
+        for i in range(radar.Npulses):
+            if return_sample_indices[i] < datacube.size:
+                pulse = return_magnitude * wvf["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
+                add_waveform_at_index(flat, pulse, return_sample_indices[i])
 
 
 def add_memory(
@@ -84,9 +101,7 @@ def add_memory(
     target_range_per_pulse = target.range + target.rangeRate * pulse_tx_times
     one_way_delays = target_range_per_pulse / c.C
     skin_return_times = pulse_tx_times + 2 * one_way_delays
-    one_way_propagation_phases = -2 * np.pi * radar.fcar * one_way_delays
-
-    time_pw_offset = wvf["pulse_width"] / 2
+    one_way_propagation_phases = _propagation_phase(one_way_delays, radar.fcar)
 
     # Doppler frequency shift for range-rate offset
     doppler_freq_offset = 2 * radar.fcar / c.C * return_info.rdot_offset
@@ -106,46 +121,41 @@ def add_memory(
 
     # Additional time delay for range offset
     total_delay = return_info.delay + 2 * return_info.range_offset / c.C
-
-    # The range axis is 1-indexed: r_axis[k] = (k+1)*dR, so the injection index
-    # must be one less than round(t*fs) to land the MF peak in the correct bin.
-    pulse_indices = np.arange(radar.Npulses)
-    times_of_arrival = skin_return_times + total_delay - time_pw_offset
-    return_sample_indices = np.round(times_of_arrival * radar.sampRate).astype(int) - 1
+    return_times = skin_return_times + total_delay
+    return_sample_indices = _return_sample_indices(return_times, wvf, radar)
 
     # Precompute per-pulse rdot-offset phase shift vector
+    pulse_indices = np.arange(radar.Npulses)
     rdot_phase = np.exp(-1j * pulse_indices * 2 * np.pi * doppler_freq_offset / radar.PRF)
 
     stored_pulse = 0
     stored_angle = 0
-    flat_datacube = datacube.T.flatten()
 
-    for i in range(radar.Npulses):
-        received_pulse = wvf["pulse"] * np.exp(1j * one_way_propagation_phases[i])
+    with _flat_datacube(datacube) as flat:
+        for i in range(radar.Npulses):
+            received_pulse = wvf["pulse"] * np.exp(1j * one_way_propagation_phases[i])
 
-        if i == 0:
-            stored_pulse = received_pulse
-            continue
+            if i == 0:
+                stored_pulse = received_pulse
+                continue
 
-        if i == 1:
-            # Estimate target's Doppler phase shift between pulses
-            angle_diff = np.angle(received_pulse) - np.angle(stored_pulse)
-            stored_angle = np.mean(phase_negpi_pospi(angle_diff))
+            if i == 1:
+                # Estimate target's Doppler phase shift between pulses
+                angle_diff = np.angle(received_pulse) - np.angle(stored_pulse)
+                stored_angle = np.mean(phase_negpi_pospi(angle_diff))
 
-        pulse = (
-            return_magnitude
-            * stored_pulse
-            * target.sv
-            * slowtime_noise[i]
-            * np.exp(1j * i * stored_angle)
-            * rdot_phase[i]
-            * np.exp(1j * one_way_propagation_phases[i])
-        )
+            pulse = (
+                return_magnitude
+                * stored_pulse
+                * target.sv
+                * slowtime_noise[i]
+                * np.exp(1j * i * stored_angle)
+                * rdot_phase[i]
+                * np.exp(1j * one_way_propagation_phases[i])
+            )
 
-        if return_sample_indices[i] < datacube.size:
-            add_waveform_at_index(flat_datacube, pulse, return_sample_indices[i])
-
-    datacube[:] = flat_datacube.reshape(tuple(reversed(datacube.shape))).T
+            if return_sample_indices[i] < datacube.size:
+                add_waveform_at_index(flat, pulse, return_sample_indices[i])
 
 
 def create_window(
