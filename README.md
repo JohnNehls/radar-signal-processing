@@ -41,9 +41,40 @@ pip install radar-signal-processing/
 ## Usage
 
 -   **RDM generator**
-    -   For examples of basic usage, see the [apps](apps).
+
+    ```python
+    from rsp import rdm
+    from rsp.pulse_doppler_radar import Radar
+    from rsp.waveform import barker_waveform
+    from rsp.returns import Target, Return
+
+    radar = Radar(
+        fcar=10e9,
+        txPower=1e3,
+        txGain=10 ** (30 / 10),
+        rxGain=10 ** (30 / 10),
+        opTemp=290,
+        sampRate=20e6,
+        noiseFactor=10 ** (8 / 10),
+        totalLosses=10 ** (8 / 10),
+        PRF=200e3,
+        dwell_time=2e-3,
+    )
+
+    waveform = barker_waveform(10e6, nchips=13)
+
+    return_list = [Return(target=Target(range=0.5e3, rangeRate=1.0e3, rcs=1))]
+
+    rdm.gen(radar, waveform, return_list)
+    ```
+
+    ![image](docs/figs/rdm_readme_example.png)
+
+
+    -   For additional examples, see [apps/rdms](apps/rdms).
         -   [kitchen_sink.py](apps/rdms/kitchen_sink.py) is a
             script with all waveform and return options written out
+
 -   **Everything else**
     -   For examples of the other functions of the project, see
         [exercises](apps/exercises).
@@ -52,19 +83,19 @@ pip install radar-signal-processing/
 -   To run each of the pytests, run the following:
 
 ``` shell
- python -m pytest tests/ -v
- ```
+python -m pytest tests/ -v
+```
 
 -   To ensure the main applications in [apps](apps/) run without errors and check for qualitative errors in the rdms, run the following:
 
-``` shell
-./apps/run_apps.sh
-```
+    ``` shell
+    ./apps/run_apps.sh
+    ```
 
     This script runs all Python files in `apps/exercises/`, `apps/rdms/`, and
     `apps/studies/` with the `Agg` matplotlib backend so no display is required.
-    Any file whose name ends with `_no_test.py` is skipped-- usually due to the exercise
-	not being finished. The script exits with a non-zero status if any file fails.
+    Any file whose name ends with `_no_test.py` is skipped -- usually due to the exercise
+    not being finished. The script exits with a non-zero status if any file fails.
 
 ## Contributing
 
