@@ -5,7 +5,7 @@ from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform
 import rsp.vbm as vbm
-from rsp.returns import Target, EaPlatform, MemoryReturn
+from rsp.returns import Target, EaPlatform, Return
 
 ################################################################################
 # Display each of the VBM noise methods in order of complexity
@@ -38,12 +38,12 @@ vbm_name_function_dict = {
 
 rdot_delta = 1.0e3
 for name, func in vbm_name_function_dict.items():
-    mem_dict = MemoryReturn(
+    mem_dict = Return(
         target=Target(range=0.2e3, rangeRate=0.0e3),
-        rdot_delta=rdot_delta,
-        rdot_offset=0.0e3,
-        platform=EaPlatform(txPower=1.0e3, txGain=10 ** (5 / 10), totalLosses=10 ** (3 / 10)),
-        vbm_noise_function=func,
+        platform=EaPlatform(
+            txPower=1.0e3, txGain=10 ** (5 / 10), totalLosses=10 ** (3 / 10),
+            rdot_delta=rdot_delta, rdot_offset=0.0e3, vbm_noise_function=func,
+        ),
     )
     rdm.gen(radar, waveform, [mem_dict], debug=False)
     ax = plt.gca()

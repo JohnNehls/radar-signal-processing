@@ -4,7 +4,7 @@ import rsp.pulse_doppler_radar as pdr
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
-from rsp.returns import Target, SkinReturn
+from rsp.returns import Target, Return
 
 BW = 10e6
 
@@ -21,7 +21,7 @@ RADAR = Radar(
     dwell_time=2e-3,
 )
 
-RETURN = SkinReturn(target=Target(range=8.4e3, rangeRate=3.2e3, rcs=10))
+RETURN = Return(target=Target(range=8.4e3, rangeRate=3.2e3, rcs=10))
 
 WAVEFORMS = [
     uncoded_waveform(BW),

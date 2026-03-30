@@ -7,7 +7,7 @@ import rsp.rdm as rdm
 import rsp.monopulse as mp
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
-from rsp.returns import Target, SkinReturn
+from rsp.returns import Target, Return
 
 
 
@@ -48,7 +48,7 @@ dc_list = []
 
 for sv in steer_vec:
     rseed = np.random.randint(1000)
-    return_list = [SkinReturn(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10, sv=sv))]
+    return_list = [Return(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10, sv=sv))]
     rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
         radar, waveform, return_list, snr=True, debug=False, plot=False, seed=rseed
     )

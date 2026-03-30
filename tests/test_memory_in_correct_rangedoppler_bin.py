@@ -4,7 +4,7 @@ import rsp.pulse_doppler_radar as pdr
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
-from rsp.returns import Target, EaPlatform, MemoryReturn
+from rsp.returns import Target, EaPlatform, Return
 
 BW = 10e6
 
@@ -21,13 +21,12 @@ RADAR = Radar(
     dwell_time=2e-3,
 )
 
-RETURN = MemoryReturn(
+RETURN = Return(
     target=Target(range=8.4e3, rangeRate=2.0e3),
-    rdot_delta=0.1e3,
-    rdot_offset=0.0e3,
-    range_offset=0.0e3,
-    delay=0.0e-6,
-    platform=EaPlatform(txPower=5.0e3, txGain=10 ** (30 / 10), totalLosses=10 ** (3 / 10)),
+    platform=EaPlatform(
+        txPower=5.0e3, txGain=10 ** (30 / 10), totalLosses=10 ** (3 / 10),
+        rdot_delta=0.1e3, rdot_offset=0.0e3, range_offset=0.0e3, delay=0.0e-6,
+    ),
 )
 
 WAVEFORMS = [

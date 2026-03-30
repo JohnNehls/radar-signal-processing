@@ -22,6 +22,29 @@ def signal_range_eqn(
     return (Pt * Gt * Gr * sigma * wavelength**2) / (((4 * c.PI) ** 3) * (R**4) * L)
 
 
+def signal_range_eqn_one_way(
+    Pt: float, Gt: float, Gr: float, wavelength: float, R: float, L: float
+) -> float:
+    """
+    Calculate the received power for a one-way communication link (Friis equation).
+
+    Models a transmitter and receiver with no target reflection — e.g. an EA
+    platform retransmitting a stored pulse directly to the radar receiver.
+
+    Args:
+        Pt (float): Transmit power [W]
+        Gt (float): Transmit antenna gain [unitless]
+        Gr (float): Receive antenna gain [unitless]
+        wavelength (float): Wavelength of the carrier signal [m]
+        R (float): Range between transmitter and receiver [m]
+        L (float): System losses [unitless]
+
+    Returns:
+        float: Received power [W]
+    """
+    return (Pt * Gt * Gr * wavelength**2) / ((4 * c.PI)**2 * R**2 * L)
+
+
 def noise_power(B: float, F: float, T: float) -> float:
     """
     Calculate the thermal noise power of the receiver.

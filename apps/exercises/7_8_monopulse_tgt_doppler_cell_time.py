@@ -12,7 +12,7 @@ from rsp.rf_datacube import number_range_bins, range_axis, dataCube
 from rsp.rf_datacube import matchfilter, doppler_process
 from rsp.range_equation import noise_power
 from rsp._rdm_internals import create_window, add_returns, process_waveform_dict
-from rsp.returns import Target, SkinReturn
+from rsp.returns import Target, Return
 
 
 
@@ -39,7 +39,7 @@ radar = Radar(
     dwell_time=0.5e-3,
 )
 
-return_list = [SkinReturn(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10))]
+return_list = [Return(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10))]
 
 waveform = uncoded_waveform(bw)                              # high 1
 waveform = barker_waveform(bw, nchips=13)                    # high 1

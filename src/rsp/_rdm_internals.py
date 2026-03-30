@@ -8,10 +8,10 @@ from . import constants as c
 from . import waveform as wvf
 from .waveform_helpers import add_waveform_at_index
 from .utilities import phase_negpi_pospi
-from .range_equation import snr_range_eqn, signal_range_eqn
+from .range_equation import snr_range_eqn, signal_range_eqn, signal_range_eqn_one_way
 from . import vbm
 from .pulse_doppler_radar import Radar
-from .returns import Target, EaPlatform, SkinReturn, MemoryReturn
+from .returns import Target, EaPlatform, Return
 
 
 def _propagation_phase(delays: np.ndarray, fcar: float) -> np.ndarray:
@@ -79,7 +79,7 @@ def add_skin(
 
 
 def add_memory(
-    datacube: np.ndarray, wvf: Dict, radar: Radar, return_info: MemoryReturn, return_magnitude: float
+    datacube: np.ndarray, wvf: Dict, radar: Radar, return_info: Return, return_magnitude: float
 ) -> None:
     """Adds a notional memory-based electronic attack (EA) return to the datacube.
 
@@ -103,16 +103,18 @@ def add_memory(
     skin_return_times = pulse_tx_times + 2 * one_way_delays
     one_way_propagation_phases = _propagation_phase(one_way_delays, radar.fcar)
 
+    ea = return_info.platform
+
     # Doppler frequency shift for range-rate offset
-    doppler_freq_offset = 2 * radar.fcar / c.C * return_info.rdot_offset
+    doppler_freq_offset = 2 * radar.fcar / c.C * ea.rdot_offset
 
     # Phase modulation for Velocity Bin Masking (VBM)
-    if return_info.rdot_delta is not None:
-        vbm_noise_function = return_info.vbm_noise_function or vbm._lfm_phase
+    if ea.rdot_delta is not None:
+        vbm_noise_function = ea.vbm_noise_function or vbm._lfm_phase
         slowtime_noise = vbm.slowtime_noise(
             radar.Npulses,
             radar.fcar,
-            return_info.rdot_delta,
+            ea.rdot_delta,
             radar.PRF,
             noiseFun=vbm_noise_function,
         )
@@ -120,7 +122,7 @@ def add_memory(
         slowtime_noise = np.ones(radar.Npulses)
 
     # Additional time delay for range offset
-    total_delay = return_info.delay + 2 * return_info.range_offset / c.C
+    total_delay = ea.delay + 2 * ea.range_offset / c.C
     return_times = skin_return_times + total_delay
     return_sample_indices = _return_sample_indices(return_times, wvf, radar)
 
@@ -259,7 +261,8 @@ def skin_voltage_amplitude(radar: Radar, target: Target) -> float:
 def memory_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target) -> float:
     """Calculates the received voltage amplitude of a memory-based EA return.
 
-    Models the one-way communication link from the EA platform to the radar.
+    Models the one-way communication link from the EA platform to the radar
+    using the Friis equation.
 
     Args:
         platform: EA platform transmitter parameters.
@@ -269,19 +272,12 @@ def memory_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target)
     Returns:
         The received voltage amplitude from the EA platform.
     """
-    # To model a one-way link using the two-way radar range equation,
-    # we can use an effective RCS that cancels the extra 1/(4*pi*R^2) term.
-    # The effective RCS is sigma = 4 * pi * R^2.
-    range_m = target.range
-    equivalent_rcs = 4 * np.pi * range_m**2
-
-    rx_power = signal_range_eqn(
+    rx_power = signal_range_eqn_one_way(
         platform.txPower,
         platform.txGain,
         radar.rxGain,
-        equivalent_rcs,
         c.C / radar.fcar,
-        range_m,
+        target.range,
         platform.totalLosses,
     )
     return np.sqrt(c.RADAR_LOAD * rx_power)
@@ -304,19 +300,20 @@ def add_returns(
             amplitudes are used.
     """
     for item in return_list:
-        if isinstance(item, SkinReturn):
+        if not isinstance(item, Return):
+            print(f"Return type '{type(item).__name__}' not recognized. No return added.")
+            continue
+        if item.platform is None:
             amp = (skin_snr_amplitude(radar, item.target, waveform) if snr
                    else skin_voltage_amplitude(radar, item.target))
             add_skin(datacube, waveform, item.target, radar, amp)
-        elif isinstance(item, MemoryReturn):
+        else:
             if snr:
                 print("Note: Using notional SNR for memory return amplitude.")
                 amp = skin_snr_amplitude(radar, item.target, waveform)
             else:
                 amp = memory_voltage_amplitude(item.platform, radar, item.target)
             add_memory(datacube, waveform, radar, item, amp)
-        else:
-            print(f"Return type '{type(item).__name__}' not recognized. No return added.")
 
 
 def process_waveform_dict(waveform: Dict[str, Any], radar: Radar) -> None:

@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform
-from rsp.returns import Target, EaPlatform, MemoryReturn
+from rsp.returns import Target, EaPlatform, Return
 
 ################################################################################
 # Doppler noise is LFM in slow time
@@ -29,11 +29,12 @@ radar = Radar(
 waveform = uncoded_waveform(bw)
 
 return_list = [
-    MemoryReturn(
+    Return(
         target=Target(range=3.5e3, rangeRate=0.5e3),
-        rdot_delta=2.0e3,
-        rdot_offset=0.0e3,
-        platform=EaPlatform(txPower=20.0, txGain=10 ** (5 / 10), totalLosses=10 ** (3 / 10)),
+        platform=EaPlatform(
+            txPower=20.0, txGain=10 ** (5 / 10), totalLosses=10 ** (3 / 10),
+            rdot_delta=2.0e3, rdot_offset=0.0e3,
+        ),
     )
 ]
 

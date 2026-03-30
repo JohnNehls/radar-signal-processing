@@ -5,7 +5,7 @@ import rsp.monopulse as mp
 from rsp import rdm
 from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import lfm_waveform
-from rsp.returns import Target, SkinReturn
+from rsp.returns import Target, Return
 
 BW = 10e6
 
@@ -33,7 +33,7 @@ def test_monopulse_rdm_angle_error_within_threshold():
 
     dc_list = []
     for i, sv in enumerate(steer_vec):
-        return_list = [SkinReturn(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10, sv=sv))]
+        return_list = [Return(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10, sv=sv))]
         _, _, total_dc, _ = rdm.gen(RADAR, WAVEFORM, return_list, snr=True, debug=False, plot=False, seed=i)
         dc_list.append(total_dc)
 
