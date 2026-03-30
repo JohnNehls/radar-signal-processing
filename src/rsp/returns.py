@@ -56,19 +56,24 @@ class EaPlatform:
 
 @dataclass
 class Return:
-    """A simulated radar return — either a skin return or a memory-based EA return.
+    """A simulated radar return — skin, memory-based EA, or both simultaneously.
 
-    - ``platform=None`` (default): skin return.  The radar's own transmitted
-      pulse reflects off the target and is received.  ``target.rcs`` is required
-      for physical amplitude mode.
-    - ``platform=<EaPlatform>``: DRFM memory return.  The EA platform receives
-      the radar pulse, stores it, and retransmits with the modulation specified
-      in the platform.  Amplitude is derived from the platform parameters via
-      the one-way link equation.
+    The two contributions are independent and additive:
+
+    - Skin return fires when ``target.rcs is not None``.  The radar's own
+      transmitted pulse reflects off the target.  ``target.rcs`` sets the
+      physical amplitude via the two-way range equation.
+    - Memory return fires when ``platform is not None``.  A DRFM jammer
+      receives the pulse, stores it, and retransmits with the modulation
+      specified in ``platform``.  Amplitude is derived from the one-way
+      link equation.
+
+    Both can be active on the same Return, modelling a jammer co-located
+    with the target (set ``target.rcs`` and supply a ``platform``).
 
     Attributes:
         target: Target kinematics and (for skin) RCS.
-        platform: EA platform parameters.  ``None`` selects skin return mode.
+        platform: EA platform parameters.  ``None`` disables memory return.
     """
 
     target: Target

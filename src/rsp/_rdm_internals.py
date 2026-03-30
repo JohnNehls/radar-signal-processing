@@ -288,12 +288,17 @@ def add_returns(
 ) -> None:
     """Adds multiple returns to a datacube.
 
+    For each Return in return_list:
+    - A skin return is added when ``target.rcs is not None``.
+    - A memory return is added when ``platform is not None``.
+    Both can fire for the same Return, modelling a co-located jammer on the target.
+
     The datacube is modified in place.
 
     Args:
         datacube: The 2D complex datacube to modify.
         waveform: Dictionary of waveform parameters.
-        return_list: A list of SkinReturn or MemoryReturn objects.
+        return_list: A list of Return objects.
         radar: Radar system parameters.
         snr: If True, amplitudes are normalised to SNR voltage ratio using the
             radar range equation.  If False (default), physically-based voltage
@@ -303,11 +308,13 @@ def add_returns(
         if not isinstance(item, Return):
             print(f"Return type '{type(item).__name__}' not recognized. No return added.")
             continue
-        if item.platform is None:
+
+        if item.target.rcs is not None:
             amp = (skin_snr_amplitude(radar, item.target, waveform) if snr
                    else skin_voltage_amplitude(radar, item.target))
             add_skin(datacube, waveform, item.target, radar, amp)
-        else:
+
+        if item.platform is not None:
             if snr:
                 print("Note: Using notional SNR for memory return amplitude.")
                 amp = skin_snr_amplitude(radar, item.target, waveform)

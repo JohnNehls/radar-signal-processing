@@ -32,10 +32,9 @@ waveform = barker_waveform(bw, nchips=13)
 waveform = random_waveform(bw, nchips=13)
 waveform = lfm_waveform(bw, T=10 / 40e6, chirpUpDown=1)
 
-skin_tgt = Target(range=3.5e3, rangeRate=0.5e3, rcs=10)
-target_dict = Return(target=skin_tgt)
+target_dict = Return(target=Target(range=7.1e3, rangeRate=-1e3, rcs=9))
 mem_on_target_dict = Return(
-    target=Target(range=skin_tgt.range, rangeRate=skin_tgt.rangeRate, sv=np.exp(1j * np.pi / 4)),
+    target=Target(range=3.5e3, rangeRate=0.5e3, rcs=10, sv=np.exp(1j * np.pi / 4)),
     platform=EaPlatform(
         txPower=1, txGain=10 ** (5 / 10), totalLosses=10 ** (5 / 10),
         rdot_delta=3.0e3, rdot_offset=0.3e3, range_offset=-0.2e3, delay=1.33e-6,
