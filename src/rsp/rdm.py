@@ -8,7 +8,7 @@ from .rf_datacube import matchfilter, doppler_process
 from .range_equation import noise_power
 from .noise import unity_variance_complex_noise
 from .utilities import zero_to_smallest_float
-from ._rdm_internals import add_returns, add_returns_snr, process_waveform_dict, create_window
+from ._rdm_internals import add_returns, process_waveform_dict, create_window
 from ._rdm_extras import noise_checks, check_expected_snr
 from .pulse_doppler_radar import Radar
 
@@ -198,14 +198,13 @@ def gen(
         ### Direclty plot the RDM in SNR by way of the range equation ###
         # - The SNR is calculated at the initial range and does not change in time
         noise_dc = unity_variance_complex_noise(signal_dc.shape) / np.sqrt(radar.Npulses)
-        add_returns_snr(signal_dc, waveform, return_list, radar)
     else:
         ### Determin scaling factors for max voltage ###
         rxVolt_noise = np.sqrt(
             c.RADAR_LOAD * noise_power(waveform["bw"], radar.noiseFactor, radar.opTemp)
         )
         noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
-        add_returns(signal_dc, waveform, return_list, radar)
+    add_returns(signal_dc, waveform, return_list, radar, snr=snr)
 
     total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
 

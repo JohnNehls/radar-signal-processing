@@ -232,29 +232,6 @@ def skin_snr_amplitude(radar: Radar, target: Target, waveform: Dict) -> float:
     return np.sqrt(snr_per_pulse)
 
 
-def add_returns_snr(
-    datacube: np.ndarray, waveform: Dict, return_list: List, radar: Radar
-) -> None:
-    """Adds multiple returns to a datacube, with amplitudes based on SNR.
-
-    The datacube is modified in place.
-
-    Args:
-        datacube: The 2D complex datacube to modify.
-        waveform: Dictionary of waveform parameters.
-        return_list: A list of SkinReturn or MemoryReturn objects.
-        radar: Radar system parameters.
-    """
-    for item in return_list:
-        if isinstance(item, SkinReturn):
-            snr_volt_amp = skin_snr_amplitude(radar, item.target, waveform)
-            add_skin(datacube, waveform, item.target, radar, snr_volt_amp)
-        elif isinstance(item, MemoryReturn):
-            print("Note: Using notional SNR for memory return amplitude.")
-            snr_volt_amp = skin_snr_amplitude(radar, item.target, waveform)
-            add_memory(datacube, waveform, radar, item, snr_volt_amp)
-        else:
-            print(f"Return type '{type(item).__name__}' not recognized. No return added.")
 
 
 def skin_voltage_amplitude(radar: Radar, target: Target) -> float:
@@ -311,9 +288,9 @@ def memory_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target)
 
 
 def add_returns(
-    datacube: np.ndarray, waveform: Dict, return_list: List, radar: Radar
+    datacube: np.ndarray, waveform: Dict, return_list: List, radar: Radar, snr: bool = False
 ) -> None:
-    """Adds multiple returns to a datacube, with physically-based voltage amplitudes.
+    """Adds multiple returns to a datacube.
 
     The datacube is modified in place.
 
@@ -322,14 +299,22 @@ def add_returns(
         waveform: Dictionary of waveform parameters.
         return_list: A list of SkinReturn or MemoryReturn objects.
         radar: Radar system parameters.
+        snr: If True, amplitudes are normalised to SNR voltage ratio using the
+            radar range equation.  If False (default), physically-based voltage
+            amplitudes are used.
     """
     for item in return_list:
         if isinstance(item, SkinReturn):
-            rx_skin_amp = skin_voltage_amplitude(radar, item.target)
-            add_skin(datacube, waveform, item.target, radar, rx_skin_amp)
+            amp = (skin_snr_amplitude(radar, item.target, waveform) if snr
+                   else skin_voltage_amplitude(radar, item.target))
+            add_skin(datacube, waveform, item.target, radar, amp)
         elif isinstance(item, MemoryReturn):
-            rx_mem_amp = memory_voltage_amplitude(item.platform, radar, item.target)
-            add_memory(datacube, waveform, radar, item, rx_mem_amp)
+            if snr:
+                print("Note: Using notional SNR for memory return amplitude.")
+                amp = skin_snr_amplitude(radar, item.target, waveform)
+            else:
+                amp = memory_voltage_amplitude(item.platform, radar, item.target)
+            add_memory(datacube, waveform, radar, item, amp)
         else:
             print(f"Return type '{type(item).__name__}' not recognized. No return added.")
 
