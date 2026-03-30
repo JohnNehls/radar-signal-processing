@@ -78,10 +78,10 @@ def add_skin(
                 add_waveform_at_index(flat, pulse, return_sample_indices[i])
 
 
-def add_memory(
+def add_jammer(
     datacube: np.ndarray, wvf: Dict, radar: Radar, return_info: Return, return_magnitude: float
 ) -> None:
-    """Adds a notional memory-based electronic attack (EA) return to the datacube.
+    """Adds a DRFM jammer return to the datacube.
 
     This function simulates a DRFM jammer that records an incoming pulse and
     re-transmits it with modifications to deceive the radar.
@@ -91,7 +91,7 @@ def add_memory(
         datacube: 2D complex array to which the return is added.
         wvf: Dictionary containing waveform parameters.
         radar: Radar system parameters.
-        return_info: MemoryReturn describing the EA and target parameters.
+        return_info: Return describing the EA platform and target parameters.
         return_magnitude: The voltage or SNR amplitude of the return.
     """
     target = return_info.target
@@ -258,8 +258,8 @@ def skin_voltage_amplitude(radar: Radar, target: Target) -> float:
     return np.sqrt(c.RADAR_LOAD * rx_power)
 
 
-def memory_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target) -> float:
-    """Calculates the received voltage amplitude of a memory-based EA return.
+def jammer_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target) -> float:
+    """Calculates the received voltage amplitude of a DRFM jammer return.
 
     Models the one-way communication link from the EA platform to the radar
     using the Friis equation.
@@ -290,7 +290,7 @@ def add_returns(
 
     For each Return in return_list:
     - A skin return is added when ``target.rcs is not None``.
-    - A memory return is added when ``platform is not None``.
+    - A jammer return is added when ``platform is not None``.
     Both can fire for the same Return, modelling a co-located jammer on the target.
 
     The datacube is modified in place.
@@ -316,11 +316,11 @@ def add_returns(
 
         if item.platform is not None:
             if snr:
-                print("Note: Using notional SNR for memory return amplitude.")
+                print("Note: Using notional SNR for jammer return amplitude.")
                 amp = skin_snr_amplitude(radar, item.target, waveform)
             else:
-                amp = memory_voltage_amplitude(item.platform, radar, item.target)
-            add_memory(datacube, waveform, radar, item, amp)
+                amp = jammer_voltage_amplitude(item.platform, radar, item.target)
+            add_jammer(datacube, waveform, radar, item, amp)
 
 
 def process_waveform_dict(waveform: Dict[str, Any], radar: Radar) -> None:

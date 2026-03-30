@@ -11,7 +11,7 @@ class Target:
         range: True target range [m].
         rangeRate: Radial velocity (positive = receding) [m/s].
         rcs: Radar cross section [m^2].  Required for skin return amplitude;
-            unused by memory return amplitude in physical mode.
+            unused by jammer return amplitude in physical mode.
         sv: Steering vector component for a single array element [dimensionless].
             Defaults to 1 (isotropic / no array).
     """
@@ -56,7 +56,7 @@ class EaPlatform:
 
 @dataclass
 class Return:
-    """A simulated radar return — skin, memory-based EA, or both simultaneously.
+    """A simulated radar return — skin, jammer-based EA, or both simultaneously.
 
     The two contributions are independent and additive:
 
@@ -73,7 +73,7 @@ class Return:
 
     Attributes:
         target: Target kinematics and (for skin) RCS.
-        platform: EA platform parameters.  ``None`` disables memory return.
+        platform: EA platform parameters.  ``None`` disables jammer return.
     """
 
     target: Target

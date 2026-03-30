@@ -162,7 +162,7 @@ def gen(
         waveform: Waveform definition dict. Use the factory functions
             (e.g. :func:`rsp.waveform.lfm_waveform`) to construct this.
         return_list: List of return dicts, each describing one simulated target.
-            Each dict must have a ``'type'`` key (``'skin'`` or ``'memory'``)
+            Each dict must have a ``'type'`` key (``'skin'`` or ``'jammer'``)
             and a nested ``'target'`` dict with ``'range'``, ``'rangeRate'``,
             and (for skin) ``'rcs'``.
         seed: Random number generator seed for reproducibility. Defaults to 0.

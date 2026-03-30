@@ -56,5 +56,5 @@ def check_max_in_expected_bin(waveform):
 
 
 @pytest.mark.parametrize("waveform", WAVEFORMS, ids=lambda w: w["type"] + str(w.get("nchips", "")))
-def test_memory_return_in_correct_bin(waveform):
+def test_jammer_return_in_correct_bin(waveform):
     check_max_in_expected_bin(waveform)
