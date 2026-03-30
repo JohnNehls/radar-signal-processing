@@ -32,8 +32,8 @@ waveform = barker_waveform(bw, nchips=13)
 waveform = random_waveform(bw, nchips=13)
 waveform = lfm_waveform(bw, T=10 / 40e6, chirpUpDown=1)
 
-target_dict = Return(target=Target(range=7.1e3, rangeRate=-1e3, rcs=9))
-mem_on_target_dict = Return(
+skin_return = Return(target=Target(range=7.1e3, rangeRate=-1e3, rcs=9))
+mem_on_target = Return(
     target=Target(range=3.5e3, rangeRate=0.5e3, rcs=10, sv=np.exp(1j * np.pi / 4)),
     platform=EaPlatform(
         txPower=1, txGain=10 ** (5 / 10), totalLosses=10 ** (5 / 10),
@@ -41,7 +41,7 @@ mem_on_target_dict = Return(
     ),
 )
 
-return_list = [target_dict, mem_on_target_dict]
+return_list = [skin_return, mem_on_target]
 
 rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
     radar, waveform, return_list, seed=0, plot=True, debug=True, snr=False

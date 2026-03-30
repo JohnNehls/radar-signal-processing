@@ -38,14 +38,14 @@ vbm_name_function_dict = {
 
 rdot_delta = 1.0e3
 for name, func in vbm_name_function_dict.items():
-    mem_dict = Return(
+    mem_return = Return(
         target=Target(range=0.2e3, rangeRate=0.0e3),
         platform=EaPlatform(
             txPower=1.0e3, txGain=10 ** (5 / 10), totalLosses=10 ** (3 / 10),
             rdot_delta=rdot_delta, rdot_offset=0.0e3, vbm_noise_function=func,
         ),
     )
-    rdm.gen(radar, waveform, [mem_dict], debug=False)
+    rdm.gen(radar, waveform, [mem_return], debug=False)
     ax = plt.gca()
     ax.set_title(name)
 
