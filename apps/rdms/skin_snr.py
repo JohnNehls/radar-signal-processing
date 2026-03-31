@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-from rsp import rdm
-from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import lfm_waveform
-from rsp.returns import Target, Return
+from rsp import rdm, Radar, Target, Return, lfm_waveform
 
 ################################################################################
 # skin example

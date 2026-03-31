@@ -2,10 +2,8 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from rsp import rdm
-from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
-from rsp.returns import Target, EaPlatform, Return
+from rsp import rdm, Radar, Target, EaPlatform, Return
+from rsp import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
 
 ################################################################################
 # Kitchen sink: script showing a sample of all of the options available

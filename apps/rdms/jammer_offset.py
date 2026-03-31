@@ -1,8 +1,5 @@
 import matplotlib.pyplot as plt
-from rsp import rdm
-from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import lfm_waveform
-from rsp.returns import Target, Return, EaPlatform
+from rsp import rdm, Radar, Target, Return, EaPlatform, lfm_waveform
 
 radar = Radar(
     fcar=10e9,

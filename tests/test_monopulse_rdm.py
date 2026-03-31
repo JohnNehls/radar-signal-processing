@@ -2,10 +2,7 @@ import numpy as np
 import pytest
 import rsp.uniform_linear_arrays as ula
 import rsp.monopulse as mp
-from rsp import rdm
-from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import lfm_waveform
-from rsp.returns import Target, Return
+from rsp import rdm, Radar, Target, Return, lfm_waveform
 
 BW = 10e6
 

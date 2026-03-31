@@ -43,10 +43,7 @@ pip install radar-signal-processing/
 -   **RDM generator**
 
     ```python
-    from rsp import rdm
-    from rsp.pulse_doppler_radar import Radar
-    from rsp.waveform import barker_waveform
-    from rsp.returns import Target, Return
+    from rsp import rdm, Radar, Target, Return, barker_waveform
 
     radar = Radar(
         fcar=10e9,

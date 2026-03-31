@@ -1,10 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-from rsp import rdm
-from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import lfm_waveform
-from rsp.returns import Target, EaPlatform, Return
+from rsp import rdm, Radar, Target, EaPlatform, Return, lfm_waveform
 
 ################################################################################
 # Doppler noise is LFM in slow time
