@@ -1,7 +1,7 @@
 #!/usr/bin/env python
-"""Run each exercise script, save all figures to docs/<name>_figures/, and
-write an org-mode document (docs/<name>_figures.org) embedding every figure
-under a heading named after its source script.
+"""Run each exercise script, save all figures to docs/generated_artifacts/<name>_figures/,
+and write an org-mode document (docs/generated_artifacts/<name>_figures.org) embedding
+every figure under a heading named after its source script.
 
 Use -n NAME to set a prefix (default: "figures").
 
@@ -30,8 +30,8 @@ parser.add_argument(
     metavar="NAME",
     help=(
         "Prefix for output directory and org file. "
-        "'-n test' writes to docs/test_figures/ and docs/test_figures.org. "
-        "Defaults to 'figures' (docs/figures/ and docs/figures.org)."
+        "'-n test' writes to docs/generated_artifacts/test_figures/ and docs/generated_artifacts/test_figures.org. "
+        "Defaults to 'figures' (docs/generated_artifacts/figures/ and docs/generated_artifacts/figures.org)."
     ),
 )
 args = parser.parse_args()
@@ -40,8 +40,9 @@ prefix = f"{args.name}_figures" if args.name else "figures"
 
 EXERCISES_DIR = Path(__file__).parent / "exercises"
 DOCS_DIR = Path(__file__).parent.parent / "docs"
-OUT_DIR = DOCS_DIR / prefix
-ORG_FILE = DOCS_DIR / f"{prefix}.org"
+ARTIFACTS_DIR = DOCS_DIR / "generated_artifacts"
+OUT_DIR = ARTIFACTS_DIR / prefix
+ORG_FILE = ARTIFACTS_DIR / f"{prefix}.org"
 
 OUT_DIR.mkdir(parents=True, exist_ok=True)
 
