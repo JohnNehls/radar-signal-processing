@@ -1,6 +1,15 @@
+from enum import StrEnum
+
 import numpy as np
 from numpy.linalg import norm
 from . import constants as c
+
+
+class WaveformType(StrEnum):
+    UNCODED = "uncoded"
+    BARKER  = "barker"
+    RANDOM  = "random"
+    LFM     = "lfm"
 
 BARKER_DICT = {
     2: [1, -1],
@@ -227,7 +236,7 @@ def uncoded_waveform(bw: float) -> dict[str, object]:
     Returns:
         Waveform dict for use with rdm.gen.
     """
-    return {"type": "uncoded", "bw": bw}
+    return {"type": WaveformType.UNCODED, "bw": bw}
 
 
 def barker_waveform(bw: float, nchips: int) -> dict[str, object]:
@@ -241,7 +250,7 @@ def barker_waveform(bw: float, nchips: int) -> dict[str, object]:
         Waveform dict for use with rdm.gen.
     """
     assert nchips in BARKER_DICT, f"nchips={nchips} is not a valid Barker code length."
-    return {"type": "barker", "bw": bw, "nchips": nchips}
+    return {"type": WaveformType.BARKER, "bw": bw, "nchips": nchips}
 
 
 def random_waveform(bw: float, nchips: int) -> dict[str, object]:
@@ -254,7 +263,7 @@ def random_waveform(bw: float, nchips: int) -> dict[str, object]:
     Returns:
         Waveform dict for use with rdm.gen.
     """
-    return {"type": "random", "bw": bw, "nchips": nchips}
+    return {"type": WaveformType.RANDOM, "bw": bw, "nchips": nchips}
 
 
 def lfm_waveform(bw: float, T: float, chirpUpDown: int) -> dict[str, object]:
@@ -269,4 +278,4 @@ def lfm_waveform(bw: float, T: float, chirpUpDown: int) -> dict[str, object]:
         Waveform dict for use with rdm.gen.
     """
     assert chirpUpDown in [1, -1], "chirpUpDown must be 1 (up) or -1 (down)."
-    return {"type": "lfm", "bw": bw, "T": T, "chirpUpDown": chirpUpDown}
+    return {"type": WaveformType.LFM, "bw": bw, "T": T, "chirpUpDown": chirpUpDown}
