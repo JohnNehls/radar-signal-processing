@@ -100,7 +100,7 @@ def coded_pulse(
     Raises:
         AssertionError: If any value in the code is not 1 or -1.
     """
-    nChips = len(code)
+    nchips = len(code)
     Tc = 1 / BW
     dt = 1 / sampleRate
     samplesPerChip = round(Tc * sampleRate)
@@ -117,7 +117,7 @@ def coded_pulse(
 
 
 def barker_coded_pulse(
-    sampleRate: float, BW: float, nChips: int, normalize: bool = True
+    sampleRate: float, BW: float, nchips: int, normalize: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband, Barker-coded pulse.
 
@@ -127,7 +127,7 @@ def barker_coded_pulse(
     Args:
         sampleRate (float): The sampling rate in Hz.
         BW (float): The chip bandwidth in Hz. The chip duration is 1/BW.
-        nChips (int): The number of chips in the Barker code. Must be a valid
+        nchips (int): The number of chips in the Barker code. Must be a valid
             Barker code length (2, 3, 4, 5, 7, 11, or 13).
         normalize (bool, optional): If True, the pulse is normalized to have
             unit energy. Defaults to True.
@@ -140,17 +140,17 @@ def barker_coded_pulse(
     Raises:
         AssertionError: If nChips is not a valid Barker code length.
     """
-    assert nChips in BARKER_DICT, f"Error: {nChips=} is not a valid Barker code."
+    assert nchips in BARKER_DICT, f"Error: {nchips=} is not a valid Barker code."
     return coded_pulse(
         sampleRate,
         BW,
-        BARKER_DICT[nChips],
+        BARKER_DICT[nchips],
         normalize=normalize,
     )
 
 
 def random_coded_pulse(
-    sampleRate: float, BW: float, nChips: int, normalize: bool = True
+    sampleRate: float, BW: float, nchips: int, normalize: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband pulse with a random binary phase code.
 
@@ -159,7 +159,7 @@ def random_coded_pulse(
     Args:
         sampleRate (float): The sampling rate in Hz.
         BW (float): The chip bandwidth in Hz. The chip duration is 1/BW.
-        nChips (int): The number of chips in the random code.
+        nchips (int): The number of chips in the random code.
         normalize (bool, optional): If True, the pulse is normalized to have
             unit energy. Defaults to True.
 
@@ -168,7 +168,7 @@ def random_coded_pulse(
             - t (np.ndarray): Time vector for the pulse in seconds.
             - mag (np.ndarray): The real-valued, randomly coded magnitude.
     """
-    code_rand = np.random.choice([1, -1], size=nChips)
+    code_rand = np.random.choice([1, -1], size=nchips)
     return coded_pulse(
         sampleRate,
         BW,
