@@ -79,8 +79,8 @@ def linear_antenna_gain(
 def linear_antenna_gain_meters(
     el_pos: np.ndarray,
     fc: float,
-    weights: np.ndarray | None = None,
-    Ntheta: int = 10000,
+    weight_vec: np.ndarray | None = None,
+    N_theta: int = 10000,
     steer_angle: float = 0,
     plot: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -110,15 +110,15 @@ def linear_antenna_gain_meters(
     wavelength = c.C / fc
     el_pos_per_wl = el_pos / wavelength
     return linear_antenna_gain(
-        el_pos_per_wl, weight_vec=weights, N_theta=Ntheta, steer_angle=steer_angle, plot=plot
+        el_pos_per_wl, weight_vec=weight_vec, N_theta=N_theta, steer_angle=steer_angle, plot=plot
     )
 
 
 def linear_antenna_gain_N_db(
     N_el: int,
     dx: float,
-    weights: np.ndarray | None = None,
-    Ntheta: int = 10000,
+    weight_vec: np.ndarray | None = None,
+    N_theta: int = 10000,
     steer_angle: float = 0,
     plot: bool = False,
 ) -> tuple[np.ndarray, np.ndarray]:
@@ -149,7 +149,7 @@ def linear_antenna_gain_N_db(
     el_pos = np.linspace(-L / 2, L / 2, N_el)  # wavelengths
 
     thetas, gain = linear_antenna_gain(
-        el_pos, weight_vec=weights, N_theta=Ntheta, steer_angle=steer_angle, plot=plot
+        el_pos, weight_vec=weight_vec, N_theta=N_theta, steer_angle=steer_angle, plot=plot
     )
     return thetas, 20 * np.log10(abs(gain))
 

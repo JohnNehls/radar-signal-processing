@@ -72,8 +72,8 @@ fig, axs = plt.subplots(1, 2)
 fig.suptitle(r"Array Factor with Different Weights: 40 elements, $\lambda/2$ spacing")
 
 theta, gain = ula.linear_antenna_gain_N_db(Nel, 1 / 2, plot=False)
-theta, gain_cheb = ula.linear_antenna_gain_N_db(Nel, 1 / 2, weights=chebWindow, plot=False)
-theta, gain_tay = ula.linear_antenna_gain_N_db(Nel, 1 / 2, weights=tayWindow, plot=False)
+theta, gain_cheb = ula.linear_antenna_gain_N_db(Nel, 1 / 2, weight_vec=chebWindow, plot=False)
+theta, gain_tay = ula.linear_antenna_gain_N_db(Nel, 1 / 2, weight_vec=tayWindow, plot=False)
 axs[0].set_xlim((-90, 90))
 axs[1].set_xlim((-8, 8))
 
