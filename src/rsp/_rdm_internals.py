@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 from contextlib import contextmanager
 from scipy import signal
-from typing import Tuple, Dict, List, Any
+from typing import Any
 
 from . import constants as c
 from . import waveform as wvf
@@ -19,7 +19,7 @@ def _propagation_phase(delays: np.ndarray, fcar: float) -> np.ndarray:
     return -2 * np.pi * fcar * delays
 
 
-def _return_sample_indices(return_times: np.ndarray, waveform: Dict, radar: Radar) -> np.ndarray:
+def _return_sample_indices(return_times: np.ndarray, waveform: dict, radar: Radar) -> np.ndarray:
     """Converts pulse return times to flat datacube sample indices.
 
     Subtracts half the pulse width since pulses are timed from their leading edge.
@@ -45,7 +45,7 @@ def _flat_datacube(datacube: np.ndarray):
 
 def add_skin(
     datacube: np.ndarray,
-    wvf: Dict,
+    wvf: dict,
     tgt_info: Target,
     radar: Radar,
     return_magnitude: float,
@@ -59,7 +59,7 @@ def add_skin(
 
     Args:
         datacube: 2D complex array to which the return is added.
-        wvf: Dictionary containing waveform parameters.
+        wvf: dictionary containing waveform parameters.
         tgt_info: Target kinematics and scattering parameters.
         radar: Radar system parameters.
         return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
@@ -79,7 +79,7 @@ def add_skin(
 
 
 def add_jammer(
-    datacube: np.ndarray, wvf: Dict, radar: Radar, return_info: Return, return_magnitude: float
+    datacube: np.ndarray, wvf: dict, radar: Radar, return_info: Return, return_magnitude: float
 ) -> None:
     """Adds a DRFM jammer return to the datacube.
 
@@ -89,7 +89,7 @@ def add_jammer(
 
     Args:
         datacube: 2D complex array to which the return is added.
-        wvf: Dictionary containing waveform parameters.
+        wvf: dictionary containing waveform parameters.
         radar: Radar system parameters.
         return_info: Return describing the EA platform and target parameters.
         return_magnitude: The voltage or SNR amplitude of the return.
@@ -161,7 +161,7 @@ def add_jammer(
 
 
 def create_window(
-    shape: Tuple[int, int], cheby_atten_db: float = 60.0, plot: bool = False
+    shape: tuple[int, int], cheby_atten_db: float = 60.0, plot: bool = False
 ) -> np.ndarray:
     """Creates a 2D Dolph-Chebyshev window for sidelobe reduction.
 
@@ -194,7 +194,7 @@ def create_window(
     return window_matrix
 
 
-def skin_snr_amplitude(radar: Radar, target: Target, waveform: Dict) -> float:
+def skin_snr_amplitude(radar: Radar, target: Target, waveform: dict) -> float:
     """Calculates the required per-pulse voltage amplitude to achieve a target SNR.
 
     Uses the radar range equation to find the SNR after processing, then works
@@ -204,7 +204,7 @@ def skin_snr_amplitude(radar: Radar, target: Target, waveform: Dict) -> float:
     Args:
         radar: Radar system parameters.
         target: Target kinematics and scattering parameters.
-        waveform: Dictionary of waveform parameters.
+        waveform: dictionary of waveform parameters.
 
     Returns:
         The required per-pulse SNR as a linear voltage ratio.
@@ -246,7 +246,7 @@ def skin_voltage_amplitude(radar: Radar, target: Target) -> float:
     Returns:
         The received voltage amplitude.
     """
-    rx_power = signal_range_eqn(
+    return np.sqrt(c.RADAR_LOAD * signal_range_eqn(
         radar.txPower,
         radar.txGain,
         radar.rxGain,
@@ -254,8 +254,7 @@ def skin_voltage_amplitude(radar: Radar, target: Target) -> float:
         c.C / radar.fcar,
         target.range,
         radar.totalLosses,
-    )
-    return np.sqrt(c.RADAR_LOAD * rx_power)
+    ))
 
 
 def jammer_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target) -> float:
@@ -272,19 +271,18 @@ def jammer_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target)
     Returns:
         The received voltage amplitude from the EA platform.
     """
-    rx_power = signal_range_eqn_one_way(
+    return np.sqrt(c.RADAR_LOAD * signal_range_eqn_one_way(
         platform.txPower,
         platform.txGain,
         radar.rxGain,
         c.C / radar.fcar,
         target.range,
         platform.totalLosses,
-    )
-    return np.sqrt(c.RADAR_LOAD * rx_power)
+    ))
 
 
 def add_returns(
-    datacube: np.ndarray, waveform: Dict, return_list: List, radar: Radar, snr: bool = False
+    datacube: np.ndarray, waveform: dict, return_list: list, radar: Radar, snr: bool = False
 ) -> None:
     """Adds multiple returns to a datacube.
 
@@ -297,7 +295,7 @@ def add_returns(
 
     Args:
         datacube: The 2D complex datacube to modify.
-        waveform: Dictionary of waveform parameters.
+        waveform: dictionary of waveform parameters.
         return_list: A list of Return objects.
         radar: Radar system parameters.
         snr: If True, amplitudes are normalised to SNR voltage ratio using the
@@ -323,7 +321,7 @@ def add_returns(
             add_jammer(datacube, waveform, radar, item, amp)
 
 
-def process_waveform_dict(waveform: Dict[str, Any], radar: Radar) -> None:
+def process_waveform_dict(waveform: dict[str, Any], radar: Radar) -> None:
     """Generates waveform samples and computes parameters based on a dictionary.
 
     This function acts as a factory, creating the pulse array and calculating
@@ -331,7 +329,7 @@ def process_waveform_dict(waveform: Dict[str, Any], radar: Radar) -> None:
     The input `waveform` dictionary is updated in-place.
 
     Args:
-        waveform: Dictionary defining the waveform type and its parameters.
+        waveform: dictionary defining the waveform type and its parameters.
                   It will be updated with 'pulse', 'time_BW_product', 'pulse_width'.
         radar: Radar system parameters.
 

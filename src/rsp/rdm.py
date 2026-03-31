@@ -1,6 +1,5 @@
 import numpy as np
 import matplotlib.pyplot as plt
-from typing import Tuple
 
 from . import constants as c
 from .rf_datacube import number_range_bins, range_axis, dataCube
@@ -52,7 +51,7 @@ def plot_rdm(
     title: str,
     cbar_min: float = -100,
     volt_to_dbm: bool = True,
-) -> Tuple[plt.Figure, plt.Axes]:
+) -> tuple[plt.Figure, plt.Axes]:
     """Plots a range-Doppler matrix (RDM).
 
     The RDM shows radar data after pulse compression and Doppler processing.
@@ -102,7 +101,7 @@ def plot_rdm_snr(
     title: str,
     cbar_min: float = 0,
     volt_ratio_to_db: bool = True,
-) -> Tuple[plt.Figure, plt.Axes]:
+) -> tuple[plt.Figure, plt.Axes]:
     """Plots a range-Doppler matrix in terms of Signal-to-Noise Ratio (SNR).
 
     Args:

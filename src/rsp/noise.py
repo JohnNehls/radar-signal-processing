@@ -1,11 +1,10 @@
 import numpy as np
 import numpy.random as nr
 from scipy import fft
-from typing import Union
 from . import constants as c
 
 
-def unity_variance_complex_noise(inSize: Union[tuple, int]) -> np.ndarray:
+def unity_variance_complex_noise(inSize: tuple | int) -> np.ndarray:
     """
     Generates complex Gaussian noise with unity variance.
 
