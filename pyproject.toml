@@ -15,6 +15,9 @@ dependencies = [
         "matplotlib>=3.9.4"
         ]
 
+[project.optional-dependencies]
+dev = ["flake8", "pytest"]
+
 [project.urls]
 Repository="https://github.com/JohnNehls/radar-signal-processing"
 
