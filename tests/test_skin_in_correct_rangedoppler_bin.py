@@ -2,7 +2,7 @@ import numpy as np
 import pytest
 import rsp.pulse_doppler_radar as pdr
 from rsp import rdm, Radar, Target, Return
-from rsp import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
+from rsp import uncoded_waveform, barker_coded_waveform, random_coded_waveform, lfm_waveform
 
 BW = 10e6
 
@@ -23,9 +23,9 @@ RETURN = Return(target=Target(range=8.4e3, rangeRate=3.2e3, rcs=10))
 
 WAVEFORMS = [
     uncoded_waveform(BW),
-    barker_waveform(BW, nchips=5),
-    barker_waveform(BW, nchips=13),
-    random_waveform(BW, nchips=13),
+    barker_coded_waveform(BW, nchips=5),
+    barker_coded_waveform(BW, nchips=13),
+    random_coded_waveform(BW, nchips=13),
     lfm_waveform(BW, T=10 / 40e6, chirpUpDown=1),
 ]
 

@@ -12,7 +12,7 @@ Typical usage::
 
 from .pulse_doppler_radar import Radar
 from .returns import Target, EaPlatform, Return
-from .waveform import WaveformType, uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
+from .waveform import WaveformType, uncoded_waveform, barker_coded_waveform, random_coded_waveform, lfm_waveform
 from . import rdm
 
 __all__ = [
@@ -22,8 +22,8 @@ __all__ = [
     "Return",
     "WaveformType",
     "uncoded_waveform",
-    "barker_waveform",
-    "random_waveform",
+    "barker_coded_waveform",
+    "random_coded_waveform",
     "lfm_waveform",
     "rdm",
 ]

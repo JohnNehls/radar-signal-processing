@@ -6,7 +6,7 @@ import rsp.uniform_linear_arrays as ula
 import rsp.rdm as rdm
 import rsp.monopulse as mp
 from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
+from rsp.waveform import uncoded_waveform, barker_coded_waveform, lfm_waveform
 from rsp.returns import Target, Return
 
 
@@ -36,7 +36,7 @@ radar = Radar(
 )
 
 waveform = uncoded_waveform(bw)                        # high 1
-waveform = barker_waveform(bw, nchips=13)              # high 1
+waveform = barker_coded_waveform(bw, nchips=13)              # high 1
 waveform = lfm_waveform(bw, T=10 / 40e6, chirpUpDown=1)  # high 2
 
 tgt_angle = 5

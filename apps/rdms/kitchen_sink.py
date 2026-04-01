@@ -3,7 +3,7 @@
 import matplotlib.pyplot as plt
 import numpy as np
 from rsp import rdm, Radar, Target, EaPlatform, Return
-from rsp import uncoded_waveform, barker_waveform, random_waveform, lfm_waveform
+from rsp import uncoded_waveform, barker_coded_waveform, random_coded_waveform, lfm_waveform
 
 ################################################################################
 # Kitchen sink: script showing a sample of all of the options available
@@ -26,8 +26,8 @@ radar = Radar(
 
 # Example waveform configurations, the last un-commented on will be used for the RDM
 waveform = uncoded_waveform(bw)
-waveform = barker_waveform(bw, nchips=13)
-waveform = random_waveform(bw, nchips=13)
+waveform = barker_coded_waveform(bw, nchips=13)
+waveform = random_coded_waveform(bw, nchips=13)
 waveform = lfm_waveform(bw, T=10 / 40e6, chirpUpDown=1)
 
 skin_return = Return(target=Target(range=7.1e3, rangeRate=-1e3, rcs=9))

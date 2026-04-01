@@ -5,7 +5,7 @@ import numpy as np
 from rsp import constants as c
 import rsp.uniform_linear_arrays as ula
 from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import uncoded_waveform, barker_waveform, lfm_waveform
+from rsp.waveform import uncoded_waveform, barker_coded_waveform, lfm_waveform
 from rsp.rdm import plot_rdm
 import rsp.monopulse as mp
 from rsp.rf_datacube import number_range_bins, range_axis, dataCube
@@ -42,7 +42,7 @@ radar = Radar(
 return_list = [Return(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10))]
 
 waveform = uncoded_waveform(bw)                              # high 1
-waveform = barker_waveform(bw, nchips=13)                    # high 1
+waveform = barker_coded_waveform(bw, nchips=13)                    # high 1
 waveform = lfm_waveform(3 * bw, T=10 / 40e6, chirpUpDown=1)  ## high 2
 
 tgt_angle = 2

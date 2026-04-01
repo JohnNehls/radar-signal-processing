@@ -239,7 +239,7 @@ def uncoded_waveform(bw: float) -> dict[str, object]:
     return {"type": WaveformType.UNCODED, "bw": bw}
 
 
-def barker_waveform(bw: float, nchips: int) -> dict[str, object]:
+def barker_coded_waveform(bw: float, nchips: int) -> dict[str, object]:
     """Returns a waveform dict for a Barker-coded pulse.
 
     Args:
@@ -253,7 +253,7 @@ def barker_waveform(bw: float, nchips: int) -> dict[str, object]:
     return {"type": WaveformType.BARKER, "bw": bw, "nchips": nchips}
 
 
-def random_waveform(bw: float, nchips: int) -> dict[str, object]:
+def random_coded_waveform(bw: float, nchips: int) -> dict[str, object]:
     """Returns a waveform dict for a random binary phase-coded pulse.
 
     Args:

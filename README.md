@@ -44,7 +44,7 @@ pip install radar-signal-processing/
 ### RDM generator
 
 ```python
-from rsp import rdm, Radar, Target, Return, barker_waveform
+from rsp import rdm, Radar, Target, Return, barker_coded_waveform
 
 radar = Radar(
     fcar=10e9,
@@ -59,7 +59,7 @@ radar = Radar(
     dwell_time=2e-3,
 )
 
-waveform = barker_waveform(10e6, nchips=13)
+waveform = barker_coded_waveform(10e6, nchips=13)
 
 return_list = [Return(target=Target(range=0.5e3, rangeRate=1.0e3, rcs=1))]
 
@@ -68,7 +68,7 @@ rdm.gen(radar, waveform, return_list)
 
 ![image](docs/figs/rdm_readme_example.png)
 
-Other available waveforms: `uncoded_waveform`, `random_waveform`, `lfm_waveform`.
+Other available waveforms: `uncoded_waveform`, `random_coded_waveform`, `lfm_waveform`.
 
 For additional examples including DRFM jammer returns and VBM, see
 [apps/rdms](apps/rdms). [kitchen_sink.py](apps/rdms/kitchen_sink.py) shows
