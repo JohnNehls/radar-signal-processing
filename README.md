@@ -1,98 +1,102 @@
 # Radar Signal Processing
 
-Range Doppler map (RDM) and general radar signal processing module.
+[![CI](https://github.com/JohnNehls/radar-signal-processing/actions/workflows/python-app.yml/badge.svg)](https://github.com/JohnNehls/radar-signal-processing/actions/workflows/python-app.yml)
 
-## Description
+A Python module for simulating pulse-Doppler radar returns and generating
+range-Doppler maps (RDMs). Designed for radar engineers and students who want
+to build intuition for how RDMs are formed, how waveforms affect resolution,
+and how DRFM electronic attack techniques appear in the RDM.
 
-This Python module provides tools for creating range Doppler maps and a
-variety of functions useful for radar signal processing. It is designed
-to be a simple tool that is useful for gaining intuition on how RDMs are
-made.
+## Modules
 
-## Libraries
-
--   [RDM generation](src/rsp/rdm.py)
--   [waveform generation](src/rsp/waveform.py)
--   [pulse doppler radar](src/rsp/pulse_doppler_radar.py)
--   [radar range equation](src/rsp/range_equation.py)
--   [uniform linear array antennas](src/rsp/uniform_linear_arrays.py)
--   [monopulse angle estimation](src/rsp/monopulse.py)
--   [geometry](src/rsp/geometry.py)
--   [velocity bin masking (VBM)](src/rsp/vbm.py)
--   [noise](src/rsp/noise.py)
--   [utilities](src/rsp/utilities.py)
+-   [rdm](src/rsp/rdm.py) — range-Doppler map generation
+-   [pulse_doppler_radar](src/rsp/pulse_doppler_radar.py) — radar system parameter model
+-   [waveform](src/rsp/waveform.py) — uncoded, Barker, random-coded, and LFM pulse generation
+-   [returns](src/rsp/returns.py) — skin return and DRFM jammer return models
+-   [range_equation](src/rsp/range_equation.py) — radar and one-way link range equations
+-   [uniform_linear_arrays](src/rsp/uniform_linear_arrays.py) — ULA gain patterns and steering vectors
+-   [monopulse](src/rsp/monopulse.py) — amplitude monopulse angle estimation
+-   [vbm](src/rsp/vbm.py) — velocity bin masking EA slow-time modulation functions
+-   [geometry](src/rsp/geometry.py) — range and range-rate from geometry
+-   [noise](src/rsp/noise.py) — complex Gaussian noise generation
+-   [utilities](src/rsp/utilities.py) — unit conversions and signal utilities
 
 ## Installation
 
-To install the module, clone this repository and install with pip:
+### Requirements
+
+-   Python >= 3.11
+-   Python packages listed in [pyproject.toml](pyproject.toml)
+-   A few exercises use LaTeX for plot labels — LaTeX must be installed for
+    those to run
+
+### Steps
+
+Clone the repository and install with pip:
 
 ``` shell
 git clone https://github.com/JohnNehls/radar-signal-processing
 pip install radar-signal-processing/
 ```
 
-### requirements
-
--   Python \>= 3.11
--   Python packages listed in [pyproject.toml](pyproject.toml)
--   A few of the exercises utilize LaTeX for plot labels, thus it may
-    need to be installed in order for them to run
-
 ## Usage
 
--   **RDM generator**
+### RDM generator
 
-    ```python
-    from rsp import rdm, Radar, Target, Return, barker_waveform
+```python
+from rsp import rdm, Radar, Target, Return, barker_waveform
 
-    radar = Radar(
-        fcar=10e9,
-        txPower=1e3,
-        txGain=10 ** (30 / 10),
-        rxGain=10 ** (30 / 10),
-        opTemp=290,
-        sampRate=20e6,
-        noiseFactor=10 ** (8 / 10),
-        totalLosses=10 ** (8 / 10),
-        PRF=200e3,
-        dwell_time=2e-3,
-    )
+radar = Radar(
+    fcar=10e9,
+    txPower=1e3,
+    txGain=10 ** (30 / 10),
+    rxGain=10 ** (30 / 10),
+    opTemp=290,
+    sampRate=20e6,
+    noiseFactor=10 ** (8 / 10),
+    totalLosses=10 ** (8 / 10),
+    PRF=200e3,
+    dwell_time=2e-3,
+)
 
-    waveform = barker_waveform(10e6, nchips=13)
+waveform = barker_waveform(10e6, nchips=13)
 
-    return_list = [Return(target=Target(range=0.5e3, rangeRate=1.0e3, rcs=1))]
+return_list = [Return(target=Target(range=0.5e3, rangeRate=1.0e3, rcs=1))]
 
-    rdm.gen(radar, waveform, return_list)
-    ```
+rdm.gen(radar, waveform, return_list)
+```
 
-    ![image](docs/figs/rdm_readme_example.png)
+![image](docs/figs/rdm_readme_example.png)
 
+Other available waveforms: `uncoded_waveform`, `random_waveform`, `lfm_waveform`.
 
-    -   For additional examples, see [apps/rdms](apps/rdms).
-        -   [kitchen_sink.py](apps/rdms/kitchen_sink.py) is a
-            script with all waveform and return options written out
+For additional examples including DRFM jammer returns and VBM, see
+[apps/rdms](apps/rdms). [kitchen_sink.py](apps/rdms/kitchen_sink.py) shows
+all waveform and return options.
 
--   **Everything else**
-    -   For examples of the other functions of the project, see
-        [exercises](apps/exercises).
+### Everything else
 
-## Testing RSP
--   To run each of the pytests, run the following:
+For examples of the other module functions, see the
+[exercises](apps/exercises).
+
+## Testing
+
+-   To run the pytests:
 
 ``` shell
 python -m pytest tests/ -v
 ```
 
--   To ensure the main applications in [apps](apps/) run without errors and check for qualitative errors in the rdms, run the following:
+-   To run all apps and check for errors:
 
-    ``` shell
-    ./apps/run_apps.sh
-    ```
+``` shell
+./apps/run_apps.sh
+```
 
-    This script runs all Python files in `apps/exercises/`, `apps/rdms/`, and
-    `apps/studies/` with the `Agg` matplotlib backend so no display is required.
-    Any file whose name ends with `_no_test.py` is skipped -- usually due to the exercise
-    not being finished. The script exits with a non-zero status if any file fails.
+This script runs all Python files in `apps/exercises/`, `apps/rdms/`, and
+`apps/studies/` with the `Agg` matplotlib backend so no display is required.
+Files ending in `_no_test.py` are skipped. The script exits with a non-zero
+status if any file fails.
 
 ## Contributing
 
