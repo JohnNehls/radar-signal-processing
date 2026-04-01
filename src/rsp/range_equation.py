@@ -142,10 +142,10 @@ def snr_range_eqn_cp(
     Returns:
         float: Integrated Signal-to-Noise Ratio [unitless]
     """
-    singlePulse_snr = snr_range_eqn(
+    single_pulse_snr = snr_range_eqn(
         Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, time_bandwidth_prod
     )
-    return singlePulse_snr * n_p
+    return single_pulse_snr * n_p
 
 
 def snr_range_eqn_bpsk_cp(
@@ -176,7 +176,7 @@ def snr_range_eqn_bpsk_cp(
     return snr_range_eqn_cp(Pt, Gt, Gr, sigma, wavelength, R, B, F, L, T, n_p, n_c)
 
 
-def snr_rangeEquation_dutyFactor_pulses(
+def snr_range_eqn_duty_factor_pulses(
     Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
     R: float, F: float, L: float, T: float, Tcpi: float, tau_df: float
 ) -> float:
@@ -202,8 +202,8 @@ def snr_rangeEquation_dutyFactor_pulses(
     """
     assert 0 <= tau_df <= 1, "duty factor must be in [0,1]."
 
-    singlePulse_snr = snr_range_eqn_uncoded(Pt, Gt, Gr, sigma, wavelength, R, 1, F, L, T)
-    return singlePulse_snr * Tcpi * tau_df
+    single_pulse_snr = snr_range_eqn_uncoded(Pt, Gt, Gr, sigma, wavelength, R, 1, F, L, T)
+    return single_pulse_snr * Tcpi * tau_df
 
 
 def min_target_detection_range(
@@ -260,8 +260,8 @@ def min_target_detection_range_bpsk_cp(
     Returns:
         float: Maximum detection range [m]
     """
-    onePulse = min_target_detection_range(Pt, Gt, Gr, sigma, wavelength, SNR_thresh, B, F, L, T)
-    return onePulse * (n_p * n_c) ** (1 / 4)
+    one_pulse = min_target_detection_range(Pt, Gt, Gr, sigma, wavelength, SNR_thresh, B, F, L, T)
+    return one_pulse * (n_p * n_c) ** (1 / 4)
 
 
 def min_target_detection_range_dutyfactor_cp(
@@ -288,5 +288,5 @@ def min_target_detection_range_dutyfactor_cp(
     Returns:
         float: Maximum detection range [m]
     """
-    onePulse = min_target_detection_range(Pt, Gt, Gr, sigma, wavelength, SNR_thresh, 1, F, L, T)
-    return onePulse * (Tcpi * tau_df) ** (1 / 4)
+    one_pulse = min_target_detection_range(Pt, Gt, Gr, sigma, wavelength, SNR_thresh, 1, F, L, T)
+    return one_pulse * (Tcpi * tau_df) ** (1 / 4)

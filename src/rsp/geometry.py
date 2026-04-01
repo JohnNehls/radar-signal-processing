@@ -19,9 +19,7 @@ def range_and_rangerate(
         R_mag (float): The Euclidean distance (range) between the platform and target.
         R_dot (float): The scalar range-rate (radial velocity) of the target relative to the platform.
     """
-    R_vec = np.array(
-        [tgt_pos[0] - plat_pos[0], tgt_pos[1] - plat_pos[1], tgt_pos[2] - plat_pos[2]]
-    )
+    R_vec = np.array(tgt_pos) - np.array(plat_pos)
     R_mag = norm(R_vec)
     R_unit_vec = R_vec / R_mag
     R_dot = np.dot(tgt_vel, R_unit_vec) - np.dot(plat_vel, R_unit_vec)

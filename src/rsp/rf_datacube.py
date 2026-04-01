@@ -40,7 +40,7 @@ def number_range_bins(fs: float, prf: float) -> int:
     return int(fs / prf)
 
 
-def dataCube(fs: float, prf: float, N_p: int) -> np.ndarray:
+def data_cube(fs: float, prf: float, N_p: int) -> np.ndarray:
     """Creates an empty, complex-valued datacube.
 
     This function initializes a 2D NumPy array (datacube) with zeros,

@@ -1,5 +1,4 @@
 import numpy as np
-import numpy.random as nr
 from scipy import fft
 from . import constants as c
 
@@ -15,8 +14,8 @@ def unity_variance_complex_noise(inSize: tuple | int) -> np.ndarray:
         A complex array where the real and imaginary components are
         independent standard normal distributions, scaled to achieve unit variance.
     """
-    real_part = nr.standard_normal(size=inSize)
-    imag_part = nr.standard_normal(size=inSize)
+    real_part = np.random.standard_normal(size=inSize)
+    imag_part = np.random.standard_normal(size=inSize)
     return (real_part + 1j * imag_part) / np.sqrt(2)
 
 
@@ -52,7 +51,7 @@ def band_limited_complex_noise(
 
     # For frequencies in the band, create phasors (complex numbers with magnitude 1)
     num_freqs_in_band = np.sum(frequency_band_mask)
-    random_phases = 2 * np.pi * nr.rand(num_freqs_in_band)
+    random_phases = 2 * np.pi * np.random.rand(num_freqs_in_band)
     spectrum[frequency_band_mask] = np.exp(1j * random_phases)
 
     # Inverse FFT to get the time-domain signal
@@ -107,7 +106,7 @@ def gaussian_complex_noise(
     magnitude_spectrum *= pdf_scaling_factor
 
     # Apply a random phase to each frequency component to create the complex spectrum
-    random_phases = 2 * c.PI * nr.rand(N_samples)
+    random_phases = 2 * c.PI * np.random.rand(N_samples)
     spectrum = magnitude_spectrum * np.exp(1j * random_phases)
     spectrum = spectrum.astype(np.complex64)
 

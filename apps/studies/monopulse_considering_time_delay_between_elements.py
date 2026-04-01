@@ -8,7 +8,7 @@ from rsp.pulse_doppler_radar import Radar
 from rsp.waveform import uncoded_waveform, barker_coded_waveform, lfm_waveform
 from rsp.rdm import plot_rdm
 import rsp.monopulse as mp
-from rsp.rf_datacube import number_range_bins, range_axis, dataCube
+from rsp.rf_datacube import number_range_bins, range_axis, data_cube
 from rsp.rf_datacube import matchfilter, doppler_process
 from rsp.range_equation import noise_power
 from rsp._rdm_internals import create_window, add_returns, process_waveform_dict
@@ -57,7 +57,7 @@ process_waveform_dict(waveform, radar)
 r_axis = range_axis(radar.sampRate, number_range_bins(radar.sampRate, radar.PRF))
 
 ########## Return ##############################################################################
-signal_dc = dataCube(radar.sampRate, radar.PRF, radar.Npulses)
+signal_dc = data_cube(radar.sampRate, radar.PRF, radar.Npulses)
 
 ### Determin scaling factors for max voltage ###
 rxVolt_noise = np.sqrt(

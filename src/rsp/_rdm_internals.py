@@ -45,7 +45,7 @@ def _flat_datacube(datacube: np.ndarray):
 
 def add_skin(
     datacube: np.ndarray,
-    wvf: dict,
+    waveform: dict,
     tgt_info: Target,
     radar: Radar,
     return_magnitude: float,
@@ -59,7 +59,7 @@ def add_skin(
 
     Args:
         datacube: 2D complex array to which the return is added.
-        wvf: dictionary containing waveform parameters.
+        waveform: dictionary containing waveform parameters.
         tgt_info: Target kinematics and scattering parameters.
         radar: Radar system parameters.
         return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
@@ -69,17 +69,17 @@ def add_skin(
     two_way_delays = 2 * target_range_per_pulse / c.C
     pulse_return_times = pulse_tx_times + two_way_delays
     two_way_doppler_phases = _propagation_phase(two_way_delays, radar.fcar)
-    return_sample_indices = _return_sample_indices(pulse_return_times, wvf, radar)
+    return_sample_indices = _return_sample_indices(pulse_return_times, waveform, radar)
 
     with _flat_datacube(datacube) as flat:
         for i in range(radar.Npulses):
             if return_sample_indices[i] < datacube.size:
-                pulse = return_magnitude * wvf["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
+                pulse = return_magnitude * waveform["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
                 add_waveform_at_index(flat, pulse, return_sample_indices[i])
 
 
 def add_jammer(
-    datacube: np.ndarray, wvf: dict, radar: Radar, return_info: Return, return_magnitude: float
+    datacube: np.ndarray, waveform: dict, radar: Radar, return_info: Return, return_magnitude: float
 ) -> None:
     """Adds a DRFM jammer return to the datacube.
 
@@ -89,7 +89,7 @@ def add_jammer(
 
     Args:
         datacube: 2D complex array to which the return is added.
-        wvf: dictionary containing waveform parameters.
+        waveform: dictionary containing waveform parameters.
         radar: Radar system parameters.
         return_info: Return describing the EA platform and target parameters.
         return_magnitude: The voltage or SNR amplitude of the return.
@@ -124,7 +124,7 @@ def add_jammer(
     # Additional time delay for range offset
     total_delay = ea.delay + 2 * ea.range_offset / c.C
     return_times = skin_return_times + total_delay
-    return_sample_indices = _return_sample_indices(return_times, wvf, radar)
+    return_sample_indices = _return_sample_indices(return_times, waveform, radar)
 
     # Precompute per-pulse rdot-offset phase shift vector
     pulse_indices = np.arange(radar.Npulses)
@@ -135,7 +135,7 @@ def add_jammer(
 
     with _flat_datacube(datacube) as flat:
         for i in range(radar.Npulses):
-            received_pulse = wvf["pulse"] * np.exp(1j * one_way_propagation_phases[i])
+            received_pulse = waveform["pulse"] * np.exp(1j * one_way_propagation_phases[i])
 
             if i == 0:
                 stored_pulse = received_pulse
@@ -232,8 +232,6 @@ def skin_snr_amplitude(radar: Radar, target: Target, waveform: dict) -> float:
     # The voltage amplitude for a single pulse is the square root of the per-pulse
     # SNR (power ratio), assuming a normalized noise power of 1.0.
     return np.sqrt(snr_per_pulse)
-
-
 
 
 def skin_voltage_amplitude(radar: Radar, target: Target) -> float:

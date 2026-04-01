@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.rf_datacube import dataCube, doppler_process
+from rsp.rf_datacube import data_cube, doppler_process
 from rsp.constants import PI
 
 
@@ -16,7 +16,7 @@ PRF = 100e3  # Hz
 Np = 256  # number of pulses
 
 # calc
-dc = dataCube(fs, PRF, Np)
+dc = data_cube(fs, PRF, Np)
 dtPulse = 1 / PRF
 t_ar = np.arange(Np) * dtPulse
 dc[98, :] = np.exp(2j * PI * PRF / 4 * t_ar)

@@ -93,9 +93,9 @@ def linear_antenna_gain_meters(
     Args:
         el_pos (np.ndarray): 1D array of element positions in meters.
         fc (float): The signal's center frequency in Hertz.
-        weights (np.ndarray, optional): A vector of complex weights for each
+        weight_vec (np.ndarray, optional): A vector of complex weights for each
             antenna element. If None, uniform weights are used. Defaults to None.
-        Ntheta (int, optional): The number of angular points to calculate the
+        N_theta (int, optional): The number of angular points to calculate the
             gain over. Defaults to 10000.
         steer_angle (float, optional): The angle in degrees at which to steer
             the main beam. 0 degrees is broadside. Defaults to 0.
@@ -131,9 +131,9 @@ def linear_antenna_gain_N_db(
     Args:
         N_el (int): The number of antenna array elements.
         dx (float): The spacing between elements, normalized by signal wavelength.
-        weights (np.ndarray, optional): A vector of complex weights for each
+        weight_vec (np.ndarray, optional): A vector of complex weights for each
             antenna element. If None, uniform weights are used. Defaults to None.
-        Ntheta (int, optional): The number of angular points to calculate the
+        N_theta (int, optional): The number of angular points to calculate the
             gain over. Defaults to 10000.
         steer_angle (float, optional): The angle in degrees at which to steer
             the main beam. 0 degrees is broadside. Defaults to 0.

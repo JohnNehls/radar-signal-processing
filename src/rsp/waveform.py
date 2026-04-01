@@ -46,9 +46,7 @@ def uncoded_pulse(
     T = 1 / BW
     dt = 1 / sampleRate
     t = np.arange(0, T, dt)
-    mag = np.zeros(t.size)
-
-    mag[np.where(t <= T)] = 1
+    mag = np.ones(t.size)
 
     if normalize:
         mag = mag / norm(mag)

@@ -27,7 +27,7 @@ def zeropad_waveform(
             - np.ndarray: The new, extended time array.
             - np.ndarray: The new, zero-padded waveform.
     """
-    assert type(N_pad) is int
+    assert isinstance(N_pad, int)
     assert len(t) == len(waveform)
     waveform = np.append(waveform, np.zeros(N_pad))
     t = np.arange(waveform.size) * (t[1] - t[0]) + t[0]
@@ -47,7 +47,7 @@ def moving_average(waveform: np.ndarray, N_elements: int) -> np.ndarray:
     Returns:
         np.ndarray: The smoothed waveform as a 1D array.
     """
-    assert type(N_elements) is int
+    assert isinstance(N_elements, int)
     kernel = np.ones(N_elements) / N_elements
     ave = np.convolve(waveform, kernel, mode="same")
     return ave
@@ -183,7 +183,7 @@ def plot_pulse_and_spectrum(
     else:
         ax[1].set_ylabel("baseband magnitude")
     ax[1].plot(f, val, "-")
-    ax[1].set_xlabel("freqency [Hz]")
+    ax[1].set_xlabel("frequency [Hz]")
 
     ax[1].grid()
 

@@ -2,7 +2,7 @@ import numpy as np
 import matplotlib.pyplot as plt
 
 from . import constants as c
-from .rf_datacube import number_range_bins, range_axis, dataCube
+from .rf_datacube import number_range_bins, range_axis, data_cube
 from .rf_datacube import matchfilter, doppler_process
 from .range_equation import noise_power
 from .noise import unity_variance_complex_noise
@@ -191,7 +191,7 @@ def gen(
     r_axis = range_axis(radar.sampRate, number_range_bins(radar.sampRate, radar.PRF))
 
     ########## Return ##############################################################################
-    signal_dc = dataCube(radar.sampRate, radar.PRF, radar.Npulses)
+    signal_dc = data_cube(radar.sampRate, radar.PRF, radar.Npulses)
 
     if snr:
         ### Direclty plot the RDM in SNR by way of the range equation ###

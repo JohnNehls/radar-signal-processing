@@ -69,10 +69,7 @@ def phase_negpi_pospi(phase: float | np.ndarray) -> np.ndarray:
         numpy.ndarray: Phase angle(s) wrapped to the [-pi, pi) interval.
     """
 
-    if not hasattr(phase, "__iter__"):
-        phase = [phase]
-
-    phase = np.array(phase)
+    phase = np.atleast_1d(np.array(phase))
     phase = phase % (2 * c.PI)
     phase[phase >= c.PI] -= 2 * c.PI
     return phase

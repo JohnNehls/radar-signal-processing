@@ -96,8 +96,7 @@ def frequency_aliased(freq: float, fs: float) -> float:
     f = freq % fs
     if f > fs / 2:
         return f - fs
-    else:
-        return f
+    return f
 
 
 def rangeRate_pm_unambiguous(PRF: float, f0: float) -> float:
@@ -128,8 +127,7 @@ def rangeRate_aliased_rrmax(rangeRate: float, rangeRate_max: float) -> float:
     r = rangeRate % (2 * rangeRate_max)
     if r > rangeRate_max:
         return r - 2 * rangeRate_max
-    else:
-        return r
+    return r
 
 
 def rangeRate_aliased_prf_f0(rangeRate: float, PRF: float, f0: float) -> float:

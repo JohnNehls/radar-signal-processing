@@ -66,7 +66,7 @@ fig, ax = plt.subplots(1, len(Tcpi_ar), sharex="all", sharey="all")
 fig.suptitle("CPI DutyFactor SNR")
 for index, Tcpi in enumerate(Tcpi_ar):
     for dutyFactor in dutyFactor_ar:
-        y = re.snr_rangeEquation_dutyFactor_pulses(
+        y = re.snr_range_eqn_duty_factor_pulses(
             Pt, Gt, Gr, sigma, wavelength, R_ar, F, L, T, Tcpi, dutyFactor
         )
         y = 10 * np.log10(y)  # convert to dB
