@@ -32,7 +32,7 @@ radar = Radar(
     tx_gain=10 ** (30 / 10),
     rx_gain=10 ** (30 / 10),
     op_temp=290,
-    samp_rate=2 * bw,
+    sample_rate=2 * bw,
     noise_factor=10 ** (8 / 10),
     total_losses=10 ** (8 / 10),
     prf=50e3,
@@ -50,13 +50,13 @@ dx = 1 / 2  # seperation of array elements in terms of carrier wavelength
 array_pos = np.array([-dx / 2, dx / 2])  # in terms of wavelength
 
 ########## Compute waveform and radar parameters ###############################################
-waveform.set_sample(radar.samp_rate)
+waveform.set_sample(radar.sample_rate)
 
 ########## Create range axis for plotting ######################################################
-r_axis = range_axis(radar.samp_rate, number_range_bins(radar.samp_rate, radar.prf))
+r_axis = range_axis(radar.sample_rate, number_range_bins(radar.sample_rate, radar.prf))
 
 ########## Return ##############################################################################
-signal_dc = data_cube(radar.samp_rate, radar.prf, radar.n_pulses)
+signal_dc = data_cube(radar.sample_rate, radar.prf, radar.n_pulses)
 
 ### Determin scaling factors for max voltage ###
 rxVolt_noise = np.sqrt(
@@ -78,7 +78,7 @@ for pos in array_pos:
     position_meters = c.C / radar.fcar * pos
     tmp_signal = signal_dc_sv.T.flatten()
     shifted_signal = ula.apply_timeshift_due_to_element_position(
-        tmp_signal, radar.samp_rate, position_meters, tgt_angle
+        tmp_signal, radar.sample_rate, position_meters, tgt_angle
     )
     signal_dc_shift = shifted_signal.reshape(tuple(reversed(signal_dc_sv.shape))).T
     signal_dc_ula_list_timeshift.append(signal_dc_shift)
@@ -110,7 +110,7 @@ for dc in rdm_list:
 
 # Doppler process datacubes
 for dc in rdm_list:
-    f_axis, r_axis = doppler_process(dc, radar.samp_rate)
+    f_axis, r_axis = doppler_process(dc, radar.sample_rate)
 
 ########## Plots and checks ####################################################################
 # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)

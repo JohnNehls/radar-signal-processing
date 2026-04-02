@@ -16,7 +16,7 @@ class Radar:
     tx_gain: float     # Transmit antenna gain [linear]
     rx_gain: float     # Receive antenna gain [linear]
     op_temp: float     # Operating temperature [K]
-    samp_rate: float   # Sampling rate [Hz]
+    sample_rate: float   # Sampling rate [Hz]
     noise_factor: float # Receiver noise factor [linear]
     total_losses: float # Total system losses [linear]
     prf: float         # Pulse repetition frequency [Hz]

@@ -6,10 +6,6 @@ enhancements:
   it my own-- embed our figures
 
 * 2. Documentation & UX
-- *Quick Start Code:* Add a 5-10 line Python snippet directly in the
-  README showing how to generate a basic RDM.
-- *Visuals:* Include a screenshot or GIF of a generated Range-Doppler
-  Map. Radar is visual; seeing the output builds immediate interest.
 - *API Reference:* Use [[https://pdoc.dev/][pdoc]] or
   [[https://www.sphinx-doc.org/][Sphinx]] to generate searchable HTML
   documentation from your docstrings.
@@ -26,8 +22,6 @@ enhancements:
   [[https://cupy.dev/][CuPy]] support for GPU-accelerated FFTs.
 
 * 4. Project Maintenance
-- *CI/CD:* Add a GitHub Action (=.github/workflows/test.yml=) to run
-  your tests automatically on every push.
 - *Issue Tracking:* Move the "Known Test Failures" from the README to
   GitHub Issues. A README should ideally highlight what works.
 - *PyPI:* Register the package on PyPI so users can simply run

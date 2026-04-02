@@ -183,13 +183,13 @@ def gen(
     np.random.seed(seed)
 
     ########## Compute waveform and radar parameters ###############################################
-    waveform.set_sample(radar.samp_rate)  # set the recorded sample
+    waveform.set_sample(radar.sample_rate)  # set the recorded sample
 
     ########## Create range axis for plotting ######################################################
-    r_axis = range_axis(radar.samp_rate, number_range_bins(radar.samp_rate, radar.prf))
+    r_axis = range_axis(radar.sample_rate, number_range_bins(radar.sample_rate, radar.prf))
 
     ########## Return ##############################################################################
-    signal_dc = data_cube(radar.samp_rate, radar.prf, radar.n_pulses)
+    signal_dc = data_cube(radar.sample_rate, radar.prf, radar.n_pulses)
 
     if snr:
         ### Direclty plot the RDM in SNR by way of the range equation ###
@@ -226,7 +226,7 @@ def gen(
 
     # Doppler process datacubes
     for dc in rdm_list:
-        f_axis, r_axis = doppler_process(dc, radar.samp_rate)
+        f_axis, r_axis = doppler_process(dc, radar.sample_rate)
 
     ########## Plots and checks ####################################################################
     # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)

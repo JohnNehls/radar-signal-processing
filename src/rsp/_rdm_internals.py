@@ -26,7 +26,7 @@ def _return_sample_indices(return_times: np.ndarray, waveform: WaveformSample, r
     correct bin.
     """
     times_of_arrival = return_times - waveform.pulse_width / 2
-    return np.round(times_of_arrival * radar.samp_rate).astype(int) - 1
+    return np.round(times_of_arrival * radar.sample_rate).astype(int) - 1
 
 
 @contextmanager
