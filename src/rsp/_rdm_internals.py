@@ -28,7 +28,7 @@ def _return_sample_indices(return_times: np.ndarray, waveform: dict, radar: Rada
     correct bin.
     """
     times_of_arrival = return_times - waveform["pulse_width"] / 2
-    return np.round(times_of_arrival * radar.sampRate).astype(int) - 1
+    return np.round(times_of_arrival * radar.samp_rate).astype(int) - 1
 
 
 @contextmanager
@@ -64,15 +64,15 @@ def add_skin(
         radar: Radar system parameters.
         return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
     """
-    pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
-    target_range_per_pulse = tgt_info.range + tgt_info.rangeRate * pulse_tx_times
+    pulse_tx_times = np.arange(radar.n_pulses) / radar.prf
+    target_range_per_pulse = tgt_info.range + tgt_info.range_rate * pulse_tx_times
     two_way_delays = 2 * target_range_per_pulse / c.C
     pulse_return_times = pulse_tx_times + two_way_delays
     two_way_doppler_phases = _propagation_phase(two_way_delays, radar.fcar)
     return_sample_indices = _return_sample_indices(pulse_return_times, waveform, radar)
 
     with _flat_datacube(datacube) as flat:
-        for i in range(radar.Npulses):
+        for i in range(radar.n_pulses):
             if return_sample_indices[i] < datacube.size:
                 pulse = return_magnitude * waveform["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
                 add_waveform_at_index(flat, pulse, return_sample_indices[i])
@@ -95,10 +95,10 @@ def add_jammer(
         return_magnitude: The voltage or SNR amplitude of the return.
     """
     target = return_info.target
-    pulse_tx_times = np.arange(radar.Npulses) / radar.PRF
+    pulse_tx_times = np.arange(radar.n_pulses) / radar.prf
 
     # Calculate timing and phase for the signal's one-way trip to the target
-    target_range_per_pulse = target.range + target.rangeRate * pulse_tx_times
+    target_range_per_pulse = target.range + target.range_rate * pulse_tx_times
     one_way_delays = target_range_per_pulse / c.C
     skin_return_times = pulse_tx_times + 2 * one_way_delays
     one_way_propagation_phases = _propagation_phase(one_way_delays, radar.fcar)
@@ -112,14 +112,14 @@ def add_jammer(
     if ea.rdot_delta is not None:
         vbm_noise_function = ea.vbm_noise_function or vbm._lfm_phase
         slowtime_noise = vbm.slowtime_noise(
-            radar.Npulses,
+            radar.n_pulses,
             radar.fcar,
             ea.rdot_delta,
-            radar.PRF,
-            noiseFun=vbm_noise_function,
+            radar.prf,
+            noise_fun=vbm_noise_function,
         )
     else:
-        slowtime_noise = np.ones(radar.Npulses)
+        slowtime_noise = np.ones(radar.n_pulses)
 
     # Additional time delay for range offset
     total_delay = ea.delay + 2 * ea.range_offset / c.C
@@ -127,14 +127,14 @@ def add_jammer(
     return_sample_indices = _return_sample_indices(return_times, waveform, radar)
 
     # Precompute per-pulse rdot-offset phase shift vector
-    pulse_indices = np.arange(radar.Npulses)
-    rdot_phase = np.exp(-1j * pulse_indices * 2 * np.pi * doppler_freq_offset / radar.PRF)
+    pulse_indices = np.arange(radar.n_pulses)
+    rdot_phase = np.exp(-1j * pulse_indices * 2 * np.pi * doppler_freq_offset / radar.prf)
 
     stored_pulse = 0
     stored_angle = 0
 
     with _flat_datacube(datacube) as flat:
-        for i in range(radar.Npulses):
+        for i in range(radar.n_pulses):
             received_pulse = waveform["pulse"] * np.exp(1j * one_way_propagation_phases[i])
 
             if i == 0:
@@ -212,22 +212,22 @@ def skin_snr_amplitude(radar: Radar, target: Target, waveform: dict) -> float:
     # Assumes the range equation provides the total SNR after coherent integration
     # over all pulses in the Coherent Processing Interval (CPI).
     snr_after_integration = snr_range_eqn(
-        radar.txPower,
-        radar.txGain,
-        radar.rxGain,
+        radar.tx_power,
+        radar.tx_gain,
+        radar.rx_gain,
         target.rcs,
         c.C / radar.fcar,
         target.range,
         waveform["bw"],
-        radar.noiseFactor,
-        radar.totalLosses,
-        radar.opTemp,
+        radar.noise_factor,
+        radar.total_losses,
+        radar.op_temp,
         waveform["time_BW_product"],
     )
 
     # To find the required per-pulse amplitude, we first find the per-pulse SNR
     # by dividing by the number of pulses (the coherent integration gain).
-    snr_per_pulse = snr_after_integration / radar.Npulses
+    snr_per_pulse = snr_after_integration / radar.n_pulses
 
     # The voltage amplitude for a single pulse is the square root of the per-pulse
     # SNR (power ratio), assuming a normalized noise power of 1.0.
@@ -245,13 +245,13 @@ def skin_voltage_amplitude(radar: Radar, target: Target) -> float:
         The received voltage amplitude.
     """
     return np.sqrt(c.RADAR_LOAD * signal_range_eqn(
-        radar.txPower,
-        radar.txGain,
-        radar.rxGain,
+        radar.tx_power,
+        radar.tx_gain,
+        radar.rx_gain,
         target.rcs,
         c.C / radar.fcar,
         target.range,
-        radar.totalLosses,
+        radar.total_losses,
     ))
 
 
@@ -270,12 +270,12 @@ def jammer_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target)
         The received voltage amplitude from the EA platform.
     """
     return np.sqrt(c.RADAR_LOAD * signal_range_eqn_one_way(
-        platform.txPower,
-        platform.txGain,
-        radar.rxGain,
+        platform.tx_power,
+        platform.tx_gain,
+        radar.rx_gain,
         c.C / radar.fcar,
         target.range,
-        platform.totalLosses,
+        platform.total_losses,
     ))
 
 
@@ -334,7 +334,7 @@ def process_waveform_dict(waveform: dict[str, Any], radar: Radar) -> None:
     Raises:
         ValueError: If the waveform 'type' is not recognized.
     """
-    samp_rate = radar.sampRate
+    samp_rate = radar.samp_rate
     wvf_type = waveform["type"]
 
     if wvf_type == "uncoded":
@@ -357,7 +357,7 @@ def process_waveform_dict(waveform: dict[str, Any], radar: Radar) -> None:
 
     elif wvf_type == "lfm":
         _, pulse_wvf = wvf.lfm_pulse(
-            samp_rate, waveform["bw"], waveform["T"], waveform["chirpUpDown"]
+            samp_rate, waveform["bw"], waveform["T"], waveform["chirp_up_down"]
         )
         waveform["pulse"] = pulse_wvf
         waveform["time_BW_product"] = waveform["bw"] * waveform["T"]

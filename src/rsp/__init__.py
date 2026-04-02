@@ -5,9 +5,9 @@ Typical usage::
     from rsp import rdm, Radar, Target, Return
     from rsp import lfm_waveform
 
-    radar = Radar(fcar=10e9, txPower=1e3, ...)
-    waveform = lfm_waveform(bw=10e6, T=1e-6, chirpUpDown=1)
-    rdm.gen(radar, waveform, [Return(target=Target(range=3e3, rangeRate=1e3, rcs=10))])
+    radar = Radar(fcar=10e9, tx_power=1e3, ...)
+    waveform = lfm_waveform(bw=10e6, T=1e-6, chirp_up_down=1)
+    rdm.gen(radar, waveform, [Return(target=Target(range=3e3, range_rate=1e3, rcs=10))])
 """
 
 from .pulse_doppler_radar import Radar

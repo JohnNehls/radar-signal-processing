@@ -38,7 +38,7 @@ def test_highest_snr_pulse_dominates():
 def test_lfm_matched_filter_peak():
     np.random.seed(2)
     noise = unity_variance_complex_noise(1000)
-    _, waveform = lfm_pulse(SAMPLE_RATE, BW, T=2e-6, chirpUpDown=1)
+    _, waveform = lfm_pulse(SAMPLE_RATE, BW, T=2e-6, chirp_up_down=1)
     inject_idx = 300
     mf = _inject_and_filter(noise, waveform, inject_idx, snr_db=20)
     assert np.argmax(abs(mf)) == inject_idx + len(waveform) // 2

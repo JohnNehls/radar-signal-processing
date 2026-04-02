@@ -45,14 +45,14 @@ def test_frequency_aliased_no_wrap():
 
 def test_rangeRate_pm_unambiguous():
     # PRF=50 kHz, f0=10 GHz → 50e3 * 3e8 / (4 * 10e9) = 375 m/s
-    assert pdr.rangeRate_pm_unambiguous(50e3, 10e9) == pytest.approx(375.0)
+    assert pdr.range_rate_pm_unambiguous(50e3, 10e9) == pytest.approx(375.0)
 
 
 def test_rangeRate_aliased_prf_f0_wraps():
     # PRF=16 kHz, f0=10 GHz → rangeRate_max=120 m/s; -750 m/s aliases to -30 m/s
-    assert pdr.rangeRate_aliased_prf_f0(-750, 16e3, 10e9) == pytest.approx(-30.0)
+    assert pdr.range_rate_aliased_prf_f0(-750, 16e3, 10e9) == pytest.approx(-30.0)
 
 
 def test_rangeRate_aliased_prf_f0_no_wrap():
     # target well within unambiguous range rate
-    assert pdr.rangeRate_aliased_prf_f0(100.0, 50e3, 10e9) == pytest.approx(100.0)
+    assert pdr.range_rate_aliased_prf_f0(100.0, 50e3, 10e9) == pytest.approx(100.0)

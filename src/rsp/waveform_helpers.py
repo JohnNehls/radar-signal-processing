@@ -123,8 +123,8 @@ def plot_pulse_and_spectrum(
     t: np.ndarray,
     mag: np.ndarray,
     title: str | None = None,
-    Npad: int = 0,
-    printBandwidth: bool = True,
+    n_pad: int = 0,
+    print_bandwidth: bool = True,
     spec_dec: bool = False,
 ) -> tuple[plt.Figure, np.ndarray]:
     """Plots a signal in the time and frequency domains.
@@ -138,9 +138,9 @@ def plot_pulse_and_spectrum(
         mag (np.ndarray): The signal magnitude array (can be complex).
         title (str, optional): The super-title for the entire figure.
             Defaults to None.
-        Npad (int, optional): The number of zeros to append for the FFT
+        n_pad (int, optional): The number of zeros to append for the FFT
             calculation, improving frequency resolution. Defaults to 0.
-        printBandwidth (bool, optional): If True, calculates and prints the
+        print_bandwidth (bool, optional): If True, calculates and prints the
             signal's bandwidth (FWHM of the spectrum). Defaults to True.
         spec_dec (bool, optional): If True, plots the spectrum magnitude in
             decibels (dB). Defaults to False.
@@ -168,7 +168,7 @@ def plot_pulse_and_spectrum(
 
     ##  frequency domain ##
     # pad with zeros for greater freq resolution
-    mag = np.append(mag, np.zeros(Npad))
+    mag = np.append(mag, np.zeros(n_pad))
     dt = t[1] - t[0]
     N = mag.size
 
@@ -192,7 +192,7 @@ def plot_pulse_and_spectrum(
 
     plt.tight_layout()
 
-    if printBandwidth:
+    if print_bandwidth:
         print("\tbandwidth:")
         PW, f_start, f_end = find_width(f, abs(MAG))
         print(f"\t{PW=:.1e} {f_start=:.1e} {f_end=:.1e}")
@@ -230,7 +230,7 @@ def plot_pulse_and_xcorrelation(
     t: np.ndarray,
     mag: np.ndarray,
     title: str | None = None,
-    printWidth: bool = True,
+    print_width: bool = True,
 ) -> tuple[plt.Figure, np.ndarray]:
     """Plots a signal and its autocorrelation.
 
@@ -242,7 +242,7 @@ def plot_pulse_and_xcorrelation(
         mag (np.ndarray): The signal magnitude array (can be complex).
         title (str, optional): The super-title for the entire figure.
             Defaults to None.
-        printWidth (bool, optional): If True, calculates and prints the width
+        print_width (bool, optional): If True, calculates and prints the width
             (FWHM) of the main autocorrelation lobe. Defaults to True.
 
     Returns:
@@ -281,7 +281,7 @@ def plot_pulse_and_xcorrelation(
 
     plt.tight_layout()
 
-    if printWidth:
+    if print_width:
         print("\txcor:")
         PW, f_start, f_end = find_width(time_shift, abs(xcor))
         print(f"\t{PW=:.1f} {f_start=:.1f} {f_end=:.1f}")

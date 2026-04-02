@@ -32,7 +32,7 @@ def _random_phase(N_pulses: int, *args) -> np.ndarray:
     return np.exp(1j * rand_phase)
 
 
-def _uniform_bandwidth_phase(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
+def _uniform_bandwidth_phase(N_pulses: int, f_delta: float, prf: float) -> np.ndarray:
     """Generates band-limited noise with a uniform spectral distribution.
 
     This creates a complex noise sequence whose power is concentrated within a
@@ -42,16 +42,16 @@ def _uniform_bandwidth_phase(N_pulses: int, f_delta: float, PRF: float) -> np.nd
     Args:
         N_pulses: The number of pulses, determining the length of the noise sequence.
         f_delta: The total bandwidth of the noise in Hertz.
-        PRF: The Pulse Repetition Frequency in Hertz.
+        prf: The Pulse Repetition Frequency in Hertz.
 
     Returns:
         A 1D numpy array of complex numbers with shape (N_pulses,), representing
         the band-limited noise. The output is normalized to have unit power.
     """
-    return band_limited_complex_noise(-f_delta / 2, +f_delta / 2, N_pulses, PRF, normalize=True)
+    return band_limited_complex_noise(-f_delta / 2, +f_delta / 2, N_pulses, prf, normalize=True)
 
 
-def _gaussian_bandwidth_phase(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
+def _gaussian_bandwidth_phase(N_pulses: int, f_delta: float, prf: float) -> np.ndarray:
     """Generates band-limited noise with a Gaussian spectral distribution.
 
     This creates a complex noise sequence whose power is concentrated within a
@@ -62,16 +62,16 @@ def _gaussian_bandwidth_phase(N_pulses: int, f_delta: float, PRF: float) -> np.n
         N_pulses: The number of pulses, determining the length of the noise sequence.
         f_delta: The total bandwidth of the noise in Hertz. This is used to define
                  the standard deviation of the Gaussian spectrum.
-        PRF: The Pulse Repetition Frequency in Hertz.
+        prf: The Pulse Repetition Frequency in Hertz.
 
     Returns:
         A 1D numpy array of complex numbers with shape (N_pulses,), representing
         the Gaussian band-limited noise. The output is normalized to have unit power.
     """
-    return gaussian_complex_noise(0, f_delta / 2, 1, N_pulses, PRF, normalize=True)
+    return gaussian_complex_noise(0, f_delta / 2, 1, N_pulses, prf, normalize=True)
 
 
-def _gaussian_bandwidth_phase_normalized(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
+def _gaussian_bandwidth_phase_normalized(N_pulses: int, f_delta: float, prf: float) -> np.ndarray:
     """Generates Gaussian noise, then normalizes the sequence magnitude.
 
     This function first generates a complex noise sequence with a Gaussian
@@ -82,18 +82,18 @@ def _gaussian_bandwidth_phase_normalized(N_pulses: int, f_delta: float, PRF: flo
     Args:
         N_pulses: The number of pulses, determining the length of the noise sequence.
         f_delta: The total bandwidth of the noise in Hertz.
-        PRF: The Pulse Repetition Frequency in Hertz.
+        prf: The Pulse Repetition Frequency in Hertz.
 
     Returns:
         A 1D numpy array of complex numbers with shape (N_pulses,) representing
         the normalized Gaussian noise.
     """
-    slowtime_noise = gaussian_complex_noise(0, f_delta / 2, 1, N_pulses, PRF, normalize=False)
+    slowtime_noise = gaussian_complex_noise(0, f_delta / 2, 1, N_pulses, prf, normalize=False)
     slowtime_noise = slowtime_noise / norm(slowtime_noise) * np.sqrt(slowtime_noise.size)
     return slowtime_noise
 
 
-def _lfm_phase(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
+def _lfm_phase(N_pulses: int, f_delta: float, prf: float) -> np.ndarray:
     """Generates a slow-time LFM waveform to be used as VBM noise.
 
     This method creates a Linear Frequency Modulated (LFM) pulse across the
@@ -104,13 +104,13 @@ def _lfm_phase(N_pulses: int, f_delta: float, PRF: float) -> np.ndarray:
     Args:
         N_pulses: The number of pulses, determining the length of the sequence.
         f_delta: The frequency sweep bandwidth in Hertz.
-        PRF: The Pulse Repetition Frequency in Hertz.
+        prf: The Pulse Repetition Frequency in Hertz.
 
     Returns:
         A 1D numpy array of complex numbers with shape (N_pulses,) representing
         the LFM phase sequence.
     """
-    _, slowtime_noise = lfm_pulse(PRF, f_delta, N_pulses / PRF, 1, normalize=False)
+    _, slowtime_noise = lfm_pulse(prf, f_delta, N_pulses / prf, 1, normalize=False)
     return slowtime_noise
 
 
@@ -136,7 +136,7 @@ def calc_f_delta(fcar: float, rdot_delta: float) -> float:
 
 
 def slowtime_noise(
-    N_pulses: int, fcar: float, rdot_delta: float, PRF: float, noiseFun: Callable = _lfm_phase
+    N_pulses: int, fcar: float, rdot_delta: float, prf: float, noise_fun: Callable = _lfm_phase
 ) -> np.ndarray:
     """Generates a slow-time noise sequence for Velocity Band Modulation (VBM).
 
@@ -150,15 +150,15 @@ def slowtime_noise(
         fcar: The radar's carrier frequency in Hertz.
         rdot_delta: The desired spread in range-rates (radial velocities) in m/s,
             which defines the VBM bandwidth.
-        PRF: The Pulse Repetition Frequency in Hertz.
-        noiseFun: The function to use for generating the noise sequence.
+        prf: The Pulse Repetition Frequency in Hertz.
+        noise_fun: The function to use for generating the noise sequence.
             Defaults to `_lfm_phase`.
 
     Returns:
         A 1D numpy array representing the complex slow-time noise sequence.
 
     Notes:
-        Available `noiseFun` choices include:
+        Available `noise_fun` choices include:
         - `_random_phase`: Broadband random phase noise.
         - `_uniform_bandwidth_phase`: Noise with a uniform spectral distribution.
         - `_gaussian_bandwidth_phase`: Noise with a Gaussian spectral distribution.
@@ -166,7 +166,7 @@ def slowtime_noise(
         - `_lfm_phase`: A deterministic LFM sweep across the Doppler band (cleanest).
     """
     f_delta = calc_f_delta(fcar, rdot_delta)
-    slowtime_noise = noiseFun(N_pulses, f_delta, PRF)
+    slowtime_noise = noise_fun(N_pulses, f_delta, prf)
 
     logger.debug("\nBand Noise:")
     logger.debug(f"\t{norm(slowtime_noise)=}")

@@ -23,13 +23,13 @@ BARKER_DICT = {
 
 
 def uncoded_pulse(
-    sampleRate: float, BW: float, normalize: bool = True
+    sample_rate: float, bw: float, normalize: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generates a simple, baseband rectangular (uncoded) pulse.
 
     Args:
-        sampleRate (float): The sampling rate in Hz.
-        BW (float): The pulse bandwidth in Hz. The pulse duration is 1/BW.
+        sample_rate (float): The sampling rate in Hz.
+        bw (float): The pulse bandwidth in Hz. The pulse duration is 1/bw.
         normalize (bool, optional): If True, the pulse is normalized to have
             unit energy. Defaults to True.
 
@@ -39,12 +39,12 @@ def uncoded_pulse(
             - mag (np.ndarray): The real-valued magnitude of the pulse samples.
 
     Raises:
-        AssertionError: If the sample rate is below the Nyquist rate (2 * BW).
+        AssertionError: If the sample rate is below the Nyquist rate (2 * bw).
     """
-    assert sampleRate / BW >= 2, "Error: sample rate below Nyquist"
+    assert sample_rate / bw >= 2, "Error: sample rate below Nyquist"
 
-    T = 1 / BW
-    dt = 1 / sampleRate
+    T = 1 / bw
+    dt = 1 / sample_rate
     t = np.arange(0, T, dt)
     mag = np.ones(t.size)
 
@@ -55,7 +55,7 @@ def uncoded_pulse(
 
 
 def complex_tone_pulse(
-    sampleRate: float, BW: float, fc: float, normalize: bool = True
+    sample_rate: float, bw: float, fc: float, normalize: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generates a complex-valued pulse with a constant frequency offset.
 
@@ -63,8 +63,8 @@ def complex_tone_pulse(
     exponential at a given carrier frequency.
 
     Args:
-        sampleRate (float): The sampling rate in Hz.
-        BW (float): The pulse bandwidth in Hz. The pulse duration is 1/BW.
+        sample_rate (float): The sampling rate in Hz.
+        bw (float): The pulse bandwidth in Hz. The pulse duration is 1/bw.
         fc (float): The carrier frequency offset in Hz.
         normalize (bool, optional): If True, the pulse is normalized to have
             unit energy. Defaults to True.
@@ -75,15 +75,15 @@ def complex_tone_pulse(
             - mag_c (np.ndarray): The complex-valued samples of the pulse.
 
     Raises:
-        AssertionError: If the sample rate is below the Nyquist rate (2 * BW).
+        AssertionError: If the sample rate is below the Nyquist rate (2 * bw).
     """
-    t, mag = uncoded_pulse(sampleRate, BW, normalize=normalize)
+    t, mag = uncoded_pulse(sample_rate, bw, normalize=normalize)
     mag_c = np.exp(2j * c.PI * fc * t) * mag
     return t, mag_c
 
 
 def coded_pulse(
-    sampleRate: float, BW: float, code: list[int], normalize: bool = True
+    sample_rate: float, bw: float, code: list[int], normalize: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband, phase-coded pulse.
 
@@ -92,8 +92,8 @@ def coded_pulse(
     phase).
 
     Args:
-        sampleRate (float): The sampling rate in Hz.
-        BW (float): The chip bandwidth in Hz. The chip duration is 1/BW.
+        sample_rate (float): The sampling rate in Hz.
+        bw (float): The chip bandwidth in Hz. The chip duration is 1/bw.
         code (list[int]): A list of code values, which must be either 1 or -1.
             The length of the list determines the number of chips.
         normalize (bool, optional): If True, the pulse is normalized to have
@@ -108,9 +108,9 @@ def coded_pulse(
         AssertionError: If any value in the code is not 1 or -1.
     """
     nchips = len(code)
-    Tc = 1 / BW
-    dt = 1 / sampleRate
-    samplesPerChip = round(Tc * sampleRate)
+    Tc = 1 / bw
+    dt = 1 / sample_rate
+    samplesPerChip = round(Tc * sample_rate)
 
     code_array = np.asarray(code)
     assert np.all(np.abs(code_array) == 1), "ValueError: Code values must be either 1 or -1."
@@ -124,7 +124,7 @@ def coded_pulse(
 
 
 def barker_coded_pulse(
-    sampleRate: float, BW: float, nchips: int, normalize: bool = True
+    sample_rate: float, bw: float, nchips: int, normalize: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband, Barker-coded pulse.
 
@@ -132,8 +132,8 @@ def barker_coded_pulse(
     autocorrelation sidelobes.
 
     Args:
-        sampleRate (float): The sampling rate in Hz.
-        BW (float): The chip bandwidth in Hz. The chip duration is 1/BW.
+        sample_rate (float): The sampling rate in Hz.
+        bw (float): The chip bandwidth in Hz. The chip duration is 1/bw.
         nchips (int): The number of chips in the Barker code. Must be a valid
             Barker code length (2, 3, 4, 5, 7, 11, or 13).
         normalize (bool, optional): If True, the pulse is normalized to have
@@ -149,23 +149,23 @@ def barker_coded_pulse(
     """
     assert nchips in BARKER_DICT, f"Error: {nchips=} is not a valid Barker code."
     return coded_pulse(
-        sampleRate,
-        BW,
+        sample_rate,
+        bw,
         BARKER_DICT[nchips],
         normalize=normalize,
     )
 
 
 def random_coded_pulse(
-    sampleRate: float, BW: float, nchips: int, normalize: bool = True
+    sample_rate: float, bw: float, nchips: int, normalize: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband pulse with a random binary phase code.
 
     The code consists of a sequence of randomly chosen 1s and -1s.
 
     Args:
-        sampleRate (float): The sampling rate in Hz.
-        BW (float): The chip bandwidth in Hz. The chip duration is 1/BW.
+        sample_rate (float): The sampling rate in Hz.
+        bw (float): The chip bandwidth in Hz. The chip duration is 1/bw.
         nchips (int): The number of chips in the random code.
         normalize (bool, optional): If True, the pulse is normalized to have
             unit energy. Defaults to True.
@@ -177,15 +177,15 @@ def random_coded_pulse(
     """
     code_rand = np.random.choice([1, -1], size=nchips)
     return coded_pulse(
-        sampleRate,
-        BW,
+        sample_rate,
+        bw,
         code_rand,
         normalize=normalize,
     )
 
 
 def lfm_pulse(
-    sampleRate: float, BW: float, T: float, chirpUpDown: int, normalize: bool = True
+    sample_rate: float, bw: float, T: float, chirp_up_down: int, normalize: bool = True
 ) -> tuple[np.ndarray, np.ndarray]:
     """Generates a baseband Linear Frequency Modulated (LFM) pulse (chirp).
 
@@ -193,10 +193,10 @@ def lfm_pulse(
     pulse duration.
 
     Args:
-        sampleRate (float): The sampling rate in Hz.
-        BW (float): The bandwidth of the frequency sweep in Hz.
+        sample_rate (float): The sampling rate in Hz.
+        bw (float): The bandwidth of the frequency sweep in Hz.
         T (float): The total pulse duration in seconds.
-        chirpUpDown (int): Determines the direction of the frequency sweep.
+        chirp_up_down (int): Determines the direction of the frequency sweep.
             1 for an up-chirp (frequency increases), -1 for a down-chirp
             (frequency decreases).
         normalize (bool, optional): If True, the pulse is normalized to have
@@ -208,13 +208,13 @@ def lfm_pulse(
             - mag (np.ndarray): The complex-valued samples of the LFM pulse.
 
     Raises:
-        AssertionError: If chirpUpDown is not 1 or -1.
+        AssertionError: If chirp_up_down is not 1 or -1.
     """
-    assert chirpUpDown in [1, -1], "ValueError: chirpUpDown must be either 1 or -1."
-    dt = 1 / sampleRate
+    assert chirp_up_down in [1, -1], "ValueError: chirp_up_down must be either 1 or -1."
+    dt = 1 / sample_rate
     t = np.arange(0, T, dt)
-    k = BW / T  # Chirp rate
-    phase = chirpUpDown * np.pi * k * (t**2) - chirpUpDown * np.pi * BW * t
+    k = bw / T  # Chirp rate
+    phase = chirp_up_down * np.pi * k * (t**2) - chirp_up_down * np.pi * bw * t
     mag = np.exp(1j * phase)
 
     if normalize:
@@ -264,16 +264,16 @@ def random_coded_waveform(bw: float, nchips: int) -> dict[str, object]:
     return {"type": WaveformType.RANDOM, "bw": bw, "nchips": nchips}
 
 
-def lfm_waveform(bw: float, T: float, chirpUpDown: int) -> dict[str, object]:
+def lfm_waveform(bw: float, T: float, chirp_up_down: int) -> dict[str, object]:
     """Returns a waveform dict for a Linear Frequency Modulated (LFM) pulse.
 
     Args:
         bw: Bandwidth of the frequency sweep in Hz.
         T: Pulse duration in seconds.
-        chirpUpDown: 1 for up-chirp, -1 for down-chirp.
+        chirp_up_down: 1 for up-chirp, -1 for down-chirp.
 
     Returns:
         Waveform dict for use with rdm.gen.
     """
-    assert chirpUpDown in [1, -1], "chirpUpDown must be 1 (up) or -1 (down)."
-    return {"type": WaveformType.LFM, "bw": bw, "T": T, "chirpUpDown": chirpUpDown}
+    assert chirp_up_down in [1, -1], "chirp_up_down must be 1 (up) or -1 (down)."
+    return {"type": WaveformType.LFM, "bw": bw, "T": T, "chirp_up_down": chirp_up_down}

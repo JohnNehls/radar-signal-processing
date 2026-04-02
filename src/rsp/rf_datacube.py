@@ -82,9 +82,9 @@ def doppler_process(datacube: np.ndarray, fs: float) -> tuple[np.ndarray, np.nda
     """
     N_r, N_p = datacube.shape
     dR_grid = c.C / (2 * fs)
-    PRF = fs / datacube.shape[0]
+    prf = fs / datacube.shape[0]
     R_axis = np.arange(1, N_r + 1) * dR_grid  # Process fast time
-    f_axis = fft.fftshift(fft.fftfreq(N_p, 1 / PRF))  # process slow time
+    f_axis = fft.fftshift(fft.fftfreq(N_p, 1 / prf))  # process slow time
     datacube[:] = fft.fftshift(fft.fft(datacube, axis=1), axes=1)
     return f_axis, R_axis
 

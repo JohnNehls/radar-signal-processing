@@ -20,7 +20,7 @@ chwin = signal.windows.chebwin(mag_s.size, 60)
 mag_chwin_s = chwin * mag_s
 
 # plot
-plot_pulse_and_spectrum(t_s, mag_s, "complex tone without filter", Npad=1024)
-plot_pulse_and_spectrum(t_s, mag_chwin_s, "complex tone with chwin filter", Npad=1024)
+plot_pulse_and_spectrum(t_s, mag_s, "complex tone without filter", n_pad=1024)
+plot_pulse_and_spectrum(t_s, mag_chwin_s, "complex tone with chwin filter", n_pad=1024)
 
 plt.show()

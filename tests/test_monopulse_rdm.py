@@ -8,18 +8,18 @@ BW = 10e6
 
 RADAR = Radar(
     fcar=10e9,
-    txPower=1e3,
-    txGain=10 ** (30 / 10),
-    rxGain=10 ** (30 / 10),
-    opTemp=290,
-    sampRate=2 * BW,
-    noiseFactor=10 ** (8 / 10),
-    totalLosses=10 ** (8 / 10),
-    PRF=50e3,
+    tx_power=1e3,
+    tx_gain=10 ** (30 / 10),
+    rx_gain=10 ** (30 / 10),
+    op_temp=290,
+    samp_rate=2 * BW,
+    noise_factor=10 ** (8 / 10),
+    total_losses=10 ** (8 / 10),
+    prf=50e3,
     dwell_time=2e-3,
 )
 
-WAVEFORM = lfm_waveform(BW, T=10 / 40e6, chirpUpDown=1)
+WAVEFORM = lfm_waveform(BW, T=10 / 40e6, chirp_up_down=1)
 TGT_ANGLE = 5  # degrees
 DX = 1 / 2  # element separation in wavelengths
 
@@ -30,7 +30,7 @@ def test_monopulse_rdm_angle_error_within_threshold():
 
     dc_list = []
     for i, sv in enumerate(steer_vec):
-        return_list = [Return(target=Target(range=2.4e3, rangeRate=0.2e3, rcs=10, sv=sv))]
+        return_list = [Return(target=Target(range=2.4e3, range_rate=0.2e3, rcs=10, sv=sv))]
         _, _, total_dc, _ = rdm.gen(RADAR, WAVEFORM, return_list, snr=True, debug=False, plot=False, seed=i)
         dc_list.append(total_dc)
 

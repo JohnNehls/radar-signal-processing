@@ -9,7 +9,7 @@ class Target:
 
     Attributes:
         range: True target range [m].
-        rangeRate: Radial velocity (positive = receding) [m/s].
+        range_rate: Radial velocity (positive = receding) [m/s].
         rcs: Radar cross section [m^2].  Required for skin return amplitude;
             unused by jammer return amplitude in physical mode.
         sv: Steering vector component for a single array element [dimensionless].
@@ -17,7 +17,7 @@ class Target:
     """
 
     range: float
-    rangeRate: float
+    range_rate: float
     rcs: float | None = None
     sv: complex = 1
 
@@ -30,9 +30,9 @@ class EaPlatform:
     the stored pulse is modified before retransmission.
 
     Attributes:
-        txPower: Transmit power [W].
-        txGain: Transmit antenna gain [linear].
-        totalLosses: Total system losses [linear].
+        tx_power: Transmit power [W].
+        tx_gain: Transmit antenna gain [linear].
+        total_losses: Total system losses [linear].
         rdot_delta: VBM Doppler spread [m/s].  ``None`` disables VBM entirely.
         rdot_offset: Doppler frequency offset applied to the retransmitted
             pulse [m/s].  Defaults to 0.
@@ -44,9 +44,9 @@ class EaPlatform:
             modulation.  ``None`` selects the default LFM noise function.
     """
 
-    txPower: float
-    txGain: float
-    totalLosses: float
+    tx_power: float
+    tx_gain: float
+    total_losses: float
     rdot_delta: float | None = None
     rdot_offset: float = 0.0
     range_offset: float = 0.0

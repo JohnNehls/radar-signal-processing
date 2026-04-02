@@ -3,19 +3,19 @@ from scipy import fft
 from . import constants as c
 
 
-def unity_variance_complex_noise(inSize: tuple | int) -> np.ndarray:
+def unity_variance_complex_noise(in_size: tuple | int) -> np.ndarray:
     """
     Generates complex Gaussian noise with unity variance.
 
     Args:
-        inSize: Shape of the output array.
+        in_size: Shape of the output array.
 
     Returns:
         A complex array where the real and imaginary components are
         independent standard normal distributions, scaled to achieve unit variance.
     """
-    real_part = np.random.standard_normal(size=inSize)
-    imag_part = np.random.standard_normal(size=inSize)
+    real_part = np.random.standard_normal(size=in_size)
+    imag_part = np.random.standard_normal(size=in_size)
     return (real_part + 1j * imag_part) / np.sqrt(2)
 
 

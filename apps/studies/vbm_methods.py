@@ -12,14 +12,14 @@ bw = 5e6
 
 radar = Radar(
     fcar=10e9,
-    txPower=1e3,
-    txGain=10 ** (30 / 10),
-    rxGain=10 ** (30 / 10),
-    opTemp=290,
-    sampRate=2 * bw,
-    noiseFactor=10 ** (8 / 10),
-    totalLosses=10 ** (8 / 10),
-    PRF=500e3,
+    tx_power=1e3,
+    tx_gain=10 ** (30 / 10),
+    rx_gain=10 ** (30 / 10),
+    op_temp=290,
+    samp_rate=2 * bw,
+    noise_factor=10 ** (8 / 10),
+    total_losses=10 ** (8 / 10),
+    prf=500e3,
     dwell_time=5e-3,
 )
 
@@ -36,9 +36,9 @@ vbm_name_function_dict = {
 rdot_delta = 1.0e3
 for name, func in vbm_name_function_dict.items():
     jammer_return = Return(
-        target=Target(range=0.2e3, rangeRate=0.0e3),
+        target=Target(range=0.2e3, range_rate=0.0e3),
         platform=EaPlatform(
-            txPower=1.0e3, txGain=10 ** (5 / 10), totalLosses=10 ** (3 / 10),
+            tx_power=1.0e3, tx_gain=10 ** (5 / 10), total_losses=10 ** (3 / 10),
             rdot_delta=rdot_delta, rdot_offset=0.0e3, vbm_noise_function=func,
         ),
     )

@@ -188,19 +188,19 @@ def gen(
     process_waveform_dict(waveform, radar)
 
     ########## Create range axis for plotting ######################################################
-    r_axis = range_axis(radar.sampRate, number_range_bins(radar.sampRate, radar.PRF))
+    r_axis = range_axis(radar.samp_rate, number_range_bins(radar.samp_rate, radar.prf))
 
     ########## Return ##############################################################################
-    signal_dc = data_cube(radar.sampRate, radar.PRF, radar.Npulses)
+    signal_dc = data_cube(radar.samp_rate, radar.prf, radar.n_pulses)
 
     if snr:
         ### Direclty plot the RDM in SNR by way of the range equation ###
         # - The SNR is calculated at the initial range and does not change in time
-        noise_dc = unity_variance_complex_noise(signal_dc.shape) / np.sqrt(radar.Npulses)
+        noise_dc = unity_variance_complex_noise(signal_dc.shape) / np.sqrt(radar.n_pulses)
     else:
         ### Determin scaling factors for max voltage ###
         rxVolt_noise = np.sqrt(
-            c.RADAR_LOAD * noise_power(waveform["bw"], radar.noiseFactor, radar.opTemp)
+            c.RADAR_LOAD * noise_power(waveform["bw"], radar.noise_factor, radar.op_temp)
         )
         noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
     add_returns(signal_dc, waveform, return_list, radar, snr=snr)
@@ -228,7 +228,7 @@ def gen(
 
     # Doppler process datacubes
     for dc in rdm_list:
-        f_axis, r_axis = doppler_process(dc, radar.sampRate)
+        f_axis, r_axis = doppler_process(dc, radar.samp_rate)
 
     ########## Plots and checks ####################################################################
     # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)

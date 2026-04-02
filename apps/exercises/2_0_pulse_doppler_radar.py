@@ -26,7 +26,7 @@ plt.xlabel("PRF [kHz]")
 plt.ylabel(r"$\pm$ max range rate [km/s]")
 for f0 in f0_ar:
     plt.plot(
-        PRF_ar * 1e-3, pdr.rangeRate_pm_unambiguous(PRF_ar, f0) * 1e-3, label=f"$f_0=${f0:.1e}"
+        PRF_ar * 1e-3, pdr.range_rate_pm_unambiguous(PRF_ar, f0) * 1e-3, label=f"$f_0=${f0:.1e}"
     )
 plt.yscale("log")
 plt.legend()
@@ -69,7 +69,7 @@ apparent_rangeRate_ar = []
 for PRF in PRF_ar:
     doppler_freq_tgt = pdr.frequency_delta_doppler(rangeRate_tgt, f0)
     apparent_doppler_ar.append(pdr.frequency_aliased(doppler_freq_tgt, PRF))
-    apparent_rangeRate_ar.append(pdr.rangeRate_aliased_prf_f0(rangeRate_tgt, PRF, f0))
+    apparent_rangeRate_ar.append(pdr.range_rate_aliased_prf_f0(rangeRate_tgt, PRF, f0))
 
 apparent_doppler_ar = np.array(apparent_doppler_ar)
 apparent_rangeRate_ar = np.array(apparent_rangeRate_ar)
@@ -86,9 +86,9 @@ ax[0].grid()
 ax[1].set_title("range rate aliasing")
 ax[1].plot(PRF_ar * 1e-3, apparent_rangeRate_ar, "-o", label=r"apparent $\dot{r}$")
 ax[1].plot(
-    PRF_ar * 1e-3, pdr.rangeRate_pm_unambiguous(PRF_ar, f0), "--r", label=r"unambiguous $\dot{r}$"
+    PRF_ar * 1e-3, pdr.range_rate_pm_unambiguous(PRF_ar, f0), "--r", label=r"unambiguous $\dot{r}$"
 )
-ax[1].plot(PRF_ar * 1e-3, -pdr.rangeRate_pm_unambiguous(PRF_ar, f0), "--r")
+ax[1].plot(PRF_ar * 1e-3, -pdr.range_rate_pm_unambiguous(PRF_ar, f0), "--r")
 ax[1].set_xlabel("PRF [kHz]")
 ax[1].set_ylabel("apparent range rate [m/s]")
 ax[1].legend()
@@ -102,9 +102,9 @@ f0_ar = np.array([1, 2, 4, 6, 8, 10, 12, 16, 18, 34, 36, 94]) * 1e9
 apparent_rangeRate_ar = []
 rangeRate_max_ar = []
 for f0 in f0_ar:
-    rangeRate_max = pdr.rangeRate_pm_unambiguous(PRF, f0)
+    rangeRate_max = pdr.range_rate_pm_unambiguous(PRF, f0)
     rangeRate_max_ar.append(rangeRate_max)
-    apparent_rangeRate_ar.append(pdr.rangeRate_aliased_prf_f0(rangeRate_tgt, PRF, f0))
+    apparent_rangeRate_ar.append(pdr.range_rate_aliased_prf_f0(rangeRate_tgt, PRF, f0))
 
 apparent_rangeRate_ar = np.array(apparent_rangeRate_ar)
 rangeRate_max_ar = np.array(rangeRate_max_ar)

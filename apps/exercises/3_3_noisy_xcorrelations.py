@@ -28,7 +28,7 @@ noise_1 = unity_variance_complex_noise(1000)
 
 print("verify uncoded pulse BW")
 t_u, mag_u = uncoded_pulse(sampleRate, BW, normalize=True)
-plot_pulse_and_spectrum(t_u, mag_u, "uncoded BW check", Npad=1000)
+plot_pulse_and_spectrum(t_u, mag_u, "uncoded BW check", n_pad=1000)
 
 # make pulse without extra points
 t_u, mag_u = uncoded_pulse(sampleRate, BW)
