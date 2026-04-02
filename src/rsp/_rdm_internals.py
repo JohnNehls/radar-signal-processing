@@ -17,7 +17,9 @@ def _propagation_phase(delays: np.ndarray, fcar: float) -> np.ndarray:
     return -2 * np.pi * fcar * delays
 
 
-def _return_sample_indices(return_times: np.ndarray, waveform: WaveformSample, radar: Radar) -> np.ndarray:
+def _return_sample_indices(
+    return_times: np.ndarray, waveform: WaveformSample, radar: Radar
+) -> np.ndarray:
     """Converts pulse return times to flat datacube sample indices.
 
     Subtracts half the pulse width since pulses are timed from their leading edge.
@@ -72,12 +74,21 @@ def add_skin(
     with _flat_datacube(datacube) as flat:
         for i in range(radar.n_pulses):
             if return_sample_indices[i] < datacube.size:
-                pulse = return_magnitude * waveform.pulse_sample * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
+                pulse = (
+                    return_magnitude
+                    * waveform.pulse_sample
+                    * np.exp(1j * two_way_doppler_phases[i])
+                    * tgt_info.sv
+                )
                 add_waveform_at_index(flat, pulse, return_sample_indices[i])
 
 
 def add_jammer(
-    datacube: np.ndarray, waveform: WaveformSample, radar: Radar, return_info: Return, return_magnitude: float
+    datacube: np.ndarray,
+    waveform: WaveformSample,
+    radar: Radar,
+    return_info: Return,
+    return_magnitude: float,
 ) -> None:
     """Adds a DRFM jammer return to the datacube.
 
@@ -242,15 +253,18 @@ def skin_voltage_amplitude(radar: Radar, target: Target) -> float:
     Returns:
         The received voltage amplitude.
     """
-    return np.sqrt(c.RADAR_LOAD * signal_range_eqn(
-        radar.tx_power,
-        radar.tx_gain,
-        radar.rx_gain,
-        target.rcs,
-        c.C / radar.fcar,
-        target.range,
-        radar.total_losses,
-    ))
+    return np.sqrt(
+        c.RADAR_LOAD
+        * signal_range_eqn(
+            radar.tx_power,
+            radar.tx_gain,
+            radar.rx_gain,
+            target.rcs,
+            c.C / radar.fcar,
+            target.range,
+            radar.total_losses,
+        )
+    )
 
 
 def jammer_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target) -> float:
@@ -267,18 +281,25 @@ def jammer_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target)
     Returns:
         The received voltage amplitude from the EA platform.
     """
-    return np.sqrt(c.RADAR_LOAD * signal_range_eqn_one_way(
-        platform.tx_power,
-        platform.tx_gain,
-        radar.rx_gain,
-        c.C / radar.fcar,
-        target.range,
-        platform.total_losses,
-    ))
+    return np.sqrt(
+        c.RADAR_LOAD
+        * signal_range_eqn_one_way(
+            platform.tx_power,
+            platform.tx_gain,
+            radar.rx_gain,
+            c.C / radar.fcar,
+            target.range,
+            platform.total_losses,
+        )
+    )
 
 
 def add_returns(
-    datacube: np.ndarray, waveform: WaveformSample, return_list: list, radar: Radar, snr: bool = False
+    datacube: np.ndarray,
+    waveform: WaveformSample,
+    return_list: list,
+    radar: Radar,
+    snr: bool = False,
 ) -> None:
     """Adds multiple returns to a datacube.
 
@@ -304,8 +325,11 @@ def add_returns(
             continue
 
         if item.target.rcs is not None:
-            amp = (skin_snr_amplitude(radar, item.target, waveform) if snr
-                   else skin_voltage_amplitude(radar, item.target))
+            amp = (
+                skin_snr_amplitude(radar, item.target, waveform)
+                if snr
+                else skin_voltage_amplitude(radar, item.target)
+            )
             add_skin(datacube, waveform, item.target, radar, amp)
 
         if item.platform is not None:
@@ -315,5 +339,3 @@ def add_returns(
             else:
                 amp = jammer_voltage_amplitude(item.platform, radar, item.target)
             add_jammer(datacube, waveform, radar, item, amp)
-
-

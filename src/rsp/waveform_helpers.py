@@ -321,7 +321,9 @@ def add_waveform_at_index(ar: np.ndarray, waveform: np.ndarray, index: int) -> n
     return ar
 
 
-def matchfilter_with_waveform(ar: np.ndarray, waveform: np.ndarray) -> tuple[np.ndarray, np.ndarray]:
+def matchfilter_with_waveform(
+    ar: np.ndarray, waveform: np.ndarray
+) -> tuple[np.ndarray, np.ndarray]:
     """Performs matched filtering of a signal with a given waveform.
 
     This function applies a matched filter to the input array `ar` using the

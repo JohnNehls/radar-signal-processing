@@ -1,4 +1,3 @@
-import math
 import pytest
 from rsp.geometry import range_and_rangerate
 

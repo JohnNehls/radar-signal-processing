@@ -1,6 +1,5 @@
 #!/usr/bin/env python
 
-import numpy as np
 from scipy import signal
 import matplotlib.pyplot as plt
 from rsp.waveform import uncoded_pulse

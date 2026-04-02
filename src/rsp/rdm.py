@@ -13,6 +13,116 @@ from .pulse_doppler_radar import Radar
 from .waveform import WaveformSample
 
 
+def gen(
+    radar: Radar,
+    waveform: WaveformSample,
+    return_list: list,
+    seed: int = 0,
+    plot: bool = True,
+    debug: bool = False,
+    snr: bool = False,
+) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
+    """Generate a Range-Doppler Map (RDM) for a single Coherent Processing Interval (CPI).
+
+    Simulates received radar data for one or more targets moving at constant
+    range rates and processes it to produce an RDM, accounting for radar system
+    parameters, waveform characteristics, and noise.
+
+    Args:
+        radar: Radar system parameters. See
+            :class:`rsp.pulse_doppler_radar.Radar` for required keys and units.
+        waveform: WaveformSample created by a factory function
+            (e.g. :func:`rsp.waveform.lfm_waveform`).
+        return_list: List of :class:`rsp.returns.Return` objects, each
+            describing one simulated target or jammer.
+        seed: Random number generator seed for reproducibility. Defaults to 0.
+        plot: If True, plots the final RDM. Defaults to True.
+        debug: If True, plots intermediate processing steps and prints
+            diagnostic statistics. Defaults to False.
+        snr: If True, output amplitudes are normalised to SNR (voltage ratio).
+            If False, output amplitudes are in Volts. Defaults to False.
+
+    Returns:
+        tuple: A four-element tuple ``(rdot_axis, r_axis, total_dc, signal_dc)``:
+
+            - **rdot_axis** (*np.ndarray*): 1D range-rate (Doppler) axis [m/s].
+            - **r_axis** (*np.ndarray*): 1D range axis [m].
+            - **total_dc** (*np.ndarray*): 2D RDM including signal and noise,
+              amplitude in Volts or SNR.
+            - **signal_dc** (*np.ndarray*): 2D signal-only RDM, amplitude in
+              Volts or SNR.
+    """
+    np.random.seed(seed)
+
+    ########## Compute waveform and radar parameters ###############################################
+    waveform.set_sample(radar.sample_rate)  # set the recorded sample
+
+    ########## Create range axis for plotting ######################################################
+    r_axis = range_axis(radar.sample_rate, number_range_bins(radar.sample_rate, radar.prf))
+
+    ########## Return ##############################################################################
+    signal_dc = data_cube(radar.sample_rate, radar.prf, radar.n_pulses)
+
+    if snr:
+        ### Direclty plot the RDM in SNR by way of the range equation ###
+        # - The SNR is calculated at the initial range and does not change in time
+        noise_dc = unity_variance_complex_noise(signal_dc.shape) / np.sqrt(radar.n_pulses)
+    else:
+        ### Determin scaling factors for max voltage ###
+        rxVolt_noise = np.sqrt(
+            c.RADAR_LOAD * noise_power(waveform.bw, radar.noise_factor, radar.op_temp)
+        )
+        noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
+    add_returns(signal_dc, waveform, return_list, radar, snr=snr)
+
+    total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
+
+    if debug:
+        plot_rtm(r_axis, signal_dc, "Noiseless RTM: unprocessed")
+
+    # list of datacubes to process in the following steps
+    rdm_list = [signal_dc, total_dc]
+
+    ########## Apply the match filter ##############################################################
+    for dc in rdm_list:
+        matchfilter(dc, waveform.pulse_sample, pedantic=False)
+
+    if debug:
+        plot_rtm(r_axis, signal_dc, "Noiseless RTM: match filtered")
+
+    ########### Doppler process ####################################################################
+    # First create filter window and apply it
+    chwin_norm_mat = create_window(signal_dc.shape, plot=False)
+    for dc in rdm_list:
+        dc *= chwin_norm_mat
+
+    # Doppler process datacubes
+    for dc in rdm_list:
+        f_axis, r_axis = doppler_process(dc, radar.sample_rate)
+
+    ########## Plots and checks ####################################################################
+    # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
+    rdot_axis = -c.C * f_axis / (2 * radar.fcar)
+
+    if debug:
+        if snr:
+            plot_rdm_snr(rdot_axis, r_axis, signal_dc, "Noiseless RDM", cbar_min=0)
+            noise_checks(signal_dc, noise_dc, total_dc)
+        else:
+            plot_rdm(rdot_axis, r_axis, signal_dc, "Noiseless RDM")
+    if plot or debug:
+        if snr:
+            plot_rdm_snr(
+                rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform.type}", cbar_min=0
+            )
+            # if debug:
+            check_expected_snr(radar, return_list[0].target, waveform)  # first return item
+        else:
+            plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform.type}")
+
+    return rdot_axis, r_axis, total_dc, signal_dc
+
+
 def plot_rtm(r_axis: np.ndarray, data: np.ndarray, title: str) -> None:
     """Plots the magnitude and phase of a range-time matrix (RTM).
 
@@ -139,113 +249,3 @@ def plot_rdm_snr(
 
     fig.tight_layout()
     return fig, ax
-
-
-def gen(
-    radar: Radar,
-    waveform: WaveformSample,
-    return_list: list,
-    seed: int = 0,
-    plot: bool = True,
-    debug: bool = False,
-    snr: bool = False,
-) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Generate a Range-Doppler Map (RDM) for a single Coherent Processing Interval (CPI).
-
-    Simulates received radar data for one or more targets moving at constant
-    range rates and processes it to produce an RDM, accounting for radar system
-    parameters, waveform characteristics, and noise.
-
-    Args:
-        radar: Radar system parameters. See
-            :class:`rsp.pulse_doppler_radar.Radar` for required keys and units.
-        waveform: WaveformSample created by a factory function
-            (e.g. :func:`rsp.waveform.lfm_waveform`).
-        return_list: List of :class:`rsp.returns.Return` objects, each
-            describing one simulated target or jammer.
-        seed: Random number generator seed for reproducibility. Defaults to 0.
-        plot: If True, plots the final RDM. Defaults to True.
-        debug: If True, plots intermediate processing steps and prints
-            diagnostic statistics. Defaults to False.
-        snr: If True, output amplitudes are normalised to SNR (voltage ratio).
-            If False, output amplitudes are in Volts. Defaults to False.
-
-    Returns:
-        tuple: A four-element tuple ``(rdot_axis, r_axis, total_dc, signal_dc)``:
-
-            - **rdot_axis** (*np.ndarray*): 1D range-rate (Doppler) axis [m/s].
-            - **r_axis** (*np.ndarray*): 1D range axis [m].
-            - **total_dc** (*np.ndarray*): 2D RDM including signal and noise,
-              amplitude in Volts or SNR.
-            - **signal_dc** (*np.ndarray*): 2D signal-only RDM, amplitude in
-              Volts or SNR.
-    """
-    np.random.seed(seed)
-
-    ########## Compute waveform and radar parameters ###############################################
-    waveform.set_sample(radar.sample_rate)  # set the recorded sample
-
-    ########## Create range axis for plotting ######################################################
-    r_axis = range_axis(radar.sample_rate, number_range_bins(radar.sample_rate, radar.prf))
-
-    ########## Return ##############################################################################
-    signal_dc = data_cube(radar.sample_rate, radar.prf, radar.n_pulses)
-
-    if snr:
-        ### Direclty plot the RDM in SNR by way of the range equation ###
-        # - The SNR is calculated at the initial range and does not change in time
-        noise_dc = unity_variance_complex_noise(signal_dc.shape) / np.sqrt(radar.n_pulses)
-    else:
-        ### Determin scaling factors for max voltage ###
-        rxVolt_noise = np.sqrt(
-            c.RADAR_LOAD * noise_power(waveform.bw, radar.noise_factor, radar.op_temp)
-        )
-        noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
-    add_returns(signal_dc, waveform, return_list, radar, snr=snr)
-
-    total_dc = signal_dc + noise_dc  # adding after return keeps clean signal_dc for plotting
-
-    if debug:
-        plot_rtm(r_axis, signal_dc, "Noiseless RTM: unprocessed")
-
-    # list of datacubes to process in the following steps
-    rdm_list = [signal_dc, total_dc]
-
-    ########## Apply the match filter ##############################################################
-    for dc in rdm_list:
-        matchfilter(dc, waveform.pulse_sample, pedantic=False)
-
-    if debug:
-        plot_rtm(r_axis, signal_dc, "Noiseless RTM: match filtered")
-
-    ########### Doppler process ####################################################################
-    # First create filter window and apply it
-    chwin_norm_mat = create_window(signal_dc.shape, plot=False)
-    for dc in rdm_list:
-        dc *= chwin_norm_mat
-
-    # Doppler process datacubes
-    for dc in rdm_list:
-        f_axis, r_axis = doppler_process(dc, radar.sample_rate)
-
-    ########## Plots and checks ####################################################################
-    # calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
-    rdot_axis = -c.C * f_axis / (2 * radar.fcar)
-
-    if debug:
-        if snr:
-            plot_rdm_snr(rdot_axis, r_axis, signal_dc, "Noiseless RDM", cbar_min=0)
-            noise_checks(signal_dc, noise_dc, total_dc)
-        else:
-            plot_rdm(rdot_axis, r_axis, signal_dc, "Noiseless RDM")
-    if plot or debug:
-        if snr:
-            plot_rdm_snr(
-                rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform.type}", cbar_min=0
-            )
-            # if debug:
-            check_expected_snr(radar, return_list[0].target, waveform)  # first return item
-        else:
-            plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform.type}")
-
-    return rdot_axis, r_axis, total_dc, signal_dc

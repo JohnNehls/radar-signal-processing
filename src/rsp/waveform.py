@@ -10,9 +10,10 @@ from . import constants as c
 
 class WaveformType(StrEnum):
     UNCODED = "uncoded"
-    BARKER  = "barker"
-    RANDOM  = "random"
-    LFM     = "lfm"
+    BARKER = "barker"
+    RANDOM = "random"
+    LFM = "lfm"
+
 
 @dataclass
 class WaveformSample:
@@ -123,7 +124,7 @@ def coded_pulse(
     Raises:
         AssertionError: If any value in the code is not 1 or -1.
     """
-    nchips = len(code)
+    len(code)
     Tc = 1 / bw
     dt = 1 / sample_rate
     samplesPerChip = round(Tc * sample_rate)
@@ -241,6 +242,7 @@ def lfm_pulse(
 
 # --- Waveform factories --------------------------------------------------------
 
+
 def uncoded_waveform(bw: float) -> WaveformSample:
     """Returns a WaveformSample for an uncoded rectangular pulse.
 
@@ -250,11 +252,14 @@ def uncoded_waveform(bw: float) -> WaveformSample:
     Returns:
         WaveformSample for use with rdm.gen.
     """
-    return WaveformSample(type = WaveformType.UNCODED,
-                          bw = bw,
-                          time_bw_product = 1,
-                          pulse_width = 1/bw,
-                          pulse_func = partial(uncoded_pulse, bw=bw))
+    return WaveformSample(
+        type=WaveformType.UNCODED,
+        bw=bw,
+        time_bw_product=1,
+        pulse_width=1 / bw,
+        pulse_func=partial(uncoded_pulse, bw=bw),
+    )
+
 
 def barker_coded_waveform(bw: float, nchips: int) -> WaveformSample:
     """Returns a WaveformSample for a Barker-coded pulse.

@@ -38,13 +38,19 @@ for name, func in vbm_name_function_dict.items():
     jammer_return = Return(
         target=Target(range=0.2e3, range_rate=0.0e3),
         platform=EaPlatform(
-            tx_power=1.0e3, tx_gain=10 ** (5 / 10), total_losses=10 ** (3 / 10),
-            rdot_delta=rdot_delta, rdot_offset=0.0e3, vbm_noise_function=func,
+            tx_power=1.0e3,
+            tx_gain=10 ** (5 / 10),
+            total_losses=10 ** (3 / 10),
+            rdot_delta=rdot_delta,
+            rdot_offset=0.0e3,
+            vbm_noise_function=func,
         ),
     )
     rdm.gen(radar, waveform, [jammer_return], debug=False)
     ax = plt.gca()
     ax.set_title(name)
 
-print(f"Note:LFM phase VBM is the only method to match the perscribed {rdot_delta} [m/s] VBM width.")
+print(
+    f"Note:LFM phase VBM is the only method to match the perscribed {rdot_delta} [m/s] VBM width."
+)
 plt.show()

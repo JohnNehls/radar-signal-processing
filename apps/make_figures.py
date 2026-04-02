@@ -9,6 +9,7 @@ Scripts ending in _no_test.py are skipped.
 """
 
 import matplotlib
+
 matplotlib.use("Agg")
 
 import argparse
@@ -25,7 +26,8 @@ parser = argparse.ArgumentParser(
     )
 )
 parser.add_argument(
-    "-n", "--name",
+    "-n",
+    "--name",
     default=None,
     metavar="NAME",
     help=(
@@ -48,7 +50,7 @@ OUT_DIR.mkdir(parents=True, exist_ok=True)
 
 scripts = sorted(p for p in EXERCISES_DIR.glob("*.py") if not p.stem.endswith("_no_test"))
 
-results = []   # list of (stem, [png_paths], error_or_None)
+results = []  # list of (stem, [png_paths], error_or_None)
 total_figures = 0
 
 for script in scripts:

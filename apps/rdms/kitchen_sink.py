@@ -34,8 +34,13 @@ skin_return = Return(target=Target(range=7.1e3, range_rate=-1e3, rcs=9))
 jammer_on_target = Return(
     target=Target(range=3.5e3, range_rate=0.5e3, rcs=10, sv=np.exp(1j * np.pi / 4)),
     platform=EaPlatform(
-        tx_power=1, tx_gain=10 ** (5 / 10), total_losses=10 ** (5 / 10),
-        rdot_delta=3.0e3, rdot_offset=0.3e3, range_offset=-0.2e3, delay=1.33e-6,
+        tx_power=1,
+        tx_gain=10 ** (5 / 10),
+        total_losses=10 ** (5 / 10),
+        rdot_delta=3.0e3,
+        rdot_offset=0.3e3,
+        range_offset=-0.2e3,
+        delay=1.33e-6,
     ),
 )
 

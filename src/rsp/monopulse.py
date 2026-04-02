@@ -1,9 +1,7 @@
 import numpy as np
 
 
-def amplitude_monopulse(
-    sig_a: np.ndarray, sig_b: np.ndarray, dx: float
-) -> np.ndarray:
+def amplitude_monopulse(sig_a: np.ndarray, sig_b: np.ndarray, dx: float) -> np.ndarray:
     """Estimates sin(theta) at each sample or bin via amplitude monopulse ratio.
 
     Computes the standard sum/difference monopulse estimator:
@@ -25,9 +23,7 @@ def amplitude_monopulse(
     return np.arctan(2 * (delta / sum_).imag) / rho
 
 
-def monopulse_angle_deg(
-    sig_a: np.ndarray, sig_b: np.ndarray, dx: float
-) -> np.ndarray:
+def monopulse_angle_deg(sig_a: np.ndarray, sig_b: np.ndarray, dx: float) -> np.ndarray:
     """Estimates target angle in degrees at each sample or bin.
 
     Args:
@@ -41,9 +37,7 @@ def monopulse_angle_deg(
     return np.rad2deg(np.arcsin(amplitude_monopulse(sig_a, sig_b, dx)))
 
 
-def monopulse_angle_at_peak_deg(
-    sig_a: np.ndarray, sig_b: np.ndarray, dx: float
-) -> float:
+def monopulse_angle_at_peak_deg(sig_a: np.ndarray, sig_b: np.ndarray, dx: float) -> float:
     """Estimates target angle in degrees at the peak power bin.
 
     Finds the index of maximum magnitude in sig_a, then returns the

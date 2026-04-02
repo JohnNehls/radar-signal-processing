@@ -45,7 +45,7 @@ for index, Pt in enumerate(Pt_ar):
         "--k",
         label=f"{SNR_thresh_db} dB threshold",
     )
-    ax[index].set_title(f"Pt={Pt*1e-3:.1f}[kW]")
+    ax[index].set_title(f"Pt={Pt * 1e-3:.1f}[kW]")
     ax[index].set_xlabel("target distance [km]")
     ax[index].set_ylabel("SNR dB")
     ax[index].grid()
@@ -77,7 +77,7 @@ for index, Tcpi in enumerate(Tcpi_ar):
         "--k",
         label=f"{SNR_thresh_db} dB threshold",
     )
-    ax[index].set_title(f"CPI={Tcpi*1e3:.1f}[ms]")
+    ax[index].set_title(f"CPI={Tcpi * 1e3:.1f}[ms]")
     ax[index].set_xlabel("target distance [km]")
     ax[index].set_ylabel("SNR dB")
     ax[index].grid()
@@ -108,7 +108,7 @@ for i, Pt in enumerate(Pt_ar):
         min_det_range_sigmaPt[i, j] = val
 
 plt.figure()
-plt.title(f"Tcpi={Tcpi*1e3}[ms] DF={dutyFactor}  SNR_thresh={SNR_thresh_db}[dB]")
+plt.title(f"Tcpi={Tcpi * 1e3}[ms] DF={dutyFactor}  SNR_thresh={SNR_thresh_db}[dB]")
 plt.pcolormesh(sigma_db_ar, Pt_ar * 1e-3, min_det_range_sigmaPt * 1e-3)
 c = plt.colorbar()
 c.set_label("minimum detectable target range [km]")
@@ -130,7 +130,7 @@ for i, Tcpi in enumerate(Tcpi_ar):
         min_det_range_sigmaTcpi[i, j] = val
 
 plt.figure()
-plt.title(f"Pt={Pt*1e-3:.1f}kW  DF={dutyFactor}  SNR_thresh={SNR_thresh_db}[dB]")
+plt.title(f"Pt={Pt * 1e-3:.1f}kW  DF={dutyFactor}  SNR_thresh={SNR_thresh_db}[dB]")
 plt.pcolormesh(sigma_db_ar, Tcpi_ar * 1e3, min_det_range_sigmaTcpi * 1e-3)
 c = plt.colorbar()
 c.set_label("minimum detectable target range [km]")

@@ -10,7 +10,6 @@ import rsp.uniform_linear_arrays as ula
 #   - since our waveform may be mulit-chromatic, we use time rather than distance and wavelenthg
 
 
-
 plt.rcParams["text.usetex"] = True
 
 ## STUDY 1 : show that as long as you have dx < lambda/2, the array factor structure is defined

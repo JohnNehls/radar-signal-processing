@@ -1,5 +1,4 @@
 import numpy as np
-import pytest
 import rsp.uniform_linear_arrays as ula
 import rsp.monopulse as mp
 from rsp import rdm, Radar, Target, Return, lfm_waveform
@@ -31,7 +30,9 @@ def test_monopulse_rdm_angle_error_within_threshold():
     dc_list = []
     for i, sv in enumerate(steer_vec):
         return_list = [Return(target=Target(range=2.4e3, range_rate=0.2e3, rcs=10, sv=sv))]
-        _, _, total_dc, _ = rdm.gen(RADAR, WAVEFORM, return_list, snr=True, debug=False, plot=False, seed=i)
+        _, _, total_dc, _ = rdm.gen(
+            RADAR, WAVEFORM, return_list, snr=True, debug=False, plot=False, seed=i
+        )
         dc_list.append(total_dc)
 
     measured_theta = mp.monopulse_angle_at_peak_deg(dc_list[0], dc_list[1], DX)

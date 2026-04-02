@@ -15,7 +15,6 @@ from rsp._rdm_internals import create_window, add_returns
 from rsp.returns import Target, Return
 
 
-
 ################################################################################
 # Show that the effect of considering the time delay
 ################################################################################
@@ -41,8 +40,8 @@ radar = Radar(
 
 return_list = [Return(target=Target(range=2.4e3, range_rate=0.2e3, rcs=10))]
 
-waveform = uncoded_waveform(bw)                              # high 1
-waveform = barker_coded_waveform(bw, nchips=13)                    # high 1
+waveform = uncoded_waveform(bw)  # high 1
+waveform = barker_coded_waveform(bw, nchips=13)  # high 1
 waveform = lfm_waveform(3 * bw, T=10 / 40e6, chirp_up_down=1)  ## high 2
 
 tgt_angle = 2
@@ -59,9 +58,7 @@ r_axis = range_axis(radar.sample_rate, number_range_bins(radar.sample_rate, rada
 signal_dc = data_cube(radar.sample_rate, radar.prf, radar.n_pulses)
 
 ### Determin scaling factors for max voltage ###
-rxVolt_noise = np.sqrt(
-    c.RADAR_LOAD * noise_power(waveform.bw, radar.noise_factor, radar.op_temp)
-)
+rxVolt_noise = np.sqrt(c.RADAR_LOAD * noise_power(waveform.bw, radar.noise_factor, radar.op_temp))
 noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
 add_returns(signal_dc, waveform, return_list, radar)
 

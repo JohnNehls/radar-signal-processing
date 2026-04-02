@@ -29,8 +29,11 @@ return_list = [
     Return(
         target=Target(range=0.5e3, range_rate=0.0e3),
         platform=EaPlatform(
-            tx_power=2.0, tx_gain=10 ** (5 / 10), total_losses=10 ** (3 / 10),
-            rdot_delta=0.5e3, rdot_offset=0.0e3,
+            tx_power=2.0,
+            tx_gain=10 ** (5 / 10),
+            total_losses=10 ** (3 / 10),
+            rdot_delta=0.5e3,
+            rdot_offset=0.0e3,
         ),
     )
 ]

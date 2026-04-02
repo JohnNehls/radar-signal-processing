@@ -3,3 +3,4 @@
 *.egg-info
 /src/rsp/_version.py
 /docs/generated_artifacts
+/docs/working_notes.org

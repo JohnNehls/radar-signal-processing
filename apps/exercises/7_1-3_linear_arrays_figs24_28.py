@@ -12,8 +12,6 @@ import rsp.uniform_linear_arrays as ula
 #   - 24 and 25 use 10 log10(arrayFactor), not 20xlog10(arrayFactor)
 
 
-
-
 plt.rcParams["text.usetex"] = True
 
 ## problem 1 ########################################################

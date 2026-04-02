@@ -17,8 +17,7 @@ def _make_received(tgt_angle, snr_db, seed):
     steer_vec = ula.steering_vector(ARRAY_POS, tgt_angle)
     snr_volt = 10 ** (snr_db / 20)
     received = [
-        snr_volt * sv * signal_ar + unity_variance_complex_noise(N_SAMPLES)
-        for sv in steer_vec
+        snr_volt * sv * signal_ar + unity_variance_complex_noise(N_SAMPLES) for sv in steer_vec
     ]
     return received[0], received[1]
 
@@ -34,6 +33,7 @@ def _noiseless_received(tgt_angle):
 # ---------------------------------------------------------------------------
 # amplitude_monopulse
 # ---------------------------------------------------------------------------
+
 
 def test_amplitude_monopulse_boresight_is_zero():
     sig_a, sig_b = _noiseless_received(0.0)
@@ -61,6 +61,7 @@ def test_amplitude_monopulse_sign():
 # ---------------------------------------------------------------------------
 # monopulse_angle_deg
 # ---------------------------------------------------------------------------
+
 
 @pytest.mark.parametrize("angle", [-5, 0, 5])
 def test_monopulse_angle_deg_noiseless_within_half_degree(angle):
@@ -90,6 +91,7 @@ def test_angle_error_decreases_with_snr():
 # ---------------------------------------------------------------------------
 # monopulse_angle_at_peak_deg
 # ---------------------------------------------------------------------------
+
 
 def test_monopulse_angle_at_peak_noiseless():
     # 1-D noiseless signal: peak-based estimate should be within 0.5° of true angle

@@ -42,7 +42,7 @@ def signal_range_eqn_one_way(
     Returns:
         float: Received power [W]
     """
-    return (Pt * Gt * Gr * wavelength**2) / ((4 * c.PI)**2 * R**2 * L)
+    return (Pt * Gt * Gr * wavelength**2) / ((4 * c.PI) ** 2 * R**2 * L)
 
 
 def noise_power(B: float, F: float, T: float) -> float:
@@ -61,8 +61,16 @@ def noise_power(B: float, F: float, T: float) -> float:
 
 
 def snr_range_eqn_uncoded(
-    Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
-    R: float, B: float, F: float, L: float, T: float
+    Pt: float,
+    Gt: float,
+    Gr: float,
+    sigma: float,
+    wavelength: float,
+    R: float,
+    B: float,
+    F: float,
+    L: float,
+    T: float,
 ) -> float:
     """
     Calculate the single-pulse Signal-to-Noise Ratio (SNR) for an uncoded pulse.
@@ -89,8 +97,17 @@ def snr_range_eqn_uncoded(
 
 
 def snr_range_eqn(
-    Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
-    R: float, B: float, F: float, L: float, T: float, time_bandwidth_prod: float
+    Pt: float,
+    Gt: float,
+    Gr: float,
+    sigma: float,
+    wavelength: float,
+    R: float,
+    B: float,
+    F: float,
+    L: float,
+    T: float,
+    time_bandwidth_prod: float,
 ) -> float:
     """
     Calculate the single-pulse Signal-to-Noise Ratio (SNR) for a pulse with pulse compression.
@@ -118,8 +135,18 @@ def snr_range_eqn(
 
 
 def snr_range_eqn_cp(
-    Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
-    R: float, B: float, F: float, L: float, T: float, n_p: float, time_bandwidth_prod: float
+    Pt: float,
+    Gt: float,
+    Gr: float,
+    sigma: float,
+    wavelength: float,
+    R: float,
+    B: float,
+    F: float,
+    L: float,
+    T: float,
+    n_p: float,
+    time_bandwidth_prod: float,
 ) -> float:
     """
     Calculate the Signal-to-Noise Ratio (SNR) after coherent processing of multiple pulses.
@@ -149,8 +176,18 @@ def snr_range_eqn_cp(
 
 
 def snr_range_eqn_bpsk_cp(
-    Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
-    R: float, B: float, F: float, L: float, T: float, n_p: float, n_c: float
+    Pt: float,
+    Gt: float,
+    Gr: float,
+    sigma: float,
+    wavelength: float,
+    R: float,
+    B: float,
+    F: float,
+    L: float,
+    T: float,
+    n_p: float,
+    n_c: float,
 ) -> float:
     """
     Calculate the Signal-to-Noise Ratio (SNR) for Binary Phase Shift Keying (BPSK) pulses after coherent processing.
@@ -177,8 +214,17 @@ def snr_range_eqn_bpsk_cp(
 
 
 def snr_range_eqn_duty_factor_pulses(
-    Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
-    R: float, F: float, L: float, T: float, Tcpi: float, tau_df: float
+    Pt: float,
+    Gt: float,
+    Gr: float,
+    sigma: float,
+    wavelength: float,
+    R: float,
+    F: float,
+    L: float,
+    T: float,
+    Tcpi: float,
+    tau_df: float,
 ) -> float:
     """
     Calculate the Signal-to-Noise Ratio (SNR) using the duty factor and coherent processing interval.
@@ -207,8 +253,16 @@ def snr_range_eqn_duty_factor_pulses(
 
 
 def min_target_detection_range(
-    Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
-    SNR_thresh: float, B: float, F: float, L: float, T: float
+    Pt: float,
+    Gt: float,
+    Gr: float,
+    sigma: float,
+    wavelength: float,
+    SNR_thresh: float,
+    B: float,
+    F: float,
+    L: float,
+    T: float,
 ) -> float:
     """
     Calculate the maximum detectable range for a single uncoded pulse given an SNR threshold.
@@ -236,8 +290,18 @@ def min_target_detection_range(
 
 
 def min_target_detection_range_bpsk_cp(
-    Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
-    SNR_thresh: float, B: float, F: float, L: float, T: float, n_p: float, n_c: float
+    Pt: float,
+    Gt: float,
+    Gr: float,
+    sigma: float,
+    wavelength: float,
+    SNR_thresh: float,
+    B: float,
+    F: float,
+    L: float,
+    T: float,
+    n_p: float,
+    n_c: float,
 ) -> float:
     """
     Calculate the maximum detectable range for coherently processed BPSK pulses.
@@ -265,8 +329,17 @@ def min_target_detection_range_bpsk_cp(
 
 
 def min_target_detection_range_dutyfactor_cp(
-    Pt: float, Gt: float, Gr: float, sigma: float, wavelength: float,
-    SNR_thresh: float, F: float, L: float, T: float, Tcpi: float, tau_df: float
+    Pt: float,
+    Gt: float,
+    Gr: float,
+    sigma: float,
+    wavelength: float,
+    SNR_thresh: float,
+    F: float,
+    L: float,
+    T: float,
+    Tcpi: float,
+    tau_df: float,
 ) -> float:
     """
     Calculate the maximum detectable range for coherently processed pulses using duty factor parameters.

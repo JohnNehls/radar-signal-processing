@@ -22,8 +22,13 @@ RADAR = Radar(
 RETURN = Return(
     target=Target(range=8.4e3, range_rate=2.0e3),
     platform=EaPlatform(
-        tx_power=5.0e3, tx_gain=10 ** (30 / 10), total_losses=10 ** (3 / 10),
-        rdot_delta=0.1e3, rdot_offset=0.0e3, range_offset=0.0e3, delay=0.0e-6,
+        tx_power=5.0e3,
+        tx_gain=10 ** (30 / 10),
+        total_losses=10 ** (3 / 10),
+        rdot_delta=0.1e3,
+        rdot_offset=0.0e3,
+        range_offset=0.0e3,
+        delay=0.0e-6,
     ),
 )
 

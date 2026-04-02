@@ -5,7 +5,6 @@ import matplotlib.pyplot as plt
 import numpy.fft as fft
 
 
-
 # Start experimenting
 Nel = 40
 dx = 1 / 2

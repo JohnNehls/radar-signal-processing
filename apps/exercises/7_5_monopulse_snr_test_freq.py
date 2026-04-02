@@ -72,7 +72,9 @@ for snr_db in snr_db_list:
 
     # monopulse only accurate in bins containing power -- only look at max index
     f_max_index = np.argmax(np.abs(f_recieved_signals[0]))
-    f_measured_theta = mp.monopulse_angle_at_peak_deg(f_recieved_signals[0], f_recieved_signals[1], dx)
+    f_measured_theta = mp.monopulse_angle_at_peak_deg(
+        f_recieved_signals[0], f_recieved_signals[1], dx
+    )
     f_measured_error = abs(f_measured_theta - tgt_angle)
     f_error_list.append(f_measured_error)
 

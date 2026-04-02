@@ -50,7 +50,7 @@ apparent_range_ar = np.array(apparent_range_ar)
 range_max_ar = np.array(range_max_ar)
 
 plt.figure()
-plt.title(f"range aliasing vs PRF: target range = {R_tgt*1e-3:.1f} [km]")
+plt.title(f"range aliasing vs PRF: target range = {R_tgt * 1e-3:.1f} [km]")
 plt.plot(PRF_ar * 1e-3, apparent_range_ar * 1e-3, "o", label="apparent range")
 plt.plot(PRF_ar * 1e-3, range_max_ar * 1e-3, "--r", label="unambiguous range")
 plt.xlabel("PRF [kHz]")
@@ -111,7 +111,7 @@ rangeRate_max_ar = np.array(rangeRate_max_ar)
 
 plt.figure()
 plt.title(
-    rf"range rate vs freq: $\dot{{r}}_{{target}}$ = {rangeRate_tgt} [m/s], PRF={PRF*1e-3:.1f}[km]"
+    rf"range rate vs freq: $\dot{{r}}_{{target}}$ = {rangeRate_tgt} [m/s], PRF={PRF * 1e-3:.1f}[km]"
 )
 plt.plot(f0_ar * 1e-9, apparent_rangeRate_ar, "o", label=r"apparent $\dot{r}$")
 plt.plot(f0_ar * 1e-9, rangeRate_max_ar, "--r", label=r"unambiguous $\dot{r}$")

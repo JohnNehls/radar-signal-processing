@@ -10,7 +10,6 @@ from rsp.waveform import uncoded_waveform, barker_coded_waveform, lfm_waveform
 from rsp.returns import Target, Return
 
 
-
 ################################################################################
 # example that monopulse can be done after doppler processing
 ################################################################################
@@ -35,8 +34,8 @@ radar = Radar(
     dwell_time=2e-3,
 )
 
-waveform = uncoded_waveform(bw)                        # high 1
-waveform = barker_coded_waveform(bw, nchips=13)              # high 1
+waveform = uncoded_waveform(bw)  # high 1
+waveform = barker_coded_waveform(bw, nchips=13)  # high 1
 waveform = lfm_waveform(bw, T=10 / 40e6, chirp_up_down=1)  # high 2
 
 tgt_angle = 5
