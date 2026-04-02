@@ -2,15 +2,13 @@ import numpy as np
 import matplotlib.pyplot as plt
 from contextlib import contextmanager
 from scipy import signal
-from typing import Any
-
 from . import constants as c
-from . import waveform as wvf
 from .waveform_helpers import add_waveform_at_index
 from .utilities import phase_negpi_pospi
 from .range_equation import snr_range_eqn, signal_range_eqn, signal_range_eqn_one_way
 from . import vbm
 from .pulse_doppler_radar import Radar
+from .waveform import WaveformSample
 from .returns import Target, EaPlatform, Return
 
 
@@ -19,7 +17,7 @@ def _propagation_phase(delays: np.ndarray, fcar: float) -> np.ndarray:
     return -2 * np.pi * fcar * delays
 
 
-def _return_sample_indices(return_times: np.ndarray, waveform: dict, radar: Radar) -> np.ndarray:
+def _return_sample_indices(return_times: np.ndarray, waveform: WaveformSample, radar: Radar) -> np.ndarray:
     """Converts pulse return times to flat datacube sample indices.
 
     Subtracts half the pulse width since pulses are timed from their leading edge.
@@ -27,7 +25,7 @@ def _return_sample_indices(return_times: np.ndarray, waveform: dict, radar: Rada
     must be one less than round(t*fs) to land the matched filter peak in the
     correct bin.
     """
-    times_of_arrival = return_times - waveform["pulse_width"] / 2
+    times_of_arrival = return_times - waveform.pulse_width / 2
     return np.round(times_of_arrival * radar.samp_rate).astype(int) - 1
 
 
@@ -45,7 +43,7 @@ def _flat_datacube(datacube: np.ndarray):
 
 def add_skin(
     datacube: np.ndarray,
-    waveform: dict,
+    waveform: WaveformSample,
     tgt_info: Target,
     radar: Radar,
     return_magnitude: float,
@@ -59,7 +57,7 @@ def add_skin(
 
     Args:
         datacube: 2D complex array to which the return is added.
-        waveform: dictionary containing waveform parameters.
+        waveform: WaveformSample containing pulse data and parameters.
         tgt_info: Target kinematics and scattering parameters.
         radar: Radar system parameters.
         return_magnitude: The voltage or SNR amplitude of the return for a single pulse.
@@ -74,12 +72,12 @@ def add_skin(
     with _flat_datacube(datacube) as flat:
         for i in range(radar.n_pulses):
             if return_sample_indices[i] < datacube.size:
-                pulse = return_magnitude * waveform["pulse"] * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
+                pulse = return_magnitude * waveform.pulse_sample * np.exp(1j * two_way_doppler_phases[i]) * tgt_info.sv
                 add_waveform_at_index(flat, pulse, return_sample_indices[i])
 
 
 def add_jammer(
-    datacube: np.ndarray, waveform: dict, radar: Radar, return_info: Return, return_magnitude: float
+    datacube: np.ndarray, waveform: WaveformSample, radar: Radar, return_info: Return, return_magnitude: float
 ) -> None:
     """Adds a DRFM jammer return to the datacube.
 
@@ -89,7 +87,7 @@ def add_jammer(
 
     Args:
         datacube: 2D complex array to which the return is added.
-        waveform: dictionary containing waveform parameters.
+        waveform: WaveformSample containing pulse data and parameters.
         radar: Radar system parameters.
         return_info: Return describing the EA platform and target parameters.
         return_magnitude: The voltage or SNR amplitude of the return.
@@ -135,7 +133,7 @@ def add_jammer(
 
     with _flat_datacube(datacube) as flat:
         for i in range(radar.n_pulses):
-            received_pulse = waveform["pulse"] * np.exp(1j * one_way_propagation_phases[i])
+            received_pulse = waveform.pulse_sample * np.exp(1j * one_way_propagation_phases[i])
 
             if i == 0:
                 stored_pulse = received_pulse
@@ -194,7 +192,7 @@ def create_window(
     return window_matrix
 
 
-def skin_snr_amplitude(radar: Radar, target: Target, waveform: dict) -> float:
+def skin_snr_amplitude(radar: Radar, target: Target, waveform: WaveformSample) -> float:
     """Calculates the required per-pulse voltage amplitude to achieve a target SNR.
 
     Uses the radar range equation to find the SNR after processing, then works
@@ -204,7 +202,7 @@ def skin_snr_amplitude(radar: Radar, target: Target, waveform: dict) -> float:
     Args:
         radar: Radar system parameters.
         target: Target kinematics and scattering parameters.
-        waveform: dictionary of waveform parameters.
+        waveform: WaveformSample containing pulse data and parameters.
 
     Returns:
         The required per-pulse SNR as a linear voltage ratio.
@@ -218,11 +216,11 @@ def skin_snr_amplitude(radar: Radar, target: Target, waveform: dict) -> float:
         target.rcs,
         c.C / radar.fcar,
         target.range,
-        waveform["bw"],
+        waveform.bw,
         radar.noise_factor,
         radar.total_losses,
         radar.op_temp,
-        waveform["time_BW_product"],
+        waveform.time_bw_product,
     )
 
     # To find the required per-pulse amplitude, we first find the per-pulse SNR
@@ -280,7 +278,7 @@ def jammer_voltage_amplitude(platform: EaPlatform, radar: Radar, target: Target)
 
 
 def add_returns(
-    datacube: np.ndarray, waveform: dict, return_list: list, radar: Radar, snr: bool = False
+    datacube: np.ndarray, waveform: WaveformSample, return_list: list, radar: Radar, snr: bool = False
 ) -> None:
     """Adds multiple returns to a datacube.
 
@@ -293,7 +291,7 @@ def add_returns(
 
     Args:
         datacube: The 2D complex datacube to modify.
-        waveform: dictionary of waveform parameters.
+        waveform: WaveformSample containing pulse data and parameters.
         return_list: A list of Return objects.
         radar: Radar system parameters.
         snr: If True, amplitudes are normalised to SNR voltage ratio using the
@@ -319,49 +317,3 @@ def add_returns(
             add_jammer(datacube, waveform, radar, item, amp)
 
 
-def process_waveform_dict(waveform: dict[str, Any], radar: Radar) -> None:
-    """Generates waveform samples and computes parameters based on a dictionary.
-
-    This function acts as a factory, creating the pulse array and calculating
-    key properties based on the 'type' specified in the waveform dictionary.
-    The input `waveform` dictionary is updated in-place.
-
-    Args:
-        waveform: dictionary defining the waveform type and its parameters.
-                  It will be updated with 'pulse', 'time_BW_product', 'pulse_width'.
-        radar: Radar system parameters.
-
-    Raises:
-        ValueError: If the waveform 'type' is not recognized.
-    """
-    samp_rate = radar.samp_rate
-    wvf_type = waveform["type"]
-
-    if wvf_type == "uncoded":
-        _, pulse_wvf = wvf.uncoded_pulse(samp_rate, waveform["bw"])
-        waveform["pulse"] = pulse_wvf
-        waveform["time_BW_product"] = 1
-        waveform["pulse_width"] = 1 / waveform["bw"]
-
-    elif wvf_type == "barker":
-        _, pulse_wvf = wvf.barker_coded_pulse(samp_rate, waveform["bw"], waveform["nchips"])
-        waveform["pulse"] = pulse_wvf
-        waveform["time_BW_product"] = waveform["nchips"]
-        waveform["pulse_width"] = waveform["nchips"] / waveform["bw"]
-
-    elif wvf_type == "random":
-        _, pulse_wvf = wvf.random_coded_pulse(samp_rate, waveform["bw"], waveform["nchips"])
-        waveform["pulse"] = pulse_wvf
-        waveform["time_BW_product"] = waveform["nchips"]
-        waveform["pulse_width"] = waveform["nchips"] / waveform["bw"]
-
-    elif wvf_type == "lfm":
-        _, pulse_wvf = wvf.lfm_pulse(
-            samp_rate, waveform["bw"], waveform["T"], waveform["chirp_up_down"]
-        )
-        waveform["pulse"] = pulse_wvf
-        waveform["time_BW_product"] = waveform["bw"] * waveform["T"]
-        waveform["pulse_width"] = waveform["T"]
-
-    else:
-        raise ValueError(f"Waveform type '{wvf_type}' not recognized.")

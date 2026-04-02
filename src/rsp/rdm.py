@@ -7,9 +7,10 @@ from .rf_datacube import matchfilter, doppler_process
 from .range_equation import noise_power
 from .noise import unity_variance_complex_noise
 from .utilities import zero_to_smallest_float
-from ._rdm_internals import add_returns, process_waveform_dict, create_window
+from ._rdm_internals import add_returns, create_window
 from ._rdm_extras import noise_checks, check_expected_snr
 from .pulse_doppler_radar import Radar
+from .waveform import WaveformSample
 
 
 def plot_rtm(r_axis: np.ndarray, data: np.ndarray, title: str) -> None:
@@ -142,7 +143,7 @@ def plot_rdm_snr(
 
 def gen(
     radar: Radar,
-    waveform: dict,
+    waveform: WaveformSample,
     return_list: list,
     seed: int = 0,
     plot: bool = True,
@@ -158,12 +159,10 @@ def gen(
     Args:
         radar: Radar system parameters. See
             :class:`rsp.pulse_doppler_radar.Radar` for required keys and units.
-        waveform: Waveform definition dict. Use the factory functions
-            (e.g. :func:`rsp.waveform.lfm_waveform`) to construct this.
-        return_list: List of return dicts, each describing one simulated target.
-            Each dict must have a ``'type'`` key (``'skin'`` or ``'jammer'``)
-            and a nested ``'target'`` dict with ``'range'``, ``'rangeRate'``,
-            and (for skin) ``'rcs'``.
+        waveform: WaveformSample created by a factory function
+            (e.g. :func:`rsp.waveform.lfm_waveform`).
+        return_list: List of :class:`rsp.returns.Return` objects, each
+            describing one simulated target or jammer.
         seed: Random number generator seed for reproducibility. Defaults to 0.
         plot: If True, plots the final RDM. Defaults to True.
         debug: If True, plots intermediate processing steps and prints
@@ -184,8 +183,7 @@ def gen(
     np.random.seed(seed)
 
     ########## Compute waveform and radar parameters ###############################################
-    # Use normalized pulses, the time-bandwidth poduct is used for amp scaling
-    process_waveform_dict(waveform, radar)
+    waveform.set_sample(radar.samp_rate)  # set the recorded sample
 
     ########## Create range axis for plotting ######################################################
     r_axis = range_axis(radar.samp_rate, number_range_bins(radar.samp_rate, radar.prf))
@@ -200,7 +198,7 @@ def gen(
     else:
         ### Determin scaling factors for max voltage ###
         rxVolt_noise = np.sqrt(
-            c.RADAR_LOAD * noise_power(waveform["bw"], radar.noise_factor, radar.op_temp)
+            c.RADAR_LOAD * noise_power(waveform.bw, radar.noise_factor, radar.op_temp)
         )
         noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
     add_returns(signal_dc, waveform, return_list, radar, snr=snr)
@@ -215,7 +213,7 @@ def gen(
 
     ########## Apply the match filter ##############################################################
     for dc in rdm_list:
-        matchfilter(dc, waveform["pulse"], pedantic=False)
+        matchfilter(dc, waveform.pulse_sample, pedantic=False)
 
     if debug:
         plot_rtm(r_axis, signal_dc, "Noiseless RTM: match filtered")
@@ -243,11 +241,11 @@ def gen(
     if plot or debug:
         if snr:
             plot_rdm_snr(
-                rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform['type']}", cbar_min=0
+                rdot_axis, r_axis, total_dc, f"Total SNR RDM for {waveform.type}", cbar_min=0
             )
             # if debug:
             check_expected_snr(radar, return_list[0].target, waveform)  # first return item
         else:
-            plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform['type']}")
+            plot_rdm(rdot_axis, r_axis, total_dc, f"Total RDM for {waveform.type}")
 
     return rdot_axis, r_axis, total_dc, signal_dc

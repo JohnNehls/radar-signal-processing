@@ -11,7 +11,7 @@ import rsp.monopulse as mp
 from rsp.rf_datacube import number_range_bins, range_axis, data_cube
 from rsp.rf_datacube import matchfilter, doppler_process
 from rsp.range_equation import noise_power
-from rsp._rdm_internals import create_window, add_returns, process_waveform_dict
+from rsp._rdm_internals import create_window, add_returns
 from rsp.returns import Target, Return
 
 
@@ -50,8 +50,7 @@ dx = 1 / 2  # seperation of array elements in terms of carrier wavelength
 array_pos = np.array([-dx / 2, dx / 2])  # in terms of wavelength
 
 ########## Compute waveform and radar parameters ###############################################
-# Use normalized pulses, the time-bandwidth poduct is used for amp scaling
-process_waveform_dict(waveform, radar)
+waveform.set_sample(radar.samp_rate)
 
 ########## Create range axis for plotting ######################################################
 r_axis = range_axis(radar.samp_rate, number_range_bins(radar.samp_rate, radar.prf))
@@ -61,7 +60,7 @@ signal_dc = data_cube(radar.samp_rate, radar.prf, radar.n_pulses)
 
 ### Determin scaling factors for max voltage ###
 rxVolt_noise = np.sqrt(
-    c.RADAR_LOAD * noise_power(waveform["bw"], radar.noise_factor, radar.op_temp)
+    c.RADAR_LOAD * noise_power(waveform.bw, radar.noise_factor, radar.op_temp)
 )
 noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
 add_returns(signal_dc, waveform, return_list, radar)
@@ -101,7 +100,7 @@ rdm_list = signal_dc_ula_list + signal_dc_ula_list_timeshift
 
 ########## Apply the match filter ##############################################################
 for dc in rdm_list:
-    matchfilter(dc, waveform["pulse"], pedantic=True)
+    matchfilter(dc, waveform.pulse_sample, pedantic=True)
 
 ########### Doppler process ####################################################################
 # First create filter window and apply it

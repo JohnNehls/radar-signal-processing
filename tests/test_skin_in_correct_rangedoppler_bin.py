@@ -47,6 +47,6 @@ def check_max_in_expected_bin(waveform):
     assert max_rdot_index == j, f"Doppler bin mismatch: got {max_rdot_index}, expected {j}"
 
 
-@pytest.mark.parametrize("waveform", WAVEFORMS, ids=lambda w: w["type"] + str(w.get("nchips", "")))
+@pytest.mark.parametrize("waveform", WAVEFORMS, ids=lambda w: f"{w.type}_{w.time_bw_product}")
 def test_skin_return_in_correct_bin(waveform):
     check_max_in_expected_bin(waveform)

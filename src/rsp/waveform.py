@@ -1,4 +1,7 @@
 from enum import StrEnum
+from dataclasses import dataclass, field
+from typing import Callable
+from functools import partial
 
 import numpy as np
 from numpy.linalg import norm
@@ -10,6 +13,19 @@ class WaveformType(StrEnum):
     BARKER  = "barker"
     RANDOM  = "random"
     LFM     = "lfm"
+
+@dataclass
+class WaveformSample:
+    type: WaveformType
+    bw: float
+    time_bw_product: float
+    pulse_width: float
+    pulse_func: Callable
+    pulse_sample: np.ndarray = field(init=False)
+
+    def set_sample(self, sample_rate: float) -> None:
+        _, self.pulse_sample = self.pulse_func(sample_rate)
+
 
 BARKER_DICT = {
     2: [1, -1],
@@ -223,49 +239,64 @@ def lfm_pulse(
     return t, mag
 
 
-# --- Waveform dict factories ---------------------------------------------------
+# --- Waveform factories --------------------------------------------------------
 
-def uncoded_waveform(bw: float) -> dict[str, object]:
-    """Returns a waveform dict for an uncoded rectangular pulse.
+def uncoded_waveform(bw: float) -> WaveformSample:
+    """Returns a WaveformSample for an uncoded rectangular pulse.
 
     Args:
         bw: Pulse bandwidth in Hz. Pulse duration is 1/bw.
 
     Returns:
-        Waveform dict for use with rdm.gen.
+        WaveformSample for use with rdm.gen.
     """
-    return {"type": WaveformType.UNCODED, "bw": bw}
+    return WaveformSample(type = WaveformType.UNCODED,
+                          bw = bw,
+                          time_bw_product = 1,
+                          pulse_width = 1/bw,
+                          pulse_func = partial(uncoded_pulse, bw=bw))
 
-
-def barker_coded_waveform(bw: float, nchips: int) -> dict[str, object]:
-    """Returns a waveform dict for a Barker-coded pulse.
+def barker_coded_waveform(bw: float, nchips: int) -> WaveformSample:
+    """Returns a WaveformSample for a Barker-coded pulse.
 
     Args:
         bw: Chip bandwidth in Hz. Chip duration is 1/bw.
         nchips: Number of chips. Must be a valid Barker length (2,3,4,5,7,11,13).
 
     Returns:
-        Waveform dict for use with rdm.gen.
+        WaveformSample for use with rdm.gen.
     """
     assert nchips in BARKER_DICT, f"nchips={nchips} is not a valid Barker code length."
-    return {"type": WaveformType.BARKER, "bw": bw, "nchips": nchips}
+    return WaveformSample(
+        type=WaveformType.BARKER,
+        bw=bw,
+        time_bw_product=nchips,
+        pulse_width=nchips / bw,
+        pulse_func=partial(barker_coded_pulse, bw=bw, nchips=nchips),
+    )
 
 
-def random_coded_waveform(bw: float, nchips: int) -> dict[str, object]:
-    """Returns a waveform dict for a random binary phase-coded pulse.
+def random_coded_waveform(bw: float, nchips: int) -> WaveformSample:
+    """Returns a WaveformSample for a random binary phase-coded pulse.
 
     Args:
         bw: Chip bandwidth in Hz. Chip duration is 1/bw.
         nchips: Number of chips.
 
     Returns:
-        Waveform dict for use with rdm.gen.
+        WaveformSample for use with rdm.gen.
     """
-    return {"type": WaveformType.RANDOM, "bw": bw, "nchips": nchips}
+    return WaveformSample(
+        type=WaveformType.RANDOM,
+        bw=bw,
+        time_bw_product=nchips,
+        pulse_width=nchips / bw,
+        pulse_func=partial(random_coded_pulse, bw=bw, nchips=nchips),
+    )
 
 
-def lfm_waveform(bw: float, T: float, chirp_up_down: int) -> dict[str, object]:
-    """Returns a waveform dict for a Linear Frequency Modulated (LFM) pulse.
+def lfm_waveform(bw: float, T: float, chirp_up_down: int) -> WaveformSample:
+    """Returns a WaveformSample for a Linear Frequency Modulated (LFM) pulse.
 
     Args:
         bw: Bandwidth of the frequency sweep in Hz.
@@ -273,7 +304,13 @@ def lfm_waveform(bw: float, T: float, chirp_up_down: int) -> dict[str, object]:
         chirp_up_down: 1 for up-chirp, -1 for down-chirp.
 
     Returns:
-        Waveform dict for use with rdm.gen.
+        WaveformSample for use with rdm.gen.
     """
     assert chirp_up_down in [1, -1], "chirp_up_down must be 1 (up) or -1 (down)."
-    return {"type": WaveformType.LFM, "bw": bw, "T": T, "chirp_up_down": chirp_up_down}
+    return WaveformSample(
+        type=WaveformType.LFM,
+        bw=bw,
+        time_bw_product=bw * T,
+        pulse_width=T,
+        pulse_func=partial(lfm_pulse, bw=bw, T=T, chirp_up_down=chirp_up_down),
+    )
