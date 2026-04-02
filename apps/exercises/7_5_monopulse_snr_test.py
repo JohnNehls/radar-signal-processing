@@ -2,9 +2,9 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import rsp.uniform_linear_arrays as ula
-import rsp.monopulse as mp
-from rsp.noise import unity_variance_complex_noise
+import rad_lab.uniform_linear_arrays as ula
+import rad_lab.monopulse as mp
+from rad_lab.noise import unity_variance_complex_noise
 
 
 plt.rcParams["text.usetex"] = True

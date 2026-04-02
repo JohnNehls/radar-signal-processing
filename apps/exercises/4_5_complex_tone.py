@@ -2,8 +2,8 @@
 
 from scipy import signal
 import matplotlib.pyplot as plt
-from rsp.waveform import complex_tone_pulse
-from rsp.waveform_helpers import plot_pulse_and_spectrum
+from rad_lab.waveform import complex_tone_pulse
+from rad_lab.waveform_helpers import plot_pulse_and_spectrum
 
 
 print("complex tone without filter")

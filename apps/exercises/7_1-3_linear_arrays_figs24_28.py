@@ -2,7 +2,7 @@
 
 from scipy import signal
 import matplotlib.pyplot as plt
-import rsp.uniform_linear_arrays as ula
+import rad_lab.uniform_linear_arrays as ula
 
 # Discrpencies with Document
 # - our figure 24 and 25 recreations do not line up with the document

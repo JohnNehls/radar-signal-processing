@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-from rsp import rdm, Radar, Target, EaPlatform, Return, uncoded_waveform
-import rsp.vbm as vbm
+from rad_lab import rdm, Radar, Target, EaPlatform, Return, uncoded_waveform
+import rad_lab.vbm as vbm
 
 ################################################################################
 # Display each of the VBM noise methods in order of complexity

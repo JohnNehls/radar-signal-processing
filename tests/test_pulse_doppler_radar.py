@@ -1,5 +1,5 @@
 import pytest
-import rsp.pulse_doppler_radar as pdr
+import rad_lab.pulse_doppler_radar as pdr
 
 C = 3e8  # speed of light [m/s]
 

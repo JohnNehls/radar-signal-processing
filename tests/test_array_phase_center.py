@@ -1,6 +1,6 @@
 import numpy as np
 import pytest
-import rsp.uniform_linear_arrays as ula
+import rad_lab.uniform_linear_arrays as ula
 
 
 def test_uniform_weights_center():

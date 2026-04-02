@@ -1,5 +1,5 @@
 import pytest
-from rsp.geometry import range_and_rangerate
+from rad_lab.geometry import range_and_rangerate
 
 
 def test_problem6_geometry():

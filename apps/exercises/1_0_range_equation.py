@@ -2,8 +2,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.constants import PI, C
-import rsp.range_equation as re
+from rad_lab.constants import PI, C
+import rad_lab.range_equation as re
 
 
 ## problem 1 #############################################################

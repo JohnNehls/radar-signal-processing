@@ -1,5 +1,5 @@
 import matplotlib.pyplot as plt
-from rsp import rdm, Radar, Target, Return, EaPlatform, lfm_waveform
+from rad_lab import rdm, Radar, Target, Return, EaPlatform, lfm_waveform
 
 radar = Radar(
     fcar=10e9,

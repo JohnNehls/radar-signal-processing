@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-from rsp.waveform_helpers import matchfilter_with_waveform, zeropad_waveform
-from rsp.waveform import uncoded_pulse, barker_coded_pulse
+from rad_lab.waveform_helpers import matchfilter_with_waveform, zeropad_waveform
+from rad_lab.waveform import uncoded_pulse, barker_coded_pulse
 
 
 print("##############################")

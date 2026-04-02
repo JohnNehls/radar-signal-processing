@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-from rsp import rdm, Radar, Target, Return, lfm_waveform
+from rad_lab import rdm, Radar, Target, Return, lfm_waveform
 
 ################################################################################
 # skin example

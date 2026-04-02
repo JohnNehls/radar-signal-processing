@@ -1,6 +1,8 @@
 *.pyc
 /build/
+dist
 *.egg-info
-/src/rsp/_version.py
+/src/rad_lab/_version.py
 /docs/generated_artifacts
 /docs/working_notes.org
+

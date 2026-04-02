@@ -2,12 +2,12 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-import rsp.uniform_linear_arrays as ula
-import rsp.rdm as rdm
-import rsp.monopulse as mp
-from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import uncoded_waveform, barker_coded_waveform, lfm_waveform
-from rsp.returns import Target, Return
+import rad_lab.uniform_linear_arrays as ula
+import rad_lab.rdm as rdm
+import rad_lab.monopulse as mp
+from rad_lab.pulse_doppler_radar import Radar
+from rad_lab.waveform import uncoded_waveform, barker_coded_waveform, lfm_waveform
+from rad_lab.returns import Target, Return
 
 
 ################################################################################

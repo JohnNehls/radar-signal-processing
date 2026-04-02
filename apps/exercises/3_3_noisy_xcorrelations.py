@@ -2,13 +2,13 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.waveform_helpers import (
+from rad_lab.waveform_helpers import (
     matchfilter_with_waveform,
     add_waveform_at_index,
     plot_pulse_and_spectrum,
 )
-from rsp.noise import unity_variance_complex_noise
-from rsp.waveform import uncoded_pulse, barker_coded_pulse, lfm_pulse
+from rad_lab.noise import unity_variance_complex_noise
+from rad_lab.waveform import uncoded_pulse, barker_coded_pulse, lfm_pulse
 
 
 print("##############################")

@@ -1,6 +1,6 @@
 import math
 import pytest
-import rsp.utilities as utl
+import rad_lab.utilities as utl
 
 PI = math.pi
 

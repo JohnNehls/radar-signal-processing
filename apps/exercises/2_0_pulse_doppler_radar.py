@@ -2,7 +2,7 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp import pulse_doppler_radar as pdr
+from rad_lab import pulse_doppler_radar as pdr
 
 
 plt.rcParams["text.usetex"] = True

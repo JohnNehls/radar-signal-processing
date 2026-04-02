@@ -30,10 +30,10 @@ def gen(
 
     Args:
         radar: Radar system parameters. See
-            :class:`rsp.pulse_doppler_radar.Radar` for required keys and units.
+            :class:`rad_lab.pulse_doppler_radar.Radar` for required keys and units.
         waveform: WaveformSample created by a factory function
-            (e.g. :func:`rsp.waveform.lfm_waveform`).
-        return_list: List of :class:`rsp.returns.Return` objects, each
+            (e.g. :func:`rad_lab.waveform.lfm_waveform`).
+        return_list: List of :class:`rad_lab.returns.Return` objects, each
             describing one simulated target or jammer.
         seed: Random number generator seed for reproducibility. Defaults to 0.
         plot: If True, plots the final RDM. Defaults to True.

@@ -2,8 +2,8 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from rsp import rdm, Radar, Target, EaPlatform, Return
-from rsp import uncoded_waveform, barker_coded_waveform, random_coded_waveform, lfm_waveform
+from rad_lab import rdm, Radar, Target, EaPlatform, Return
+from rad_lab import uncoded_waveform, barker_coded_waveform, random_coded_waveform, lfm_waveform
 
 ################################################################################
 # Kitchen sink: script showing a sample of all of the options available

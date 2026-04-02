@@ -2,17 +2,17 @@
 
 import matplotlib.pyplot as plt
 import numpy as np
-from rsp import constants as c
-import rsp.uniform_linear_arrays as ula
-from rsp.pulse_doppler_radar import Radar
-from rsp.waveform import uncoded_waveform, barker_coded_waveform, lfm_waveform
-from rsp.rdm import plot_rdm
-import rsp.monopulse as mp
-from rsp.rf_datacube import number_range_bins, range_axis, data_cube
-from rsp.rf_datacube import matchfilter, doppler_process
-from rsp.range_equation import noise_power
-from rsp._rdm_internals import create_window, add_returns
-from rsp.returns import Target, Return
+from rad_lab import constants as c
+import rad_lab.uniform_linear_arrays as ula
+from rad_lab.pulse_doppler_radar import Radar
+from rad_lab.waveform import uncoded_waveform, barker_coded_waveform, lfm_waveform
+from rad_lab.rdm import plot_rdm
+import rad_lab.monopulse as mp
+from rad_lab.rf_datacube import number_range_bins, range_axis, data_cube
+from rad_lab.rf_datacube import matchfilter, doppler_process
+from rad_lab.range_equation import noise_power
+from rad_lab._rdm_internals import create_window, add_returns
+from rad_lab.returns import Target, Return
 
 
 ################################################################################

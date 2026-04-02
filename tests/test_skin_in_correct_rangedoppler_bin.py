@@ -1,8 +1,8 @@
 import numpy as np
 import pytest
-import rsp.pulse_doppler_radar as pdr
-from rsp import rdm, Radar, Target, Return
-from rsp import uncoded_waveform, barker_coded_waveform, random_coded_waveform, lfm_waveform
+import rad_lab.pulse_doppler_radar as pdr
+from rad_lab import rdm, Radar, Target, Return
+from rad_lab import uncoded_waveform, barker_coded_waveform, random_coded_waveform, lfm_waveform
 
 BW = 10e6
 

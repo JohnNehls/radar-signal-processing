@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-from rsp import rdm, Radar, Target, Return, barker_coded_waveform
+from rad_lab import rdm, Radar, Target, Return, barker_coded_waveform
 
 radar = Radar(
     fcar=10e9,

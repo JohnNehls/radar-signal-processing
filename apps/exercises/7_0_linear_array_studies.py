@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-import rsp.uniform_linear_arrays as ula
+import rad_lab.uniform_linear_arrays as ula
 
 # Notes
 # - Each array element has it's own channel

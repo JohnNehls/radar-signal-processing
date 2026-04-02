@@ -1,8 +1,8 @@
 #!/usr/bin/env python
 
 import matplotlib.pyplot as plt
-from rsp.waveform_helpers import plot_pulse_and_spectrum, plot_pulse_and_xcorrelation
-from rsp.waveform import uncoded_pulse, barker_coded_pulse, random_coded_pulse, lfm_pulse
+from rad_lab.waveform_helpers import plot_pulse_and_spectrum, plot_pulse_and_xcorrelation
+from rad_lab.waveform import uncoded_pulse, barker_coded_pulse, random_coded_pulse, lfm_pulse
 
 
 ############################################

@@ -3,8 +3,8 @@ requires = ["setuptools>=64", "setuptools-scm>=8"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "radar-signal-processing"
-description="A module for general radar signal processing"
+name = "rad-lab"
+description="A module for general radar signal processing library"
 readme = "README.md"
 keywords = ["radar", "signal processing", "range-doppler map"]
 requires-python = ">=3.11"
@@ -19,10 +19,10 @@ dependencies = [
 dev = ["flake8", "pytest"]
 
 [project.urls]
-Repository="https://github.com/JohnNehls/radar-signal-processing"
+Repository="https://github.com/JohnNehls/rad-lab"
 
 [tool.setuptools_scm]
-version_file = "src/rsp/_version.py"
+version_file = "src/rad_lab/_version.py"
 
 [tool.ruff]
 # Same as Black.

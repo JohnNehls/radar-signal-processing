@@ -1,7 +1,7 @@
 import numpy as np
-import rsp.uniform_linear_arrays as ula
-import rsp.monopulse as mp
-from rsp import rdm, Radar, Target, Return, lfm_waveform
+import rad_lab.uniform_linear_arrays as ula
+import rad_lab.monopulse as mp
+from rad_lab import rdm, Radar, Target, Return, lfm_waveform
 
 BW = 10e6
 

@@ -1,25 +1,25 @@
-# Radar Signal Processing
+# rad-lab
 
 [![CI](https://github.com/JohnNehls/radar-signal-processing/actions/workflows/python-app.yml/badge.svg)](https://github.com/JohnNehls/radar-signal-processing/actions/workflows/python-app.yml)
 
-A Python module for simulating pulse-Doppler radar returns and generating
+A Python radar module for simulating pulse-Doppler returns and generating
 range-Doppler maps (RDMs). Designed for radar engineers and students who want
 to build intuition for how RDMs are formed, how waveforms affect resolution,
 and how DRFM electronic attack techniques appear in the RDM.
 
 ## Modules
 
--   [rdm](src/rsp/rdm.py) — range-Doppler map generation
--   [pulse_doppler_radar](src/rsp/pulse_doppler_radar.py) — radar system parameter model
--   [waveform](src/rsp/waveform.py) — uncoded, Barker, random-coded, and LFM pulse generation
--   [returns](src/rsp/returns.py) — skin return and DRFM jammer return models
--   [range_equation](src/rsp/range_equation.py) — radar and one-way link range equations
--   [uniform_linear_arrays](src/rsp/uniform_linear_arrays.py) — ULA gain patterns and steering vectors
--   [monopulse](src/rsp/monopulse.py) — amplitude monopulse angle estimation
--   [vbm](src/rsp/vbm.py) — velocity bin masking EA slow-time modulation functions
--   [geometry](src/rsp/geometry.py) — range and range-rate from geometry
--   [noise](src/rsp/noise.py) — complex Gaussian noise generation
--   [utilities](src/rsp/utilities.py) — unit conversions and signal utilities
+-   [rdm](src/rad_lab/rdm.py) — range-Doppler map generation
+-   [pulse_doppler_radar](src/rad_lab/pulse_doppler_radar.py) — radar system parameter model
+-   [waveform](src/rad_lab/waveform.py) — uncoded, Barker, random-coded, and LFM pulse generation
+-   [returns](src/rad_lab/returns.py) — skin return and DRFM jammer return models
+-   [range_equation](src/rad_lab/range_equation.py) — radar and one-way link range equations
+-   [uniform_linear_arrays](src/rad_lab/uniform_linear_arrays.py) — ULA gain patterns and steering vectors
+-   [monopulse](src/rad_lab/monopulse.py) — amplitude monopulse angle estimation
+-   [vbm](src/rad_lab/vbm.py) — velocity bin masking EA slow-time modulation functions
+-   [geometry](src/rad_lab/geometry.py) — range and range-rate from geometry
+-   [noise](src/rad_lab/noise.py) — complex Gaussian noise generation
+-   [utilities](src/rad_lab/utilities.py) — unit conversions and signal utilities
 
 ## Installation
 
@@ -44,7 +44,7 @@ pip install radar-signal-processing/
 ### RDM generator
 
 ```python
-from rsp import rdm, Radar, Target, Return, barker_coded_waveform
+from rad_lab import rdm, Radar, Target, Return, barker_coded_waveform
 
 radar = Radar(
     fcar=10e9,

@@ -2,8 +2,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-import rsp.uniform_linear_arrays as ula
-import rsp.constants as c
+import rad_lab.uniform_linear_arrays as ula
+import rad_lab.constants as c
 
 
 plt.rcParams["text.usetex"] = True

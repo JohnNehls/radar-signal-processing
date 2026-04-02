@@ -1,9 +1,9 @@
-"""Radar Signal Processing (rsp) — RDM generation and radar signal processing tools.
+"""Radar Signal Processing (rad_lab) — RDM generation and radar signal processing tools.
 
 Typical usage::
 
-    from rsp import rdm, Radar, Target, Return
-    from rsp import lfm_waveform
+    from rad_lab import rdm, Radar, Target, Return
+    from rad_lab import lfm_waveform
 
     radar = Radar(fcar=10e9, tx_power=1e3, ...)
     waveform = lfm_waveform(bw=10e6, T=1e-6, chirp_up_down=1)
@@ -21,6 +21,7 @@ from .waveform import (
     lfm_waveform,
 )
 from . import rdm
+from ._version import __version__
 
 __all__ = [
     "Radar",
@@ -34,4 +35,5 @@ __all__ = [
     "random_coded_waveform",
     "lfm_waveform",
     "rdm",
+    "__version__",
 ]

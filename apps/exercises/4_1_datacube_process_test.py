@@ -2,8 +2,8 @@
 
 import numpy as np
 import matplotlib.pyplot as plt
-from rsp.rf_datacube import data_cube, doppler_process
-from rsp.constants import PI
+from rad_lab.rf_datacube import data_cube, doppler_process
+from rad_lab.constants import PI
 
 
 print("##########################")
