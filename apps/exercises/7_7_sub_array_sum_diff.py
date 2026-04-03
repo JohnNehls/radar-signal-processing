@@ -1,4 +1,15 @@
 #!/usr/bin/env python
+"""Sub-array sum and difference beam patterns for monopulse.
+
+Split a 20-element ULA into left and right halves (sub-arrays), compute each
+sub-array's gain pattern, then form the sum (Sigma) and difference (Delta)
+beams.
+
+The sum beam has maximum gain at boresight — used for detection and tracking.
+The difference beam has a null at boresight — used for angle estimation.
+The monopulse ratio (Delta/Sigma) gives a steep, monotonic curve near
+boresight that maps directly to target angle.
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -8,30 +19,31 @@ import rad_lab.constants as c
 
 plt.rcParams["text.usetex"] = True
 
-# Notes
-# - another error in the equation in the document
-#   - missing the normalization of the weights
-
-fc = 10 * 10**9
+# -- Array parameters --
+fc = 10e9  # carrier frequency [Hz]
 wavelength = c.C / fc
-Nel = 20
+Nel = 20  # total number of elements
+dx = wavelength / 2  # element spacing [m] (half-wavelength)
 
-dx = wavelength / 2  # [m]
-L = (Nel - 1) * dx
-el_pos = np.linspace(-L / 2, L / 2, Nel)  # wavelengths
+# -- Create element positions centered about the origin --
+L = (Nel - 1) * dx  # total array length [m]
+el_pos = np.linspace(-L / 2, L / 2, Nel)
 
+# -- Split into left and right sub-arrays --
 assert Nel % 2 == 0
 sub_arrays = [el_pos[: int(Nel / 2)], el_pos[int(Nel / 2) :]]
 
+# -- Compute each sub-array's complex gain pattern --
 sub_array_gain = []
 for sub_array in sub_arrays:
-    # sub_array_phase_center.append(ula.array_phase_center(sub_array,
     thetas, gain = ula.linear_antenna_gain_meters(sub_array, fc)
     sub_array_gain.append(gain)
 
-sum_gain = sub_array_gain[0] + sub_array_gain[1]
-diff_gain = sub_array_gain[0] - sub_array_gain[1]
+# -- Form sum and difference beams --
+sum_gain = sub_array_gain[0] + sub_array_gain[1]  # Sigma: max at boresight
+diff_gain = sub_array_gain[0] - sub_array_gain[1]  # Delta: null at boresight
 
+# -- Plot --
 plt.title("Sum and Difference Gain Profiles")
 plt.plot(thetas, abs(sum_gain), label=r"$\Sigma$")
 plt.plot(thetas, abs(diff_gain), label=r"$\Delta$")

@@ -1,4 +1,13 @@
 #!/usr/bin/env python
+"""Radar range equation exercises.
+
+Problem 1: Plot SNR vs range for a BPSK waveform across different transmit
+           powers and target RCS values.
+Problem 2: Plot SNR vs range using the duty-factor form of the range equation
+           across different CPI lengths and duty factors.
+Problem 3: Compute minimum detectable range as a 2D function of (Tx power, RCS)
+           and (CPI time, RCS), visualized as heatmaps.
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -6,32 +15,34 @@ from rad_lab.constants import PI, C
 import rad_lab.range_equation as re
 
 
-## problem 1 #############################################################
-# given
-antenna_diameter = 1.5 * (0.0254 * 12)  # convert feet to meters
-fc = 10e9
-B = 10e6
-Ncode = 13
-L = 10 ** (8 / 10)  # 8dB
-F = 10 ** (6 / 10)  # 5dB
-n_p = 256
-Pt_ar = [1e3, 5e3, 10e3]
-sig_db_ar = [0, 10, 20]
-sig_ar = [10 ** (x / 10) for x in sig_db_ar]
-R_ar = np.arange(1e3, 30.1e3, 100)
-SNR_thresh_db = 12
+## Problem 1: BPSK SNR vs range #############################################
+# Explore how transmit power and target RCS affect detection range.
+
+# -- Radar parameters --
+antenna_diameter = 1.5 * (0.0254 * 12)  # 1.5 feet -> meters
+fc = 10e9  # carrier frequency [Hz]
+B = 10e6  # waveform bandwidth [Hz]
+Ncode = 13  # number of chips in the Barker code
+L = 10 ** (8 / 10)  # total system losses [linear], 8 dB
+F = 10 ** (6 / 10)  # receiver noise factor [linear], 6 dB
+n_p = 256  # number of pulses coherently integrated
+
+# -- Sweep variables --
+Pt_ar = [1e3, 5e3, 10e3]  # transmit power values [W]
+sig_db_ar = [0, 10, 20]  # target RCS values [dBsm]
+sig_ar = [10 ** (x / 10) for x in sig_db_ar]  # convert RCS to linear [m^2]
+R_ar = np.arange(1e3, 30.1e3, 100)  # range axis [m]
+SNR_thresh_db = 12  # detection threshold [dB]
 SNR_thresh = 10 ** (SNR_thresh_db / 10)
 
-# calculations
+# -- Derived quantities --
 wavelength = C / fc
-theta_3db = wavelength / antenna_diameter  # for a circular apature radar
-Gt = 4 * PI / (theta_3db) ** 2  # az and el are the same
+theta_3db = wavelength / antenna_diameter  # 3-dB beamwidth for a circular aperture
+Gt = 4 * PI / (theta_3db) ** 2  # transmit gain (az and el beamwidths equal)
+Gr = Gt  # assume receive gain = transmit gain
+T = 290  # system noise temperature [K]
 
-# assumptions
-Gr = Gt  # simpilifying assumption
-T = 290  # Kelvin
-
-# plot
+# -- Plot SNR vs range for each (Pt, RCS) combination --
 fig, ax = plt.subplots(1, len(Pt_ar), sharex="all", sharey="all")
 fig.suptitle("BPSK SNR")
 for index, Pt in enumerate(Pt_ar):
@@ -39,6 +50,7 @@ for index, Pt in enumerate(Pt_ar):
         y = re.snr_range_eqn_bpsk_cp(Pt, Gt, Gr, sig, wavelength, R_ar, B, F, L, T, n_p, Ncode)
         y = 10 * np.log10(y)  # convert to dB
         ax[index].plot(R_ar / 1e3, y, label=f"RCS={sig_db_ar[sig_index]}[dBsm]")
+    # overlay the detection threshold line
     ax[index].plot(
         R_ar / 1e3,
         SNR_thresh_db * np.ones(R_ar.shape),
@@ -54,14 +66,14 @@ handles, labels = ax[0].get_legend_handles_labels()
 fig.legend(handles, labels, loc="lower center", ncols=len(labels), bbox_to_anchor=(0.5, -0.05))
 plt.tight_layout()
 
-## problem 2 #############################################################
-# given
-sigma = 10 ** (0 / 10)  # 0 dBsm
-Pt = 5e3  # Watts
-Tcpi_ar = [2e-3, 5e-3, 10e-3]  # seconds
-dutyFactor_ar = [0.01, 0.1, 0.2]  # 1%, 10%, 20%
+## Problem 2: Duty-factor range equation ####################################
+# Explore how CPI length and duty factor affect SNR vs range.
 
-# plot
+sigma = 10 ** (0 / 10)  # 0 dBsm target
+Pt = 5e3  # transmit power [W]
+Tcpi_ar = [2e-3, 5e-3, 10e-3]  # CPI durations [s]
+dutyFactor_ar = [0.01, 0.1, 0.2]  # duty factors: 1%, 10%, 20%
+
 fig, ax = plt.subplots(1, len(Tcpi_ar), sharex="all", sharey="all")
 fig.suptitle("CPI DutyFactor SNR")
 for index, Tcpi in enumerate(Tcpi_ar):
@@ -86,15 +98,16 @@ handles, labels = ax[0].get_legend_handles_labels()
 fig.legend(handles, labels, loc="lower center", ncols=len(labels), bbox_to_anchor=(0.5, -0.05))
 plt.tight_layout()
 
-## problem 3 #############################################################
-# given
+## Problem 3: Minimum detectable range heatmaps #############################
+# Solve the range equation for range and visualize how it depends on
+# (transmit power, RCS) and (CPI time, RCS).
+
 SNR_thresh_db = 15
 SNR_thresh = 10 ** (SNR_thresh_db / 10)
 dutyFactor = 0.1  # 10%
-Tcpi = 2e-3  # seconds
+Tcpi = 2e-3  # [s]
 
-# p3 figure 1
-# y-axis transmit power, x-axis target RCS
+# -- Figure 1: min detectable range vs (Tx power, RCS) --
 Pt_ar = np.arange(500, 10.1e3, 100)
 sigma_db_ar = np.arange(-5, 26, 1)
 sigma_ar = [10 ** (x / 10) for x in sigma_db_ar]
@@ -115,10 +128,8 @@ c.set_label("minimum detectable target range [km]")
 plt.xlabel("target RCS [dBsm]")
 plt.ylabel("transmit power [kW]")
 
-
-# p3 figure 2
-# y-axis Tcpi, x-axis target RCS
-Pt = 5e3  # Watts
+# -- Figure 2: min detectable range vs (CPI time, RCS) --
+Pt = 5e3  # [W]
 Tcpi_ar = np.arange(1e-3, 50.2e-3, 200e-6)
 min_det_range_sigmaTcpi = np.zeros((len(Tcpi_ar), len(sigma_ar)))
 

@@ -1,16 +1,23 @@
 #!/usr/bin/env python
+"""Kitchen-sink example: demonstrates all major RDM generation options.
+
+This script shows how to combine:
+  - Different waveform types (uncoded, Barker, random-coded, LFM)
+  - A passive skin return (no jammer)
+  - A DRFM jammer return with range/Doppler offsets and a steering vector
+  - Debug and plotting options for rdm.gen()
+
+The last waveform assignment wins, so uncomment the one you want to try.
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
 from rad_lab import rdm, Radar, Target, EaPlatform, Return
 from rad_lab import uncoded_waveform, barker_coded_waveform, random_coded_waveform, lfm_waveform
 
-################################################################################
-# Kitchen sink: script showing a sample of all of the options available
-################################################################################
+bw = 10e6  # waveform bandwidth [Hz]
 
-bw = 10e6
-
+# -- Radar --
 radar = Radar(
     fcar=10e9,
     tx_power=5e3,
@@ -24,28 +31,35 @@ radar = Radar(
     dwell_time=2e-3,
 )
 
-# Example waveform configurations, the last un-commented on will be used for the RDM
+# -- Waveform options (last assignment wins) --
 waveform = uncoded_waveform(bw)
 waveform = barker_coded_waveform(bw, nchips=13)
 waveform = random_coded_waveform(bw, nchips=13)
 waveform = lfm_waveform(bw, T=10 / 40e6, chirp_up_down=1)
 
+# -- Return 1: simple skin return (no jammer) --
 skin_return = Return(target=Target(range=7.1e3, range_rate=-1e3, rcs=9))
+
+# -- Return 2: target with a DRFM jammer --
+# sv (steering vector) applies a complex phase shift, simulating an array element.
+# The EaPlatform adds VBM noise with range/Doppler offsets and a retransmission delay.
 jammer_on_target = Return(
     target=Target(range=3.5e3, range_rate=0.5e3, rcs=10, sv=np.exp(1j * np.pi / 4)),
     platform=EaPlatform(
-        tx_power=1,
-        tx_gain=10 ** (5 / 10),
-        total_losses=10 ** (5 / 10),
-        rdot_delta=3.0e3,
-        rdot_offset=0.3e3,
-        range_offset=-0.2e3,
-        delay=1.33e-6,
+        tx_power=1,  # jammer power [W]
+        tx_gain=10 ** (5 / 10),  # jammer gain [linear], 5 dB
+        total_losses=10 ** (5 / 10),  # jammer losses [linear], 5 dB
+        rdot_delta=3.0e3,  # VBM Doppler spread [m/s]
+        rdot_offset=0.3e3,  # Doppler offset [m/s]
+        range_offset=-0.2e3,  # range offset [m]
+        delay=1.33e-6,  # retransmission delay [s]
     ),
 )
 
 return_list = [skin_return, jammer_on_target]
 
+# -- Generate the RDM --
+# seed=0: reproducible noise; debug=True: show intermediate steps
 rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
     radar, waveform, return_list, seed=0, plot=True, debug=True, snr=False
 )

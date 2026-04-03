@@ -1,4 +1,17 @@
 #!/usr/bin/env python
+"""Monopulse angle estimation on a range-Doppler map.
+
+Demonstrate that monopulse processing can be applied after Doppler processing
+(FFT along slow time). The workflow:
+
+  1. Define a two-element array and compute steering vectors for the target angle.
+  2. Generate a separate RDM for each array element (same noise seed so the
+     noise realization is identical — only the signal phase differs).
+  3. Apply monopulse at the peak cell of the RDMs to estimate the target angle.
+
+This validates that the inter-element phase relationship is preserved through
+matched filtering and Doppler processing.
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,17 +23,9 @@ from rad_lab.waveform import uncoded_waveform, barker_coded_waveform, lfm_wavefo
 from rad_lab.returns import Target, Return
 
 
-################################################################################
-# example that monopulse can be done after doppler processing
-################################################################################
-# - Still need to investigate how this phase propagates from time domain to doppler
-# - Is the example considering operating frequency?
-# TODO:
-# - [ ]incorporate the normalized antenna gain
-#   - Peak gain will be in radar dict
+bw = 10e6  # waveform bandwidth [Hz]
 
-bw = 10e6
-
+# -- Define the radar --
 radar = Radar(
     fcar=10e9,
     tx_power=1e3,
@@ -34,17 +39,20 @@ radar = Radar(
     dwell_time=2e-3,
 )
 
+# -- Choose a waveform (last one wins — try uncommenting others) --
 waveform = uncoded_waveform(bw)  # high 1
 waveform = barker_coded_waveform(bw, nchips=13)  # high 1
 waveform = lfm_waveform(bw, T=10 / 40e6, chirp_up_down=1)  # high 2
 
-tgt_angle = 5
-dx = 1 / 2  # seperation of array elements in terms of wavelength
-array_pos = np.array([-dx / 2, dx / 2])  # in terms of wavelength
+# -- Two-element array and target --
+tgt_angle = 5  # true target angle [deg]
+dx = 1 / 2  # element separation [wavelengths]
+array_pos = np.array([-dx / 2, dx / 2])
 steer_vec = ula.steering_vector(array_pos, tgt_angle)
 
+# -- Generate one RDM per array element --
+# Each element sees the same target but with a different phase (steering vector).
 dc_list = []
-
 for sv in steer_vec:
     rseed = np.random.randint(1000)
     return_list = [Return(target=Target(range=2.4e3, range_rate=0.2e3, rcs=10, sv=sv))]
@@ -53,9 +61,11 @@ for sv in steer_vec:
     )
     dc_list.append(total_dc)
 
+# -- Display each element's RDM --
 for i in range(len(steer_vec)):
     rdm.plot_rdm(rdot_axis, r_axis, dc_list[i], f"{i=}", cbar_min=-100, volt_to_dbm=True)
 
+# -- Apply monopulse at the peak RDM cell to estimate angle --
 f_measured_theta = mp.monopulse_angle_at_peak_deg(dc_list[0], dc_list[1], dx)
 f_measured_error = abs(f_measured_theta - tgt_angle)
 

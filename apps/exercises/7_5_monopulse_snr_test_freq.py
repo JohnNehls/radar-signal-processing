@@ -1,4 +1,17 @@
 #!/usr/bin/env python
+"""Monopulse angle estimation: time-domain vs frequency-domain comparison.
+
+Extends the basic monopulse SNR test (7_5) to show that monopulse angle
+estimation works identically in both domains. Four methods are compared:
+
+  1. Time-domain monopulse ratio (sum/difference of element signals)
+  2. Time-domain phase-only estimate (only valid at baseband, not RF passband)
+  3. Frequency-domain monopulse ratio (applied at the peak FFT bin)
+  4. Frequency-domain phase-only estimate
+
+Key result: the monopulse ratio gives the same accuracy in time and frequency
+domains. The phase-only method works at baseband but fails at RF passband.
+"""
 
 import numpy as np
 from scipy import signal
@@ -8,69 +21,62 @@ import rad_lab.monopulse as mp
 from rad_lab.noise import unity_variance_complex_noise
 
 
-################################################################################
-# Examples which show thow that monopulse can be done after FFT and in and RDM
-################################################################################
-
-# 7_5_monopulse_snr_test.py shows monopulse can be done on timedomain signal
-# We will recreate that test, then show monopulse in the frequency domain
-# - equations are the same!
-
 plt.rcParams["text.usetex"] = True
 
-# signal
-BASEBAND = True  # signal concerted to 0 freq or oscillating at RF
+# -- Signal configuration --
+BASEBAND = True  # True: signal at DC; False: oscillating at RF
 np.random.seed(100)
 N_samples = 1000
 time_ar = np.linspace(0, 10, N_samples)
-freq = 1
-signal_ar = np.exp(1j * 2 * np.pi * freq * time_ar)
+freq = 1  # [Hz]
+signal_ar = np.exp(1j * 2 * np.pi * freq * time_ar)  # used only when BASEBAND=False
 
-# linear array
-tgt_angle = -5
-array_pos = np.array([-1 / 4, 1 / 4])  # in terms of wavelength
+# -- Two-element array --
+tgt_angle = -5  # true target angle [deg]
+array_pos = np.array([-1 / 4, 1 / 4])  # element positions [wavelengths]
 steer_vec = ula.steering_vector(array_pos, tgt_angle)
 
-# calculated the error for SNR
+# -- Sweep SNR and compute angle estimation error for all four methods --
 snr_db_list = np.arange(-15, 50, step=5)
 
-error_mean_list = []
+error_mean_list = []  # time-domain monopulse ratio
 error_std_list = []
-error_mean_list_phase = []  # monopulse error calculated in time domain using only phase
-f_error_list = []  # monopulse error calculated in frequency domain
-f_error_list_phase = []  # monopulse error calculated in frequency domain using only phase
+error_mean_list_phase = []  # time-domain phase-only
+f_error_list = []  # frequency-domain monopulse ratio
+f_error_list_phase = []  # frequency-domain phase-only
+
 for snr_db in snr_db_list:
-    ## Create signal for each array element
+    # -- Simulate received signal at each array element --
     snr_volt_scale = 10 ** (snr_db / 20)
-    recieved_signals = []  # noisey signals with specified snr
+    recieved_signals = []
     for sv in steer_vec:
-        if BASEBAND:  # option 1: converted to baseband
+        if BASEBAND:
+            # Baseband: signal is a constant phasor (no time oscillation)
             recieved_signals.append(snr_volt_scale * sv + unity_variance_complex_noise(N_samples))
-        else:  # option 2: in RF passband
+        else:
+            # RF passband: signal oscillates at 'freq' Hz
             recieved_signals.append(
                 snr_volt_scale * sv * signal_ar + unity_variance_complex_noise(N_samples)
             )
     plt.plot(np.real(recieved_signals[0]), label=f"snr={snr_db}")
 
-    ## time-domain signal monopulse
-    dx = array_pos[1] - array_pos[0]  # separation of array elements
+    # -- Method 1: time-domain monopulse ratio (sample-by-sample) --
+    dx = array_pos[1] - array_pos[0]  # element separation [wavelengths]
     measured_theta = mp.monopulse_angle_deg(recieved_signals[0], recieved_signals[1], dx)
-
     measured_error = abs(measured_theta - tgt_angle)
     error_mean_list.append(np.mean(measured_error))
     error_std_list.append(np.std(measured_error))
 
-    ## time-domain angle estimate from phase only
-    # Does not work for RF passband, ony for singal converted to baseband
+    # -- Method 2: time-domain phase-only (only valid at baseband) --
     angle_est_niave = (np.angle(recieved_signals[0]) - np.angle(recieved_signals[1])) / (np.pi)
     error_mean_list_phase.append(np.mean(abs(np.rad2deg(angle_est_niave) - tgt_angle)))
 
-    ## freq-domain signal monopulse
+    # -- Method 3: frequency-domain monopulse ratio --
+    # Window and FFT each element's signal, then apply monopulse at the peak bin
     f_recieved_signals = []
     for sig in recieved_signals:
         f_recieved_signals.append(np.fft.fft(sig * signal.windows.chebwin(sig.size, 60)))
 
-    # monopulse only accurate in bins containing power -- only look at max index
     f_max_index = np.argmax(np.abs(f_recieved_signals[0]))
     f_measured_theta = mp.monopulse_angle_at_peak_deg(
         f_recieved_signals[0], f_recieved_signals[1], dx
@@ -78,21 +84,21 @@ for snr_db in snr_db_list:
     f_measured_error = abs(f_measured_theta - tgt_angle)
     f_error_list.append(f_measured_error)
 
-    ## freq-domain angle estimate from phase only
+    # -- Method 4: frequency-domain phase-only --
     f_angle_est_niave = (np.angle(f_recieved_signals[0]) - np.angle(f_recieved_signals[1]))[
         f_max_index
     ] / (np.pi)
     f_error_list_phase.append(abs(np.rad2deg(f_angle_est_niave) - tgt_angle))
 
 
-# signals per db
+# -- Plot received signals at each SNR --
 plt.legend()
 plt.title("Noisy signal for Each SNR [dB]")
 plt.xlabel("time [s]")
 plt.ylabel("amplitude [v]")
 plt.grid()
 
-# plot the results
+# -- Plot angle estimation error: all four methods compared --
 fig, axs = plt.subplots(1, 2)
 fig.suptitle("Monopulse Angle Estimation")
 axs[0].plot(snr_db_list, error_mean_list, label="time domain (mean)")

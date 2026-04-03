@@ -1,15 +1,31 @@
 #!/usr/bin/env python
+"""Compare VBM noise generation methods.
+
+The VBM (Velocity-Bin Masking) jammer spreads energy across Doppler bins by
+modulating the retransmitted signal's phase in slow time. There are several
+ways to generate that phase modulation, listed here from simplest to most
+physically accurate:
+
+  1. random_phase: each pulse gets an independent random phase — produces
+     flat Doppler noise but doesn't respect the prescribed bandwidth.
+  2. uniform_bandwidth_phase: random phase filtered to a uniform spectral
+     shape within the target bandwidth.
+  3. gaussian_bandwidth_phase: random phase filtered to a Gaussian spectral
+     shape — more realistic but doesn't match the prescribed width exactly.
+  4. gaussian_bandwidth_phase_normalized: same as (3) but normalized.
+  5. lfm_phase: slow-time LFM chirp — the only method that precisely matches
+     the prescribed rdot_delta bandwidth.
+
+Each method generates an RDM so you can visually compare the Doppler spread.
+"""
 
 import matplotlib.pyplot as plt
 from rad_lab import rdm, Radar, Target, EaPlatform, Return, uncoded_waveform
 import rad_lab.vbm as vbm
 
-################################################################################
-# Display each of the VBM noise methods in order of complexity
-################################################################################
+bw = 5e6  # waveform bandwidth [Hz]
 
-bw = 5e6
-
+# -- Radar (high PRF and long dwell for fine Doppler resolution) --
 radar = Radar(
     fcar=10e9,
     tx_power=1e3,
@@ -25,6 +41,7 @@ radar = Radar(
 
 waveform = uncoded_waveform(bw)
 
+# -- Map of VBM method names to their internal functions --
 vbm_name_function_dict = {
     "random phase VBM": vbm._random_phase,
     "uniform bandwidth phase VBM": vbm._uniform_bandwidth_phase,
@@ -33,7 +50,8 @@ vbm_name_function_dict = {
     "LFM phase VBM": vbm._lfm_phase,
 }
 
-rdot_delta = 1.0e3
+# -- Generate an RDM for each VBM method --
+rdot_delta = 1.0e3  # prescribed Doppler spread [m/s]
 for name, func in vbm_name_function_dict.items():
     jammer_return = Return(
         target=Target(range=0.2e3, range_rate=0.0e3),

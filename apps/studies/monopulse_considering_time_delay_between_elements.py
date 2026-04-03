@@ -1,4 +1,23 @@
 #!/usr/bin/env python
+"""Study: does the inter-element time delay matter for monopulse?
+
+In a phased array, each element receives the signal at a slightly different
+time due to the wavefront arrival angle. The standard monopulse model only
+applies the carrier-frequency phase shift (exp(j*2*pi*d*sin(theta)/lambda_c)),
+ignoring the baseband time delay.
+
+This study compares two approaches:
+  1. Phase-shift only (standard): multiply each element's datacube by the
+     steering vector phase at the carrier frequency.
+  2. Phase-shift + time delay: also apply the true time delay to the baseband
+     signal, which shifts the waveform samples.
+
+Findings:
+  - When fcar >> bw, the time delay is negligible (lambda/2 at the carrier
+    is lambda/100 at IF frequencies — very little phase change).
+  - Regardless of fcar, the monopulse angle estimate is barely affected.
+  - The study uses fcar=1 GHz with bw=200 MHz (ratio=5) to stress-test this.
+"""
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -15,18 +34,11 @@ from rad_lab._rdm_internals import create_window, add_returns
 from rad_lab.returns import Target, Return
 
 
-################################################################################
-# Show that the effect of considering the time delay
-################################################################################
-# - if fcar >= bw, time shift can be ignored
-#   - The lambda/2 distance for the carrier then makes the element distance lambda/100 for IF freqs
-#   - not much phase change
-# - regardless of fcar, the monopulse estimated theta is not really effected
-
-bw = 200e6
+# -- Use a low carrier-to-bandwidth ratio to make the time delay significant --
+bw = 200e6  # waveform bandwidth [Hz]
 
 radar = Radar(
-    fcar=1e9,
+    fcar=1e9,  # low carrier to stress-test the approximation
     tx_power=1e3,
     tx_gain=10 ** (30 / 10),
     rx_gain=10 ** (30 / 10),
@@ -40,47 +52,48 @@ radar = Radar(
 
 return_list = [Return(target=Target(range=2.4e3, range_rate=0.2e3, rcs=10))]
 
-waveform = uncoded_waveform(bw)  # high 1
-waveform = barker_coded_waveform(bw, nchips=13)  # high 1
-waveform = lfm_waveform(3 * bw, T=10 / 40e6, chirp_up_down=1)  ## high 2
+# -- Choose a waveform (last assignment wins) --
+waveform = uncoded_waveform(bw)
+waveform = barker_coded_waveform(bw, nchips=13)
+waveform = lfm_waveform(3 * bw, T=10 / 40e6, chirp_up_down=1)
 
-tgt_angle = 2
-dx = 1 / 2  # seperation of array elements in terms of carrier wavelength
-array_pos = np.array([-dx / 2, dx / 2])  # in terms of wavelength
+# -- Array geometry --
+tgt_angle = 2  # target angle [deg]
+dx = 1 / 2  # element separation [carrier wavelengths]
+array_pos = np.array([-dx / 2, dx / 2])  # element positions [wavelengths]
 
-########## Compute waveform and radar parameters ###############################################
+## Step 1: Initialize waveform samples at the radar's sample rate #############
 waveform.set_sample(radar.sample_rate)
 
-########## Create range axis for plotting ######################################################
+## Step 2: Create datacube and populate with target returns ###################
 r_axis = range_axis(radar.sample_rate, number_range_bins(radar.sample_rate, radar.prf))
-
-########## Return ##############################################################################
 signal_dc = data_cube(radar.sample_rate, radar.prf, radar.n_pulses)
 
-### Determin scaling factors for max voltage ###
+# Compute noise voltage for scaling
 rxVolt_noise = np.sqrt(c.RADAR_LOAD * noise_power(waveform.bw, radar.noise_factor, radar.op_temp))
 noise_dc = np.random.uniform(low=-1, high=1, size=signal_dc.shape) * rxVolt_noise
 add_returns(signal_dc, waveform, return_list, radar)
 
-### Alter the signal due to linear array position #####################
+## Step 3: Apply array effects — compare phase-only vs phase+timeshift ########
 assert abs(tgt_angle) < 90
-signal_dc_ula_list = []
-signal_dc_ula_list_timeshift = []
+signal_dc_ula_list = []  # phase-shift only
+signal_dc_ula_list_timeshift = []  # phase-shift + time delay
+
 for pos in array_pos:
-    # apply phase shift from carrier
+    # Method 1: carrier phase shift only (standard approach)
     signal_dc_sv = signal_dc.copy() * ula.steering_vector(pos, tgt_angle)
     signal_dc_ula_list.append(signal_dc_sv)
 
-    # apply time shift to baseband signal from array position from zero
-    position_meters = c.C / radar.fcar * pos
-    tmp_signal = signal_dc_sv.T.flatten()
+    # Method 2: also apply the baseband time shift from element position
+    position_meters = c.C / radar.fcar * pos  # convert wavelengths to meters
+    tmp_signal = signal_dc_sv.T.flatten()  # flatten datacube to a 1D signal
     shifted_signal = ula.apply_timeshift_due_to_element_position(
         tmp_signal, radar.sample_rate, position_meters, tgt_angle
     )
     signal_dc_shift = shifted_signal.reshape(tuple(reversed(signal_dc_sv.shape))).T
     signal_dc_ula_list_timeshift.append(signal_dc_shift)
 
-# plot imaginary since the real parts are identical for symetric linear arrays (Cos)
+# Plot imaginary parts (real parts are identical for symmetric arrays)
 fun = np.imag
 plt.figure()
 plt.title("Imaginary component of signal")
@@ -92,29 +105,27 @@ plt.xlabel("sample")
 plt.ylabel("amplitude")
 plt.legend()
 
-# list of datacubes to process
+## Step 4: Process all datacubes (matched filter + Doppler FFT) ###############
 rdm_list = signal_dc_ula_list + signal_dc_ula_list_timeshift
 
-########## Apply the match filter ##############################################################
+# Apply matched filter to each datacube
 for dc in rdm_list:
     matchfilter(dc, waveform.pulse_sample, pedantic=True)
 
-########### Doppler process ####################################################################
-# First create filter window and apply it
+# Apply Chebyshev window in slow time to suppress Doppler sidelobes
 chwin_norm_mat = create_window(signal_dc.shape, plot=False)
 for dc in rdm_list:
     dc *= chwin_norm_mat
 
-# Doppler process datacubes
+# Doppler process (FFT along slow time)
 for dc in rdm_list:
     f_axis, r_axis = doppler_process(dc, radar.sample_rate)
 
-########## Plots and checks ####################################################################
-# calc rangeRate axis  #f = -2* fc/c Rdot -> Rdot = -c+f/ (2+fc)
+# Convert frequency axis to range-rate axis
 rdot_axis = -c.C * f_axis / (2 * radar.fcar)
 
 
-########## Monopulse on the RDMs #######################################################
+## Step 5: Compare monopulse angle estimates ##################################
 def monopulse(dx, dc_list, tgt_angle):
     f_measured_theta = mp.monopulse_angle_at_peak_deg(dc_list[0], dc_list[1], dx)
     f_measured_error = abs(f_measured_theta - tgt_angle)

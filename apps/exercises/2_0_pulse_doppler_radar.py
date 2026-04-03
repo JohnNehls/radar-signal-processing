@@ -1,4 +1,12 @@
 #!/usr/bin/env python
+"""Pulse-Doppler radar ambiguity exercises.
+
+Problem 1: Unambiguous range vs PRF.
+Problem 2: Unambiguous range rate vs PRF for several carrier frequencies.
+Problem 3: Range aliasing — where a 15.5 km target appears at various PRFs.
+Problem 4: Doppler and range-rate aliasing vs PRF.
+Problem 5: Range-rate aliasing vs carrier frequency at fixed PRF.
+"""
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -7,8 +15,10 @@ from rad_lab import pulse_doppler_radar as pdr
 
 plt.rcParams["text.usetex"] = True
 
-## problem 1 ######################################
+## Problem 1: Unambiguous range vs PRF ######################################
+# Higher PRF => shorter PRI => less time for echoes => shorter unambiguous range.
 PRF_ar = np.arange(1e3, 200.5e3, 500)
+
 plt.figure()
 plt.plot(PRF_ar * 1e-3, pdr.range_unambiguous(PRF_ar) * 1e-3)
 plt.title("unambiguous range vs PRF")
@@ -18,8 +28,12 @@ plt.yscale("log")
 plt.grid(which="both")
 
 
-## problem 2 ######################################
-f0_ar = np.array([1, 2, 3, 4, 12, 16, 35, 95]) * 1e9
+## Problem 2: Unambiguous range rate vs PRF ##################################
+# The maximum unambiguous range rate depends on both PRF and carrier frequency.
+# Higher carrier frequency means smaller wavelength, so Doppler aliasing
+# happens at lower velocities.
+f0_ar = np.array([1, 2, 3, 4, 12, 16, 35, 95]) * 1e9  # carrier frequencies [Hz]
+
 plt.figure()
 plt.title(r"unambiguous $\pm$ range rate vs PRF")
 plt.xlabel("PRF [kHz]")
@@ -33,17 +47,18 @@ plt.legend()
 plt.grid()
 
 
-## problem 3 ######################################
-# target is 15.5km away. plot apparent range for
-R_tgt = 15.5 * 1e3  # m
-PRF_ar = np.array([2, 4, 8, 16, 32, 50, 60, 64, 95, 100, 128, 150, 228]) * 1e3  # Hz
+## Problem 3: Range aliasing ################################################
+# A target at 15.5 km folds into shorter apparent ranges when
+# PRF pushes the unambiguous range below the true range.
+R_tgt = 15.5 * 1e3  # true target range [m]
+PRF_ar = np.array([2, 4, 8, 16, 32, 50, 60, 64, 95, 100, 128, 150, 228]) * 1e3  # [Hz]
 
 apparent_range_ar = []
 range_max_ar = []
 
 for PRF in PRF_ar:
     range_max = pdr.range_unambiguous(PRF)
-    apparent_range_ar.append(R_tgt % range_max)
+    apparent_range_ar.append(R_tgt % range_max)  # modulo gives the aliased range
     range_max_ar.append(range_max)
 
 apparent_range_ar = np.array(apparent_range_ar)
@@ -60,13 +75,15 @@ plt.legend()
 plt.grid()
 
 
-## problem 4 ######################################
-rangeRate_tgt = -750  # m/s
-f0 = 10e9  # Hz
+## Problem 4: Doppler and range-rate aliasing ################################
+# Show how a target's Doppler frequency and range rate alias as PRF changes.
+rangeRate_tgt = -750  # target range rate [m/s]
+f0 = 10e9  # carrier frequency [Hz]
 apparent_doppler_ar = []
 apparent_rangeRate_ar = []
 
 for PRF in PRF_ar:
+    # compute true Doppler, then alias it into [0, PRF) band
     doppler_freq_tgt = pdr.frequency_delta_doppler(rangeRate_tgt, f0)
     apparent_doppler_ar.append(pdr.frequency_aliased(doppler_freq_tgt, PRF))
     apparent_rangeRate_ar.append(pdr.range_rate_aliased_prf_f0(rangeRate_tgt, PRF, f0))
@@ -94,9 +111,11 @@ ax[1].set_ylabel("apparent range rate [m/s]")
 ax[1].legend()
 ax[1].grid()
 
-## problem 5 ######################################
-rangeRate_tgt = -750  # m/s
-PRF = 16e3  # Hz
+## Problem 5: Range-rate aliasing vs carrier frequency #######################
+# At fixed PRF, sweeping carrier frequency changes the unambiguous range-rate
+# window. Higher carrier => narrower window => more aliasing.
+rangeRate_tgt = -750  # [m/s]
+PRF = 16e3  # [Hz]
 f0_ar = np.array([1, 2, 4, 6, 8, 10, 12, 16, 18, 34, 36, 94]) * 1e9
 
 apparent_rangeRate_ar = []

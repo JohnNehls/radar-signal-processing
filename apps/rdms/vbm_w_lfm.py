@@ -1,15 +1,21 @@
 #!/usr/bin/env python
+"""VBM electronic attack with an LFM waveform.
+
+Same concept as vbm.py but using an LFM (chirp) waveform instead of uncoded.
+LFM provides better range resolution via pulse compression, so the VBM
+Doppler noise band is spread across fewer range bins but the same Doppler
+extent.
+
+The target is stationary (range_rate=0) to isolate the VBM effect in the
+Doppler dimension.
+"""
 
 import matplotlib.pyplot as plt
 from rad_lab import rdm, Radar, Target, EaPlatform, Return, lfm_waveform
 
-################################################################################
-# Doppler noise is LFM in slow time
-################################################################################
-# - cleanest to see when target's rangeRate = 0
+bw = 10e6  # waveform bandwidth [Hz]
 
-bw = 10e6
-
+# -- Radar --
 radar = Radar(
     fcar=10e9,
     tx_power=1e3,
@@ -23,8 +29,10 @@ radar = Radar(
     dwell_time=2e-3,
 )
 
+# -- LFM waveform: 1.5 us up-chirp --
 waveform = lfm_waveform(bw, T=1.5e-6, chirp_up_down=1)
 
+# -- Stationary target with VBM jammer (±500 m/s Doppler spread) --
 return_list = [
     Return(
         target=Target(range=0.5e3, range_rate=0.0e3),
@@ -32,7 +40,7 @@ return_list = [
             tx_power=2.0,
             tx_gain=10 ** (5 / 10),
             total_losses=10 ** (3 / 10),
-            rdot_delta=0.5e3,
+            rdot_delta=0.5e3,  # narrow VBM spread [m/s]
             rdot_offset=0.0e3,
         ),
     )
