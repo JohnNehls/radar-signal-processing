@@ -63,8 +63,8 @@ for index, Pt in enumerate(Pt_ar):
     ax[index].grid()
 
 handles, labels = ax[0].get_legend_handles_labels()
-fig.legend(handles, labels, loc="lower center", ncols=len(labels), bbox_to_anchor=(0.5, -0.05))
-plt.tight_layout()
+fig.legend(handles, labels, loc="lower center", ncols=len(labels), bbox_to_anchor=(0.5, -0.02))
+plt.subplots_adjust(bottom=0.15)
 
 ## Problem 2: Duty-factor range equation ####################################
 # Explore how CPI length and duty factor affect SNR vs range.
@@ -95,8 +95,8 @@ for index, Tcpi in enumerate(Tcpi_ar):
     ax[index].grid()
 
 handles, labels = ax[0].get_legend_handles_labels()
-fig.legend(handles, labels, loc="lower center", ncols=len(labels), bbox_to_anchor=(0.5, -0.05))
-plt.tight_layout()
+fig.legend(handles, labels, loc="lower center", ncols=len(labels), bbox_to_anchor=(0.5, -0.02))
+plt.subplots_adjust(bottom=0.15)
 
 ## Problem 3: Minimum detectable range heatmaps #############################
 # Solve the range equation for range and visualize how it depends on
