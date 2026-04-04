@@ -20,7 +20,9 @@ from .waveform import (
     random_coded_waveform,
     lfm_waveform,
 )
+from .sar_radar import SarRadar, SarTarget
 from . import rdm
+from . import sar
 from ._version import __version__
 
 __all__ = [
@@ -28,6 +30,8 @@ __all__ = [
     "Target",
     "EaPlatform",
     "Return",
+    "SarRadar",
+    "SarTarget",
     "WaveformType",
     "WaveformSample",
     "uncoded_waveform",
@@ -35,5 +39,6 @@ __all__ = [
     "random_coded_waveform",
     "lfm_waveform",
     "rdm",
+    "sar",
     "__version__",
 ]

@@ -25,6 +25,8 @@ nav:
   - Home: index.md
   - API Reference:
       - rdm: api/rdm.md
+      - SAR: api/sar.md
+      - SAR Radar: api/sar_radar.md
       - Radar: api/pulse_doppler_radar.md
       - Waveform: api/waveform.md
       - Returns: api/returns.md
