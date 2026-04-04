@@ -812,6 +812,10 @@
 <a id="rad_lab.geometry"></a>
     <div class="doc doc-contents first">
 
+        <p>Geometric range and range-rate calculations.</p>
+<p>Computes the instantaneous range and range-rate between a radar platform and
+a target given their 3-D position and velocity vectors.</p>
+
 
 
 
@@ -970,13 +974,7 @@
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/rad_lab/geometry.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 5</span>
-<span class="normal"> 6</span>
-<span class="normal"> 7</span>
-<span class="normal"> 8</span>
-<span class="normal"> 9</span>
-<span class="normal">10</span>
-<span class="normal">11</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
 <span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
@@ -992,7 +990,13 @@
 <span class="normal">24</span>
 <span class="normal">25</span>
 <span class="normal">26</span>
-<span class="normal">27</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">range_and_rangerate</span><span class="p">(</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span>
+<span class="normal">30</span>
+<span class="normal">31</span>
+<span class="normal">32</span>
+<span class="normal">33</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">range_and_rangerate</span><span class="p">(</span>
     <span class="n">plat_pos</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">plat_vel</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">tgt_pos</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">tgt_vel</span><span class="p">:</span> <span class="nb">list</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>

@@ -856,6 +856,11 @@
 <a id="rad_lab.returns"></a>
     <div class="doc doc-contents first">
 
+        <p>Target and electronic-attack return models.</p>
+<p>Defines :class:<code>Target</code> (kinematics and RCS), :class:<code>EaPlatform</code> (DRFM
+jammer transmitter parameters), and :class:<code>Return</code> (pairing of a target with
+an optional EA platform) used as inputs to the RDM generator.</p>
+
 
 
 
@@ -1013,14 +1018,7 @@ modulation.  <code>None</code> selects the default LFM noise function.</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/rad_lab/returns.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">25</span>
-<span class="normal">26</span>
-<span class="normal">27</span>
-<span class="normal">28</span>
-<span class="normal">29</span>
-<span class="normal">30</span>
-<span class="normal">31</span>
-<span class="normal">32</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">32</span>
 <span class="normal">33</span>
 <span class="normal">34</span>
 <span class="normal">35</span>
@@ -1042,7 +1040,14 @@ modulation.  <code>None</code> selects the default LFM noise function.</p>
 <span class="normal">51</span>
 <span class="normal">52</span>
 <span class="normal">53</span>
-<span class="normal">54</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">54</span>
+<span class="normal">55</span>
+<span class="normal">56</span>
+<span class="normal">57</span>
+<span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">EaPlatform</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Electronic attack (EA) platform — hardware and signal modulation parameters.</span>
 
@@ -1184,14 +1189,7 @@ with the target (set <code>target.rcs</code> and supply a <code>platform</code>)
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/rad_lab/returns.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">57</span>
-<span class="normal">58</span>
-<span class="normal">59</span>
-<span class="normal">60</span>
-<span class="normal">61</span>
-<span class="normal">62</span>
-<span class="normal">63</span>
-<span class="normal">64</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">64</span>
 <span class="normal">65</span>
 <span class="normal">66</span>
 <span class="normal">67</span>
@@ -1207,7 +1205,14 @@ with the target (set <code>target.rcs</code> and supply a <code>platform</code>)
 <span class="normal">77</span>
 <span class="normal">78</span>
 <span class="normal">79</span>
-<span class="normal">80</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">80</span>
+<span class="normal">81</span>
+<span class="normal">82</span>
+<span class="normal">83</span>
+<span class="normal">84</span>
+<span class="normal">85</span>
+<span class="normal">86</span>
+<span class="normal">87</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Return</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;A simulated radar return — skin, jammer-based EA, or both simultaneously.</span>
 
@@ -1345,14 +1350,7 @@ Defaults to 1 (isotropic / no array).</p>
 
               <details class="mkdocstrings-source">
                 <summary>Source code in <code>src/rad_lab/returns.py</code></summary>
-                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal"> 6</span>
-<span class="normal"> 7</span>
-<span class="normal"> 8</span>
-<span class="normal"> 9</span>
-<span class="normal">10</span>
-<span class="normal">11</span>
-<span class="normal">12</span>
-<span class="normal">13</span>
+                <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
 <span class="normal">16</span>
@@ -1361,7 +1359,14 @@ Defaults to 1 (isotropic / no array).</p>
 <span class="normal">19</span>
 <span class="normal">20</span>
 <span class="normal">21</span>
-<span class="normal">22</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
+<span class="normal">22</span>
+<span class="normal">23</span>
+<span class="normal">24</span>
+<span class="normal">25</span>
+<span class="normal">26</span>
+<span class="normal">27</span>
+<span class="normal">28</span>
+<span class="normal">29</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="nd">@dataclass</span>
 <span class="k">class</span><span class="w"> </span><span class="nc">Target</span><span class="p">:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;Target kinematics and scattering parameters.</span>
 
