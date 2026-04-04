@@ -21,6 +21,7 @@ def gen(
     plot: bool = True,
     debug: bool = False,
     snr: bool = False,
+    window: str = "chebyshev",
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Generate a Range-Doppler Map (RDM) for a single Coherent Processing Interval (CPI).
 
@@ -41,6 +42,9 @@ def gen(
             diagnostic statistics. Defaults to False.
         snr: If True, output amplitudes are normalised to SNR (voltage ratio).
             If False, output amplitudes are in Volts. Defaults to False.
+        window: Doppler window function applied before the slow-time FFT.
+            One of ``"chebyshev"`` (default), ``"blackman-harris"``,
+            ``"taylor"``, or ``"none"`` (rectangular, no windowing).
 
     Returns:
         tuple: A four-element tuple ``(rdot_axis, r_axis, total_dc, signal_dc)``:
@@ -92,7 +96,7 @@ def gen(
 
     ########### Doppler process ####################################################################
     # First create filter window and apply it
-    chwin_norm_mat = create_window(signal_dc.shape, plot=False)
+    chwin_norm_mat = create_window(signal_dc.shape, window=window, plot=False)
     for dc in rdm_list:
         dc *= chwin_norm_mat
 

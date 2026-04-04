@@ -170,30 +170,59 @@ def add_jammer(
 
 
 def create_window(
-    shape: tuple[int, int], cheby_atten_db: float = 60.0, plot: bool = False
+    shape: tuple[int, int],
+    window: str = "chebyshev",
+    cheby_atten_db: float = 60.0,
+    plot: bool = False,
 ) -> np.ndarray:
-    """Creates a 2D Dolph-Chebyshev window for sidelobe reduction.
+    """Creates a 2D window matrix for Doppler sidelobe reduction.
 
-    The window is applied along the slow-time (pulse) dimension.
+    The window is applied along the slow-time (pulse) dimension before the
+    Doppler FFT. Windowing trades sidelobe suppression for mainlobe width.
 
     Args:
         shape: Desired shape of the output window (num_range_bins, num_pulses).
-        cheby_atten_db: Sidelobe attenuation in dB for the Chebyshev window.
+        window: Window type. One of:
+            - ``"chebyshev"`` (default): equi-ripple sidelobes at
+              ``cheby_atten_db`` below the peak.
+            - ``"blackman-harris"``: very low sidelobes (~-92 dB), wider
+              mainlobe than Chebyshev.
+            - ``"taylor"``: low near-in sidelobes with a good compromise
+              between resolution and sidelobe level.
+            - ``"none"``: rectangular (no windowing), narrowest mainlobe
+              but highest sidelobes (~-13 dB).
+        cheby_atten_db: Sidelobe attenuation in dB. Only used when
+            ``window="chebyshev"``. Defaults to 60.0.
         plot: If True, displays a plot of the generated window.
 
     Returns:
-        The 2D window matrix of shape `shape`.
+        The 2D window matrix of shape ``shape``, normalized so that its mean
+        is 1.0 (preserving coherent gain).
     """
     assert len(shape) == 2, "Shape must be a 2-element tuple."
     num_range_bins, num_pulses = shape
 
-    cheby_win_1d = signal.windows.chebwin(num_pulses, cheby_atten_db)
-    normalized_win = cheby_win_1d / np.mean(cheby_win_1d)
+    window_lower = window.lower()
+    if window_lower == "chebyshev":
+        win_1d = signal.windows.chebwin(num_pulses, cheby_atten_db)
+    elif window_lower == "blackman-harris":
+        win_1d = signal.windows.blackmanharris(num_pulses)
+    elif window_lower == "taylor":
+        win_1d = signal.windows.taylor(num_pulses)
+    elif window_lower == "none":
+        win_1d = np.ones(num_pulses)
+    else:
+        raise ValueError(
+            f"Unknown window type '{window}'. "
+            "Choose from: 'chebyshev', 'blackman-harris', 'taylor', 'none'."
+        )
+
+    normalized_win = win_1d / np.mean(win_1d)
     window_matrix = np.tile(normalized_win, (num_range_bins, 1))
 
     if plot:
         plt.figure()
-        plt.title(f"Dolph-Chebyshev Window ({cheby_atten_db} dB)")
+        plt.title(f"{window} Window")
         plt.imshow(window_matrix)
         plt.xlabel("Slow Time (Pulses)")
         plt.ylabel("Fast Time (Range Bins)")
