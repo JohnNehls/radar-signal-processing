@@ -172,7 +172,7 @@ def add_jammer(
 def create_window(
     shape: tuple[int, int],
     window: str = "chebyshev",
-    cheby_atten_db: float = 60.0,
+    window_kwargs: dict | None = None,
     plot: bool = False,
 ) -> np.ndarray:
     """Creates a 2D window matrix for Doppler sidelobe reduction.
@@ -183,16 +183,20 @@ def create_window(
     Args:
         shape: Desired shape of the output window (num_range_bins, num_pulses).
         window: Window type. One of:
-            - ``"chebyshev"`` (default): equi-ripple sidelobes at
-              ``cheby_atten_db`` below the peak.
+            - ``"chebyshev"`` (default): equi-ripple sidelobes. Accepts
+              ``window_kwargs={"at": <dB>}`` (default 60 dB).
             - ``"blackman-harris"``: very low sidelobes (~-92 dB), wider
               mainlobe than Chebyshev.
             - ``"taylor"``: low near-in sidelobes with a good compromise
-              between resolution and sidelobe level.
+              between resolution and sidelobe level. Accepts
+              ``window_kwargs={"nbar": ..., "sll": ..., "norm": ...}``.
             - ``"none"``: rectangular (no windowing), narrowest mainlobe
               but highest sidelobes (~-13 dB).
-        cheby_atten_db: Sidelobe attenuation in dB. Only used when
-            ``window="chebyshev"``. Defaults to 60.0.
+        window_kwargs: Optional dict of keyword arguments forwarded to the
+            underlying ``scipy.signal.windows`` function. Keys must match
+            the scipy function's parameter names (e.g. ``"at"`` for
+            Chebyshev, ``"nbar"``/``"sll"`` for Taylor). Ignored for
+            ``"blackman-harris"`` and ``"none"``.
         plot: If True, displays a plot of the generated window.
 
     Returns:
@@ -201,14 +205,16 @@ def create_window(
     """
     assert len(shape) == 2, "Shape must be a 2-element tuple."
     num_range_bins, num_pulses = shape
+    kwargs = window_kwargs or {}
 
     window_lower = window.lower()
     if window_lower == "chebyshev":
-        win_1d = signal.windows.chebwin(num_pulses, cheby_atten_db)
+        at = kwargs.get("at", 60.0)
+        win_1d = signal.windows.chebwin(num_pulses, at)
     elif window_lower == "blackman-harris":
         win_1d = signal.windows.blackmanharris(num_pulses)
     elif window_lower == "taylor":
-        win_1d = signal.windows.taylor(num_pulses)
+        win_1d = signal.windows.taylor(num_pulses, **kwargs)
     elif window_lower == "none":
         win_1d = np.ones(num_pulses)
     else:

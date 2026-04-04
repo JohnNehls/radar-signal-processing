@@ -58,7 +58,16 @@ jammer_on_target = Return(
 
 return_list = [skin_return, jammer_on_target]
 
-# -- Generate the RDM --
+# ----- Generate the RDM ------
+
+# -- Windowing options: uncomment one to try it --
+# rdm.gen(radar, waveform, return_list)                                             # Chebyshev 60 dB (default)
+# rdm.gen(radar, waveform, return_list, window_kwargs={"at": 80})                   # Chebyshev 80 dB
+# rdm.gen(radar, waveform, return_list, window="taylor")                            # Taylor (default nbar/sll)
+# rdm.gen(radar, waveform, return_list, window="taylor", window_kwargs={"nbar": 6, "sll": -40})  # Taylor tuned
+# rdm.gen(radar, waveform, return_list, window="blackman-harris")                   # Blackman-Harris
+# rdm.gen(radar, waveform, return_list, window="none")                              # rectangular (no window)
+
 # seed=0: reproducible noise; debug=True: show intermediate steps
 rdot_axis, r_axis, total_dc, signal_dc = rdm.gen(
     radar, waveform, return_list, seed=0, plot=True, debug=True, snr=False
