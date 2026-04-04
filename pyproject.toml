@@ -24,6 +24,7 @@ dependencies = [
 
 [project.optional-dependencies]
 dev = ["flake8", "pytest"]
+docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 
 [project.urls]
 Repository="https://github.com/JohnNehls/rad-lab"
