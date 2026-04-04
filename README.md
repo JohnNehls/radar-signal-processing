@@ -30,13 +30,17 @@ and how DRFM electronic attack techniques appear in the RDM.
 -   A few exercises use LaTeX for plot labels — LaTeX must be installed for
     those to run
 
-### Steps
+### Installation options
 
-Clone the repository and install with pip:
-
+#### (Option 1) Clone the repository with all the apps and docs
 ``` shell
-git clone https://github.com/JohnNehls/radar-signal-processing
-pip install radar-signal-processing/
+git clone https://github.com/JohnNehls/rad-lab
+pip install rad-lab
+```
+
+#### (Option 2) Install from PyPI (library only, no apps)
+``` shell
+pip install rad-lab
 ```
 
 ## Usage
