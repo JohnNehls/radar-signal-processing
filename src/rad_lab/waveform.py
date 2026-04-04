@@ -1,3 +1,10 @@
+"""Radar waveform definitions and factory functions.
+
+Provides the :class:`WaveformSample` dataclass and factory functions for four
+waveform types: uncoded (rectangular), Barker-coded, random phase-coded, and
+linear frequency modulated (LFM) chirp.
+"""
+
 from enum import StrEnum
 from dataclasses import dataclass, field
 from typing import Callable
@@ -9,6 +16,8 @@ from . import constants as c
 
 
 class WaveformType(StrEnum):
+    """Enumeration of supported radar waveform types."""
+
     UNCODED = "uncoded"
     BARKER = "barker"
     RANDOM = "random"
@@ -17,6 +26,27 @@ class WaveformType(StrEnum):
 
 @dataclass
 class WaveformSample:
+    """Container for a radar waveform and its key parameters.
+
+    Created by the factory functions (:func:`uncoded_waveform`,
+    :func:`barker_coded_waveform`, :func:`random_coded_waveform`,
+    :func:`lfm_waveform`). Call :meth:`set_sample` before passing to
+    :func:`rad_lab.rdm.gen` to generate the discrete pulse array at the
+    radar's sample rate.
+
+    Attributes:
+        type: Waveform type identifier.
+        bw: Waveform bandwidth [Hz].
+        time_bw_product: Time-bandwidth product [dimensionless]. Equal to 1
+            for uncoded pulses; greater than 1 for coded waveforms, indicating
+            pulse-compression gain.
+        pulse_width: Pulse duration [s].
+        pulse_func: Callable that generates ``(time_array, pulse_array)`` when
+            called with a sample rate [Hz].
+        pulse_sample: Discrete complex pulse array at the radar sample rate.
+            Populated by :meth:`set_sample`; not set at construction time.
+    """
+
     type: WaveformType
     bw: float
     time_bw_product: float
@@ -25,6 +55,11 @@ class WaveformSample:
     pulse_sample: np.ndarray = field(init=False)
 
     def set_sample(self, sample_rate: float) -> None:
+        """Generate and store the discrete pulse array at the given sample rate.
+
+        Args:
+            sample_rate: ADC sampling rate [Hz].
+        """
         _, self.pulse_sample = self.pulse_func(sample_rate)
 
 

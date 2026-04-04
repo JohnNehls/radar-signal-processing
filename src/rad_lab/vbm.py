@@ -1,3 +1,10 @@
+"""Velocity bin masking (VBM) electronic attack slow-time modulations.
+
+Provides slow-time phase noise functions that a DRFM jammer can apply to
+spread energy across Doppler bins, masking the true target velocity.
+Includes LFM, random-phase, and sinusoidal modulation strategies.
+"""
+
 import numpy as np
 from numpy.linalg import norm
 import logging

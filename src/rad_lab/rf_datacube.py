@@ -1,3 +1,10 @@
+"""RF datacube creation and processing.
+
+Provides helpers to allocate a pulse-Doppler datacube, compute range and
+frequency axes, apply a matched filter via fast convolution, and Doppler-process
+the slow-time dimension with an FFT.
+"""
+
 import numpy as np
 from scipy import fft
 from . import constants as c

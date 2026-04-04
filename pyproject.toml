@@ -27,7 +27,8 @@ dev = ["flake8", "pytest"]
 docs = ["mkdocs", "mkdocs-material", "mkdocstrings[python]"]
 
 [project.urls]
-Repository="https://github.com/JohnNehls/rad-lab"
+Repository = "https://github.com/JohnNehls/rad-lab"
+Documentation = "https://johnnehls.github.io/rad-lab/"
 
 [tool.setuptools_scm]
 version_file = "src/rad_lab/_version.py"

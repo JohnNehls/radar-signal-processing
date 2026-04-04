@@ -1,3 +1,10 @@
+"""Amplitude monopulse angle estimation.
+
+Implements the sum-and-difference amplitude monopulse technique for estimating
+target angle from a two-element array, including peak-finding across a
+range-Doppler map.
+"""
+
 import numpy as np
 
 

@@ -1,3 +1,10 @@
+"""Range-Doppler map (RDM) generation and plotting.
+
+Provides the :func:`gen` entry point that simulates a full CPI — adding skin
+and jammer returns to a datacube, applying matched filtering, Doppler
+windowing, and the slow-time FFT — and a set of plot helpers for RTMs and RDMs.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 

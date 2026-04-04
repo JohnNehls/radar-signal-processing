@@ -1,3 +1,9 @@
+"""Radar and one-way link range equations.
+
+Implements the two-way radar range equation (received signal power and SNR)
+and the one-way Friis transmission equation used for jammer link budgets.
+"""
+
 from . import constants as c
 
 

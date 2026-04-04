@@ -1,3 +1,9 @@
+"""Complex Gaussian noise generation.
+
+Provides unity-variance complex noise arrays and thermal noise power
+calculations used to populate the receiver noise floor in the datacube.
+"""
+
 import numpy as np
 from scipy import fft
 from . import constants as c

@@ -1,3 +1,10 @@
+"""Uniform linear array (ULA) gain patterns and steering vectors.
+
+Provides functions to compute element steering vectors, apply inter-element
+time delays, and plot one-way and two-way array gain patterns as a function
+of angle.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 from . import constants as c

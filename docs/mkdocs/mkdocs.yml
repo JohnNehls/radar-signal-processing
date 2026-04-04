@@ -17,6 +17,9 @@ plugins:
             docstring_style: google
             show_source: true
             heading_level: 2
+            separate_signature: false
+            show_symbol_type_toc: true
+            show_if_no_docstring: true
 
 nav:
   - Home: index.md

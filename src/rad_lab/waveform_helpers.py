@@ -1,3 +1,10 @@
+"""Waveform injection and spectral plotting utilities.
+
+Low-level helpers for inserting a pulse waveform into a flat datacube buffer,
+applying a matched filter via FFT convolution, resampling waveforms, and
+plotting pulse shapes with their spectra.
+"""
+
 import numpy as np
 import matplotlib.pyplot as plt
 import logging

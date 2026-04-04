@@ -1,3 +1,10 @@
+"""Pulse-Doppler radar system parameter model.
+
+Defines the :class:`Radar` dataclass that collects all system-level parameters
+(carrier frequency, transmit power, gains, noise figure, PRF, dwell time, etc.)
+and derives secondary quantities such as number of pulses and unambiguous range.
+"""
+
 import math
 from dataclasses import dataclass, field
 from . import constants as c
@@ -7,21 +14,35 @@ from . import constants as c
 class Radar:
     """Pulse-Doppler radar system parameters.
 
-    All gain/loss fields are linear (not dB).
-    n_pulses is computed automatically from dwell_time and prf.
+    All gain and loss fields are linear power ratios (not dB).
+    ``n_pulses`` is derived automatically from ``dwell_time`` and ``prf``.
+
+    Attributes:
+        fcar: Carrier frequency [Hz].
+        tx_power: Transmit power [W].
+        tx_gain: Transmit antenna gain [linear].
+        rx_gain: Receive antenna gain [linear].
+        op_temp: Receiver operating temperature [K].
+        sample_rate: ADC sampling rate [Hz].
+        noise_factor: Receiver noise factor [linear].
+        total_losses: Total two-way system losses [linear].
+        prf: Pulse repetition frequency [Hz].
+        dwell_time: Coherent processing interval (CPI) duration [s].
+        n_pulses: Number of pulses per CPI, computed as
+            ``ceil(dwell_time * prf)`` [dimensionless].
     """
 
-    fcar: float  # Carrier frequency [Hz]
-    tx_power: float  # Transmit power [W]
-    tx_gain: float  # Transmit antenna gain [linear]
-    rx_gain: float  # Receive antenna gain [linear]
-    op_temp: float  # Operating temperature [K]
-    sample_rate: float  # Sampling rate [Hz]
-    noise_factor: float  # Receiver noise factor [linear]
-    total_losses: float  # Total system losses [linear]
-    prf: float  # Pulse repetition frequency [Hz]
-    dwell_time: float  # Coherent dwell time [s]
-    n_pulses: int = field(init=False)  # Computed from dwell_time and prf
+    fcar: float
+    tx_power: float
+    tx_gain: float
+    rx_gain: float
+    op_temp: float
+    sample_rate: float
+    noise_factor: float
+    total_losses: float
+    prf: float
+    dwell_time: float
+    n_pulses: int = field(init=False)
 
     def __post_init__(self) -> None:
         """Compute n_pulses from dwell_time and prf."""

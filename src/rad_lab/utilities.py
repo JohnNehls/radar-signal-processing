@@ -1,3 +1,10 @@
+"""Signal processing and unit conversion utilities.
+
+Miscellaneous helpers: dB/linear conversions, phase wrapping to (−π, π],
+replacing zeros with the smallest float, and other small signal utilities
+used across the library.
+"""
+
 import numpy as np
 from . import constants as c
 

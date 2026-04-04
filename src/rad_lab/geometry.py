@@ -1,3 +1,9 @@
+"""Geometric range and range-rate calculations.
+
+Computes the instantaneous range and range-rate between a radar platform and
+a target given their 3-D position and velocity vectors.
+"""
+
 import numpy as np
 from numpy.linalg import norm
 

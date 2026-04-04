@@ -1,3 +1,10 @@
+"""Physical and system constants used throughout rad-lab.
+
+Defines the speed of light, Boltzmann's constant, a standard radar load
+impedance, and other fixed values referenced by the range equation, noise,
+and waveform modules.
+"""
+
 import math
 
 PI = math.pi
