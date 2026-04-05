@@ -130,7 +130,7 @@ def plot_sar_image(
 
     Args:
         cross_range_axis: 1-D cross-range axis [m].
-        r_axis: 1-D slant-range axis [m].
+        r_axis: 1-D slant-range axis [m] (converted to km for display).
         data: 2-D complex SAR image.
         title: Plot title.
         cbar_min: Minimum colorbar value [dB].
@@ -145,9 +145,9 @@ def plot_sar_image(
     fig, ax = plt.subplots(1, 1)
     fig.suptitle(title)
     ax.set_xlabel("Cross-Range [m]")
-    ax.set_ylabel("Slant Range [m]")
+    ax.set_ylabel("Slant Range [km]")
 
-    mesh = ax.pcolormesh(cross_range_axis, r_axis, plot_data)
+    mesh = ax.pcolormesh(cross_range_axis, r_axis / 1e3, plot_data)
     mesh.set_clim(cbar_min, 0)
     cbar = fig.colorbar(mesh)
     cbar.set_label("Normalised Magnitude [dB]")
@@ -161,8 +161,8 @@ def _plot_raw(r_axis: np.ndarray, data: np.ndarray, title: str) -> None:
     pulses = range(data.shape[1])
     fig, ax = plt.subplots(1, 1)
     fig.suptitle(title)
-    mesh = ax.pcolormesh(pulses, r_axis, np.abs(data))
+    mesh = ax.pcolormesh(pulses, r_axis / 1e3, np.abs(data))
     ax.set_xlabel("Pulse Index (along-track)")
-    ax.set_ylabel("Slant Range [m]")
+    ax.set_ylabel("Slant Range [km]")
     fig.colorbar(mesh, label="Magnitude")
     fig.tight_layout()

@@ -9,30 +9,9 @@ from scipy import fft
 
 from . import constants as c
 from .geometry import slant_range
-from .waveform_helpers import add_waveform_at_index
+from ._rdm_internals import _propagation_phase, _return_sample_indices, _inject_pulses
 from .waveform import WaveformSample
 from .sar_radar import SarRadar, SarTarget
-
-
-def _sar_sample_indices(
-    two_way_delays: np.ndarray, waveform: WaveformSample, sample_rate: float
-) -> np.ndarray:
-    """Converts two-way delays to flat datacube sample indices.
-
-    Matches the bin-alignment convention in ``_rdm_internals._return_sample_indices``:
-    subtract half the pulse width (pulses are timed from their leading edge) and
-    offset by one so the matched-filter peak lands in the correct range bin.
-
-    Args:
-        two_way_delays: Two-way propagation delays for each pulse [s].
-        waveform: Waveform with ``pulse_width`` attribute [s].
-        sample_rate: ADC sampling rate [Hz].
-
-    Returns:
-        Integer sample indices into the flattened datacube.
-    """
-    times_of_arrival = two_way_delays - waveform.pulse_width / 2
-    return np.round(times_of_arrival * sample_rate).astype(int) - 1
 
 
 def add_sar_returns(
@@ -56,8 +35,7 @@ def add_sar_returns(
         target_list: List of :class:`SarTarget` point scatterers.
         platform_positions: Platform positions ``(n_pulses, 3)`` [m].
     """
-    n_range_bins, n_pulses = datacube.shape
-
+    n_pulses = datacube.shape[1]
     pulse_tx_times = np.arange(n_pulses) / sar_radar.prf
 
     for target in target_list:
@@ -66,23 +44,20 @@ def add_sar_returns(
 
         # Two-way propagation delay and carrier phase per pulse
         two_way_delays = 2 * ranges / c.C
-        two_way_phases = -2 * np.pi * sar_radar.fcar * two_way_delays
-
-        # Amplitude from RCS (simple sqrt(rcs) scaling; SNR mode not yet supported)
-        amplitude = np.sqrt(target.rcs)
+        two_way_phases = _propagation_phase(two_way_delays, sar_radar.fcar)
 
         # Absolute return times (pulse tx time + two-way delay) are needed so
         # that each pulse's waveform lands in the correct section of the flat array.
         return_times = pulse_tx_times + two_way_delays
-        sample_indices = _sar_sample_indices(return_times, waveform, sar_radar.sample_rate)
+        sample_indices = _return_sample_indices(return_times, waveform, sar_radar.sample_rate)
 
-        # Inject waveform pulse-by-pulse into the flattened datacube
-        flat = datacube.T.flatten()
-        for i in range(n_pulses):
-            if sample_indices[i] < datacube.size:
-                pulse = amplitude * waveform.pulse_sample * np.exp(1j * two_way_phases[i])
-                add_waveform_at_index(flat, pulse, sample_indices[i])
-        datacube[:] = flat.reshape(n_pulses, n_range_bins).T
+        _inject_pulses(
+            datacube,
+            waveform.pulse_sample,
+            sample_indices,
+            two_way_phases,
+            amplitude=np.sqrt(target.rcs),
+        )
 
 
 def azimuth_matched_filter(

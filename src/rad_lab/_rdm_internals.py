@@ -18,7 +18,7 @@ def _propagation_phase(delays: np.ndarray, fcar: float) -> np.ndarray:
 
 
 def _return_sample_indices(
-    return_times: np.ndarray, waveform: WaveformSample, radar: Radar
+    return_times: np.ndarray, waveform: WaveformSample, sample_rate: float
 ) -> np.ndarray:
     """Converts pulse return times to flat datacube sample indices.
 
@@ -28,7 +28,7 @@ def _return_sample_indices(
     correct bin.
     """
     times_of_arrival = return_times - waveform.pulse_width / 2
-    return np.round(times_of_arrival * radar.sample_rate).astype(int) - 1
+    return np.round(times_of_arrival * sample_rate).astype(int) - 1
 
 
 @contextmanager
@@ -41,6 +41,33 @@ def _flat_datacube(datacube: np.ndarray):
     flat = datacube.T.flatten()
     yield flat
     datacube[:] = flat.reshape(tuple(reversed(datacube.shape))).T
+
+
+def _inject_pulses(
+    datacube: np.ndarray,
+    waveform_samples: np.ndarray,
+    sample_indices: np.ndarray,
+    phases: np.ndarray,
+    amplitude: complex | float,
+) -> None:
+    """Adds phase-shifted, scaled copies of a waveform to the datacube.
+
+    For each pulse, constructs ``amplitude * waveform_samples * exp(j * phases[i])``
+    and adds it at the corresponding flat-datacube index.  Pulses whose index
+    exceeds the datacube size are silently skipped.
+
+    Args:
+        datacube: 2-D complex array modified in place.
+        waveform_samples: Discrete pulse samples from the waveform.
+        sample_indices: Per-pulse starting index in the flattened datacube.
+        phases: Per-pulse carrier phase [rad].
+        amplitude: Scalar amplitude (may include RCS, steering vector, etc.).
+    """
+    with _flat_datacube(datacube) as flat:
+        for i in range(len(sample_indices)):
+            if sample_indices[i] < datacube.size:
+                pulse = amplitude * waveform_samples * np.exp(1j * phases[i])
+                add_waveform_at_index(flat, pulse, sample_indices[i])
 
 
 def add_skin(
@@ -69,18 +96,15 @@ def add_skin(
     two_way_delays = 2 * target_range_per_pulse / c.C
     pulse_return_times = pulse_tx_times + two_way_delays
     two_way_doppler_phases = _propagation_phase(two_way_delays, radar.fcar)
-    return_sample_indices = _return_sample_indices(pulse_return_times, waveform, radar)
+    return_sample_indices = _return_sample_indices(pulse_return_times, waveform, radar.sample_rate)
 
-    with _flat_datacube(datacube) as flat:
-        for i in range(radar.n_pulses):
-            if return_sample_indices[i] < datacube.size:
-                pulse = (
-                    return_magnitude
-                    * waveform.pulse_sample
-                    * np.exp(1j * two_way_doppler_phases[i])
-                    * tgt_info.sv
-                )
-                add_waveform_at_index(flat, pulse, return_sample_indices[i])
+    _inject_pulses(
+        datacube,
+        waveform.pulse_sample,
+        return_sample_indices,
+        two_way_doppler_phases,
+        amplitude=return_magnitude * tgt_info.sv,
+    )
 
 
 def add_jammer(
@@ -133,7 +157,7 @@ def add_jammer(
     # Additional time delay for range offset
     total_delay = ea.delay + 2 * ea.range_offset / c.C
     return_times = skin_return_times + total_delay
-    return_sample_indices = _return_sample_indices(return_times, waveform, radar)
+    return_sample_indices = _return_sample_indices(return_times, waveform, radar.sample_rate)
 
     # Precompute per-pulse rdot-offset phase shift vector
     pulse_indices = np.arange(radar.n_pulses)
