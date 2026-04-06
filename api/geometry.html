@@ -304,6 +304,62 @@
   
   
     <li class="md-nav__item">
+      <a href="sar.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAR
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
+      <a href="sar_radar.html" class="md-nav__link">
+        
+  
+  
+  <span class="md-ellipsis">
+    
+  
+    SAR Radar
+  
+
+    
+  </span>
+  
+  
+
+      </a>
+    </li>
+  
+
+              
+            
+              
+                
+  
+  
+  
+  
+    <li class="md-nav__item">
       <a href="pulse_doppler_radar.html" class="md-nav__link">
         
   
@@ -599,10 +655,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#rad_lab.geometry.flight_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;flight_path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#rad_lab.geometry.range_and_rangerate" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;range_and_rangerate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rad_lab.geometry.slant_range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;slant_range
       
     </span>
   </a>
@@ -775,10 +853,32 @@
 </li>
       
         <li class="md-nav__item">
+  <a href="#rad_lab.geometry.flight_path" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;flight_path
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
   <a href="#rad_lab.geometry.range_and_rangerate" class="md-nav__link">
     <span class="md-ellipsis">
       
         <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;range_and_rangerate
+      
+    </span>
+  </a>
+  
+</li>
+      
+        <li class="md-nav__item">
+  <a href="#rad_lab.geometry.slant_range" class="md-nav__link">
+    <span class="md-ellipsis">
+      
+        <code class="doc-symbol doc-symbol-toc doc-symbol-function"></code>&nbsp;slant_range
       
     </span>
   </a>
@@ -812,9 +912,10 @@
 <a id="rad_lab.geometry"></a>
     <div class="doc doc-contents first">
 
-        <p>Geometric range and range-rate calculations.</p>
+        <p>Geometric range, range-rate, and flight-path calculations.</p>
 <p>Computes the instantaneous range and range-rate between a radar platform and
-a target given their 3-D position and velocity vectors.</p>
+a target given their 3-D position and velocity vectors.  Also provides helpers
+for SAR flight-path generation and slant-range computation.</p>
 
 
 
@@ -835,6 +936,153 @@ a target given their 3-D position and velocity vectors.</p>
 
 
 
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="rad_lab.geometry.flight_path" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">flight_path</span><span class="p">(</span><span class="n">n_pulses</span><span class="p">,</span> <span class="n">pulse_spacing</span><span class="p">,</span> <span class="n">altitude</span><span class="o">=</span><span class="mf">0.0</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Generates a straight, level flight path centred at the origin.</p>
+<p>The platform moves along the <em>x</em>-axis (along-track) at a fixed altitude.
+Positions are centred so that pulse <code>n_pulses // 2</code> is at <em>x</em> = 0.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>n_pulses</code>
+            </td>
+            <td>
+                  <code><span title="int">int</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Number of aperture positions.</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>pulse_spacing</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Along-track distance between successive positions [m].</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>altitude</code>
+            </td>
+            <td>
+                  <code><span title="float">float</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Platform altitude above the scene plane [m].</p>
+              </div>
+            </td>
+            <td>
+                  <code>0.0</code>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Platform positions with shape <code>(n_pulses, 3)</code>, columns <code>[x, y, z]</code>.</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/rad_lab/geometry.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">37</span>
+<span class="normal">38</span>
+<span class="normal">39</span>
+<span class="normal">40</span>
+<span class="normal">41</span>
+<span class="normal">42</span>
+<span class="normal">43</span>
+<span class="normal">44</span>
+<span class="normal">45</span>
+<span class="normal">46</span>
+<span class="normal">47</span>
+<span class="normal">48</span>
+<span class="normal">49</span>
+<span class="normal">50</span>
+<span class="normal">51</span>
+<span class="normal">52</span>
+<span class="normal">53</span>
+<span class="normal">54</span>
+<span class="normal">55</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">flight_path</span><span class="p">(</span><span class="n">n_pulses</span><span class="p">:</span> <span class="nb">int</span><span class="p">,</span> <span class="n">pulse_spacing</span><span class="p">:</span> <span class="nb">float</span><span class="p">,</span> <span class="n">altitude</span><span class="p">:</span> <span class="nb">float</span> <span class="o">=</span> <span class="mf">0.0</span><span class="p">)</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Generates a straight, level flight path centred at the origin.</span>
+
+<span class="sd">    The platform moves along the *x*-axis (along-track) at a fixed altitude.</span>
+<span class="sd">    Positions are centred so that pulse ``n_pulses // 2`` is at *x* = 0.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        n_pulses: Number of aperture positions.</span>
+<span class="sd">        pulse_spacing: Along-track distance between successive positions [m].</span>
+<span class="sd">        altitude: Platform altitude above the scene plane [m].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        Platform positions with shape ``(n_pulses, 3)``, columns ``[x, y, z]``.</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">x</span> <span class="o">=</span> <span class="p">(</span><span class="n">np</span><span class="o">.</span><span class="n">arange</span><span class="p">(</span><span class="n">n_pulses</span><span class="p">)</span> <span class="o">-</span> <span class="n">n_pulses</span> <span class="o">/</span> <span class="mi">2</span><span class="p">)</span> <span class="o">*</span> <span class="n">pulse_spacing</span>
+    <span class="n">positions</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">zeros</span><span class="p">((</span><span class="n">n_pulses</span><span class="p">,</span> <span class="mi">3</span><span class="p">))</span>
+    <span class="n">positions</span><span class="p">[:,</span> <span class="mi">0</span><span class="p">]</span> <span class="o">=</span> <span class="n">x</span>
+    <span class="n">positions</span><span class="p">[:,</span> <span class="mi">2</span><span class="p">]</span> <span class="o">=</span> <span class="n">altitude</span>
+    <span class="k">return</span> <span class="n">positions</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
 
 <div class="doc doc-object doc-function">
 
@@ -974,8 +1222,7 @@ a target given their 3-D position and velocity vectors.</p>
 
             <details class="mkdocstrings-source">
               <summary>Source code in <code>src/rad_lab/geometry.py</code></summary>
-              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">11</span>
-<span class="normal">12</span>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">12</span>
 <span class="normal">13</span>
 <span class="normal">14</span>
 <span class="normal">15</span>
@@ -996,7 +1243,8 @@ a target given their 3-D position and velocity vectors.</p>
 <span class="normal">30</span>
 <span class="normal">31</span>
 <span class="normal">32</span>
-<span class="normal">33</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">range_and_rangerate</span><span class="p">(</span>
+<span class="normal">33</span>
+<span class="normal">34</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">range_and_rangerate</span><span class="p">(</span>
     <span class="n">plat_pos</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">plat_vel</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">tgt_pos</span><span class="p">:</span> <span class="nb">list</span><span class="p">,</span> <span class="n">tgt_vel</span><span class="p">:</span> <span class="nb">list</span>
 <span class="p">)</span> <span class="o">-&gt;</span> <span class="nb">tuple</span><span class="p">[</span><span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="nb">float</span><span class="p">,</span> <span class="nb">float</span><span class="p">]:</span>
 <span class="w">    </span><span class="sd">&quot;&quot;&quot;</span>
@@ -1019,6 +1267,121 @@ a target given their 3-D position and velocity vectors.</p>
     <span class="n">R_dot</span> <span class="o">=</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">tgt_vel</span><span class="p">,</span> <span class="n">R_unit_vec</span><span class="p">)</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">dot</span><span class="p">(</span><span class="n">plat_vel</span><span class="p">,</span> <span class="n">R_unit_vec</span><span class="p">)</span>
 
     <span class="k">return</span> <span class="n">R_vec</span><span class="p">,</span> <span class="n">R_mag</span><span class="p">,</span> <span class="n">R_dot</span>
+</code></pre></div></td></tr></table></div>
+            </details>
+    </div>
+
+</div>
+
+<div class="doc doc-object doc-function">
+
+
+<h2 id="rad_lab.geometry.slant_range" class="doc doc-heading">
+            <code class="highlight language-python"><span class="n">slant_range</span><span class="p">(</span><span class="n">platform_positions</span><span class="p">,</span> <span class="n">target_position</span><span class="p">)</span></code>
+
+</h2>
+
+
+    <div class="doc doc-contents ">
+
+        <p>Computes the Euclidean slant range from each platform position to a target.</p>
+
+
+<p><span class="doc-section-title">Parameters:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Name</th>
+          <th>Type</th>
+          <th>Description</th>
+          <th>Default</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                <code>platform_positions</code>
+            </td>
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Platform positions with shape <code>(n_pulses, 3)</code> [m].</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+          <tr class="doc-section-item">
+            <td>
+                <code>target_position</code>
+            </td>
+            <td>
+                  <code><span title="list">list</span>[<span title="float">float</span>]</code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>Target <code>[x, y, z]</code> coordinates [m].</p>
+              </div>
+            </td>
+            <td>
+                <em>required</em>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+    <p><span class="doc-section-title">Returns:</span></p>
+    <table>
+      <thead>
+        <tr>
+          <th>Type</th>
+          <th>Description</th>
+        </tr>
+      </thead>
+      <tbody>
+          <tr class="doc-section-item">
+            <td>
+                  <code><span title="numpy.ndarray">ndarray</span></code>
+            </td>
+            <td>
+              <div class="doc-md-description">
+                <p>1-D array of slant ranges with shape <code>(n_pulses,)</code> [m].</p>
+              </div>
+            </td>
+          </tr>
+      </tbody>
+    </table>
+
+
+            <details class="mkdocstrings-source">
+              <summary>Source code in <code>src/rad_lab/geometry.py</code></summary>
+              <div class="highlight"><table class="highlighttable"><tr><td class="linenos"><div class="linenodiv"><pre><span></span><span class="normal">58</span>
+<span class="normal">59</span>
+<span class="normal">60</span>
+<span class="normal">61</span>
+<span class="normal">62</span>
+<span class="normal">63</span>
+<span class="normal">64</span>
+<span class="normal">65</span>
+<span class="normal">66</span>
+<span class="normal">67</span>
+<span class="normal">68</span>
+<span class="normal">69</span></pre></div></td><td class="code"><div><pre><span></span><code><span class="k">def</span><span class="w"> </span><span class="nf">slant_range</span><span class="p">(</span><span class="n">platform_positions</span><span class="p">:</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">,</span> <span class="n">target_position</span><span class="p">:</span> <span class="nb">list</span><span class="p">[</span><span class="nb">float</span><span class="p">])</span> <span class="o">-&gt;</span> <span class="n">np</span><span class="o">.</span><span class="n">ndarray</span><span class="p">:</span>
+<span class="w">    </span><span class="sd">&quot;&quot;&quot;Computes the Euclidean slant range from each platform position to a target.</span>
+
+<span class="sd">    Args:</span>
+<span class="sd">        platform_positions: Platform positions with shape ``(n_pulses, 3)`` [m].</span>
+<span class="sd">        target_position: Target ``[x, y, z]`` coordinates [m].</span>
+
+<span class="sd">    Returns:</span>
+<span class="sd">        1-D array of slant ranges with shape ``(n_pulses,)`` [m].</span>
+<span class="sd">    &quot;&quot;&quot;</span>
+    <span class="n">diff</span> <span class="o">=</span> <span class="n">platform_positions</span> <span class="o">-</span> <span class="n">np</span><span class="o">.</span><span class="n">asarray</span><span class="p">(</span><span class="n">target_position</span><span class="p">)</span>
+    <span class="k">return</span> <span class="n">norm</span><span class="p">(</span><span class="n">diff</span><span class="p">,</span> <span class="n">axis</span><span class="o">=</span><span class="mi">1</span><span class="p">)</span>
 </code></pre></div></td></tr></table></div>
             </details>
     </div>
