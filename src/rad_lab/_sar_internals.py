@@ -22,7 +22,7 @@ from .sar_radar import SarRadar, SarTarget
 def _beam_weights(
     platform_positions: np.ndarray,
     target_position: list[float],
-    scene_center: list[float],
+    scene_center: list[float] | np.ndarray,
     beamwidth: float,
     pattern: Callable[[np.ndarray], np.ndarray] | None = None,
 ) -> np.ndarray:
@@ -35,7 +35,9 @@ def _beam_weights(
     Args:
         platform_positions: Platform positions ``(n_pulses, 3)`` [m].
         target_position: Target ``[x, y, z]`` [m].
-        scene_center: Scene centre ``[x, y, z]`` that the beam tracks [m].
+        scene_center: Boresight reference point(s).  Shape ``(3,)`` for a
+            fixed point (spotlight) or ``(n_pulses, 3)`` for per-pulse
+            broadside points (stripmap).
         beamwidth: One-way 3-dB beamwidth [rad].
         pattern: Optional callable that maps an array of off-boresight
             angles [rad] to two-way amplitude weights.  Defaults to a

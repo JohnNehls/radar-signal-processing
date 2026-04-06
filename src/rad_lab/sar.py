@@ -44,8 +44,9 @@ def gen(
     injects the waveform, then processes the datacube through range
     compression, azimuth windowing, and azimuth matched-filter focusing.
 
-    **Stripmap** mode (default): leave ``sar_radar.scene_center`` and
-    ``sar_radar.beamwidth`` as ``None``.
+    **Stripmap** mode (default): leave ``sar_radar.scene_center`` as
+    ``None``.  Optionally set ``sar_radar.beamwidth`` to apply
+    broadside beam-pattern weighting (body-fixed antenna).
 
     **Spotlight** mode: set both fields on the :class:`SarRadar` instance.
     The antenna beam is steered toward ``scene_center`` each pulse, and
@@ -98,9 +99,9 @@ def gen(
     signal_dc = data_cube(sar_radar.sample_rate, sar_radar.prf, sar_radar.n_pulses)
 
     ########## Populate with target returns ########################################################
-    # In spotlight mode, build a beam-weighting function from scene_center and beamwidth
     beam_weights_fn = None
     if sar_radar.scene_center is not None:
+        # Spotlight: beam steered toward a fixed scene centre
         beam_weights_fn = partial(
             _beam_weights,
             platform_positions,
@@ -108,6 +109,21 @@ def gen(
             beamwidth=sar_radar.beamwidth,
             pattern=beam_pattern,
         )
+    elif sar_radar.beamwidth is not None:
+        # Stripmap with beam weighting: body-fixed antenna pointing broadside
+        def _stripmap_beam_fn(target_position: list[float]) -> np.ndarray:
+            broadside = platform_positions.copy()
+            broadside[:, 1] = target_position[1]  # target's cross-track distance
+            broadside[:, 2] = 0.0
+            return _beam_weights(
+                platform_positions,
+                target_position,
+                scene_center=broadside,
+                beamwidth=sar_radar.beamwidth,
+                pattern=beam_pattern,
+            )
+
+        beam_weights_fn = _stripmap_beam_fn
 
     add_sar_returns(
         signal_dc, waveform, sar_radar, target_list, platform_positions, beam_weights_fn

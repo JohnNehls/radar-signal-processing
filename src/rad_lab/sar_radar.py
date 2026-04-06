@@ -18,9 +18,11 @@ class SarRadar:
     Derived quantities (``n_pulses``, ``wavelength``, ``pulse_spacing``)
     are computed automatically in ``__post_init__``.
 
-    For **stripmap** mode, leave ``scene_center`` and ``beamwidth`` as
-    ``None`` (the default).  For **spotlight** mode, set both to enable
-    beam-pattern weighting during data generation.
+    For **stripmap** mode, leave ``scene_center`` as ``None``.
+    Optionally set ``beamwidth`` to apply broadside beam-pattern
+    weighting (body-fixed antenna).  For **spotlight** mode, set both
+    ``scene_center`` and ``beamwidth`` to steer the beam toward a
+    fixed scene centre.
 
     Attributes:
         fcar: Carrier frequency [Hz].
@@ -36,9 +38,10 @@ class SarRadar:
         aperture_length: Synthetic aperture length [m].
         platform_altitude: Platform altitude above the scene [m].
         scene_center: Scene centre ``[x, y, z]`` that the antenna tracks
-            [m].  ``None`` for stripmap mode.
-        beamwidth: One-way 3-dB antenna beamwidth [rad].  ``None`` for
-            stripmap mode.
+            [m].  ``None`` for stripmap mode.  Requires ``beamwidth``.
+        beamwidth: One-way 3-dB antenna beamwidth [rad].  In stripmap
+            mode (``scene_center=None``), enables broadside beam-pattern
+            weighting.  In spotlight mode, weights by the steered beam.
         n_pulses: Number of pulses in the synthetic aperture, computed as
             ``ceil(aperture_length / pulse_spacing)`` [dimensionless].
         wavelength: Carrier wavelength [m], derived from ``fcar``.
@@ -69,11 +72,8 @@ class SarRadar:
         self.wavelength = c.C / self.fcar
         self.pulse_spacing = self.platform_velocity / self.prf
         self.n_pulses = int(math.ceil(self.aperture_length / self.pulse_spacing))
-        if (self.scene_center is None) != (self.beamwidth is None):
-            raise ValueError(
-                "scene_center and beamwidth must both be set (spotlight) "
-                "or both be None (stripmap)."
-            )
+        if self.scene_center is not None and self.beamwidth is None:
+            raise ValueError("beamwidth is required when scene_center is set (spotlight mode).")
 
 
 @dataclass
