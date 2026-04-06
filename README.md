@@ -3,10 +3,11 @@
 [![CI](https://github.com/JohnNehls/rad-lab/actions/workflows/python-app.yml/badge.svg)](https://github.com/JohnNehls/rad-lab/actions/workflows/python-app.yml)
 [![Docs](https://img.shields.io/badge/docs-github%20pages-blue)](https://johnnehls.github.io/rad-lab/)
 
-A Python radar module for simulating pulse-Doppler returns and generating
-range-Doppler maps (RDMs). Designed for radar engineers and students who want
-to build intuition for how RDMs are formed, how waveforms affect resolution,
-and how DRFM electronic attack techniques appear in the RDM.
+A Python radar module for simulating pulse-Doppler returns, generating
+range-Doppler maps (RDMs), and forming synthetic aperture radar (SAR) images.
+Designed for radar engineers and students who want to build intuition for how
+RDMs and SAR images are formed, how waveforms affect resolution, and how DRFM
+electronic attack techniques appear in the RDM.
 
 ## Installation
 
@@ -51,8 +52,17 @@ rdm.gen(radar, waveform, return_list)
 ![image](docs/figs/rdm_readme_example.png)
 
 Other available waveforms: `uncoded_waveform`, `random_coded_waveform`, `lfm_waveform`.
-For additional examples see [apps/rdms](apps/rdms) and [apps/exercises](apps/exercises),
+For additional RDM examples see [apps/rdms](apps/rdms) and [apps/exercises](apps/exercises),
 or the [API docs](https://johnnehls.github.io/rad-lab/).
+
+## SAR Image Generation
+
+rad-lab also supports stripmap and spotlight SAR image formation from
+point-target scenes:
+
+![image](docs/figs/sar_radlab_point_cloud.png)
+
+For SAR examples see [apps/sar](apps/sar).
 
 ## Contributing
 
