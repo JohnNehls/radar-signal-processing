@@ -1,9 +1,13 @@
-"""Stripmap SAR image generation and plotting.
+"""SAR image generation and plotting (stripmap and spotlight modes).
 
 Provides the :func:`gen` entry point that simulates a full synthetic aperture —
 transmitting pulses along a straight flight path, injecting point-target
 returns, range-compressing, and azimuth-focusing to produce a SAR image.
+Spotlight mode is activated by setting ``scene_center`` and ``beamwidth``
+on the :class:`~rad_lab.sar_radar.SarRadar` instance.
 """
+
+from functools import partial
 
 import numpy as np
 import matplotlib.pyplot as plt
@@ -13,7 +17,7 @@ from .rf_datacube import number_range_bins, range_axis, data_cube, matchfilter
 from .range_equation import noise_power
 from .utilities import zero_to_smallest_float
 from ._rdm_internals import create_window
-from ._sar_internals import add_sar_returns, azimuth_matched_filter
+from ._sar_internals import add_sar_returns, azimuth_matched_filter, _beam_weights
 from .geometry import flight_path
 from .sar_radar import SarRadar, SarTarget
 from .waveform import WaveformSample
@@ -29,12 +33,19 @@ def gen(
     window: str = "chebyshev",
     window_kwargs: dict | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
-    """Generate a focused stripmap SAR image from point-target returns.
+    """Generate a focused SAR image from point-target returns.
 
     Simulates a SAR collection over a straight, level flight path.  For each
     aperture position the function computes range and phase to every target,
     injects the waveform, then processes the datacube through range
     compression, azimuth windowing, and azimuth matched-filter focusing.
+
+    **Stripmap** mode (default): leave ``sar_radar.scene_center`` and
+    ``sar_radar.beamwidth`` as ``None``.
+
+    **Spotlight** mode: set both fields on the :class:`SarRadar` instance.
+    The antenna beam is steered toward ``scene_center`` each pulse, and
+    target amplitudes are weighted by a two-way Gaussian beam pattern.
 
     Args:
         sar_radar: SAR system parameters.
@@ -78,7 +89,19 @@ def gen(
     signal_dc = data_cube(sar_radar.sample_rate, sar_radar.prf, sar_radar.n_pulses)
 
     ########## Populate with target returns ########################################################
-    add_sar_returns(signal_dc, waveform, sar_radar, target_list, platform_positions)
+    # In spotlight mode, build a beam-weighting function from scene_center and beamwidth
+    beam_weights_fn = None
+    if sar_radar.scene_center is not None:
+        beam_weights_fn = partial(
+            _beam_weights,
+            platform_positions,
+            scene_center=sar_radar.scene_center,
+            beamwidth=sar_radar.beamwidth,
+        )
+
+    add_sar_returns(
+        signal_dc, waveform, sar_radar, target_list, platform_positions, beam_weights_fn
+    )
 
     ########## Add noise ##########################################################################
     rx_noise_volt = np.sqrt(

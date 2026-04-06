@@ -48,7 +48,7 @@ def _inject_pulses(
     waveform_samples: np.ndarray,
     sample_indices: np.ndarray,
     phases: np.ndarray,
-    amplitude: complex | float,
+    amplitude: complex | float | np.ndarray,
 ) -> None:
     """Adds phase-shifted, scaled copies of a waveform to the datacube.
 
@@ -61,12 +61,15 @@ def _inject_pulses(
         waveform_samples: Discrete pulse samples from the waveform.
         sample_indices: Per-pulse starting index in the flattened datacube.
         phases: Per-pulse carrier phase [rad].
-        amplitude: Scalar amplitude (may include RCS, steering vector, etc.).
+        amplitude: Amplitude scaling.  A scalar applies the same value to
+            every pulse; a 1-D array of length ``n_pulses`` provides
+            per-pulse weighting (e.g. beam-pattern gains in spotlight SAR).
     """
     with _flat_datacube(datacube) as flat:
         for i in range(len(sample_indices)):
             if sample_indices[i] < datacube.size:
-                pulse = amplitude * waveform_samples * np.exp(1j * phases[i])
+                amp_i = amplitude[i] if np.ndim(amplitude) > 0 else amplitude
+                pulse = amp_i * waveform_samples * np.exp(1j * phases[i])
                 add_waveform_at_index(flat, pulse, sample_indices[i])
 
 

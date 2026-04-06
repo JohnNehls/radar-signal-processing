@@ -1,7 +1,7 @@
 """SAR system parameters and target models.
 
-Defines :class:`SarRadar` (stripmap SAR platform and system parameters) and
-:class:`SarTarget` (a point scatterer located in 3-D space).
+Defines :class:`SarRadar` (SAR platform and system parameters for stripmap
+and spotlight modes) and :class:`SarTarget` (a point scatterer in 3-D space).
 """
 
 import math
@@ -12,11 +12,15 @@ from . import constants as c
 
 @dataclass
 class SarRadar:
-    """Stripmap SAR system parameters.
+    """SAR system parameters (stripmap and spotlight modes).
 
     All gain and loss fields are linear power ratios (not dB).
     Derived quantities (``n_pulses``, ``wavelength``, ``pulse_spacing``)
     are computed automatically in ``__post_init__``.
+
+    For **stripmap** mode, leave ``scene_center`` and ``beamwidth`` as
+    ``None`` (the default).  For **spotlight** mode, set both to enable
+    beam-pattern weighting during data generation.
 
     Attributes:
         fcar: Carrier frequency [Hz].
@@ -31,6 +35,10 @@ class SarRadar:
         platform_velocity: Platform ground speed along the flight path [m/s].
         aperture_length: Synthetic aperture length [m].
         platform_altitude: Platform altitude above the scene [m].
+        scene_center: Scene centre ``[x, y, z]`` that the antenna tracks
+            [m].  ``None`` for stripmap mode.
+        beamwidth: One-way 3-dB antenna beamwidth [rad].  ``None`` for
+            stripmap mode.
         n_pulses: Number of pulses in the synthetic aperture, computed as
             ``ceil(aperture_length / pulse_spacing)`` [dimensionless].
         wavelength: Carrier wavelength [m], derived from ``fcar``.
@@ -50,6 +58,8 @@ class SarRadar:
     platform_velocity: float
     aperture_length: float
     platform_altitude: float = 0.0
+    scene_center: list[float] | None = None
+    beamwidth: float | None = None
     n_pulses: int = field(init=False)
     wavelength: float = field(init=False)
     pulse_spacing: float = field(init=False)
@@ -59,6 +69,11 @@ class SarRadar:
         self.wavelength = c.C / self.fcar
         self.pulse_spacing = self.platform_velocity / self.prf
         self.n_pulses = int(math.ceil(self.aperture_length / self.pulse_spacing))
+        if (self.scene_center is None) != (self.beamwidth is None):
+            raise ValueError(
+                "scene_center and beamwidth must both be set (spotlight) "
+                "or both be None (stripmap)."
+            )
 
 
 @dataclass
@@ -93,3 +108,20 @@ def cross_range_resolution(wavelength: float, slant_range: float, aperture_lengt
         Cross-range 3-dB resolution [m].
     """
     return wavelength * slant_range / (2 * aperture_length)
+
+
+def spotlight_cross_range_resolution(wavelength: float, delta_theta: float) -> float:
+    """Computes the cross-range resolution for a spotlight SAR.
+
+    In spotlight mode the antenna steers to keep the scene illuminated,
+    so resolution depends on the total angular extent of the synthetic
+    aperture rather than on the physical aperture length.
+
+    Args:
+        wavelength: Carrier wavelength [m].
+        delta_theta: Total angle subtended by the synthetic aperture [rad].
+
+    Returns:
+        Cross-range 3-dB resolution [m].
+    """
+    return wavelength / (2 * delta_theta)
