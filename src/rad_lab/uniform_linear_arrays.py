@@ -5,6 +5,10 @@ time delays, and plot one-way and two-way array gain patterns as a function
 of angle.
 """
 
+from __future__ import annotations
+
+from collections.abc import Callable
+
 import numpy as np
 import matplotlib.pyplot as plt
 from . import constants as c
@@ -212,3 +216,41 @@ def apply_timeshift_due_to_element_position(
     shifted_signal = interp_fun(shifted_time)
 
     return shifted_signal
+
+
+def ula_pattern(
+    el_pos: np.ndarray,
+    weight_vec: np.ndarray | None = None,
+    two_way: bool = True,
+) -> Callable[[np.ndarray], np.ndarray]:
+    """Creates a beam-pattern callable from a ULA for use with SAR spotlight.
+
+    Precomputes the array factor via :func:`linear_antenna_gain`, normalises
+    to unit peak, and returns a function that maps off-boresight angles
+    (in radians) to amplitude weights.  The returned callable is directly
+    compatible with the ``beam_pattern`` parameter of :func:`rad_lab.sar.gen`.
+
+    Args:
+        el_pos: Element positions normalised by wavelength.
+        weight_vec: Optional complex element weights (default: uniform).
+        two_way: If True (default), square the one-way voltage pattern to
+            model the round-trip amplitude.
+
+    Returns:
+        A callable ``pattern(theta_rad) -> weights`` where *theta_rad* is
+        an array of off-boresight angles [rad] and *weights* is a
+        same-shape array of amplitude weights in [0, 1].
+    """
+    theta_deg, complex_gain = linear_antenna_gain(el_pos, weight_vec)
+    norm_gain = np.abs(complex_gain) / np.abs(complex_gain).max()
+    interp_fn = interpolate.interp1d(
+        theta_deg, norm_gain, kind="linear", bounds_error=False, fill_value=0.0
+    )
+
+    def pattern(theta_rad: np.ndarray) -> np.ndarray:
+        weights = interp_fn(np.rad2deg(theta_rad))
+        if two_way:
+            weights = weights**2
+        return weights
+
+    return pattern

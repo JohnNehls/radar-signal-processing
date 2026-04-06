@@ -7,6 +7,9 @@ Spotlight mode is activated by setting ``scene_center`` and ``beamwidth``
 on the :class:`~rad_lab.sar_radar.SarRadar` instance.
 """
 
+from __future__ import annotations
+
+from collections.abc import Callable
 from functools import partial
 
 import numpy as np
@@ -32,6 +35,7 @@ def gen(
     debug: bool = False,
     window: str = "chebyshev",
     window_kwargs: dict | None = None,
+    beam_pattern: Callable[[np.ndarray], np.ndarray] | None = None,
 ) -> tuple[np.ndarray, np.ndarray, np.ndarray, np.ndarray]:
     """Generate a focused SAR image from point-target returns.
 
@@ -63,6 +67,11 @@ def gen(
             ``"blackman-harris"``, ``"taylor"``, or ``"none"``.
         window_kwargs: Optional dict forwarded to the window function.
             See :func:`._rdm_internals.create_window`.
+        beam_pattern: Optional callable that maps off-boresight angles
+            [rad] to amplitude weights.  Overrides the default Gaussian
+            in spotlight mode.  See
+            :func:`~rad_lab.uniform_linear_arrays.ula_pattern` for a
+            convenient way to build one from a ULA specification.
 
     Returns:
         tuple: ``(cross_range_axis, r_axis, focused_dc, signal_dc)``:
@@ -97,6 +106,7 @@ def gen(
             platform_positions,
             scene_center=sar_radar.scene_center,
             beamwidth=sar_radar.beamwidth,
+            pattern=beam_pattern,
         )
 
     add_sar_returns(
