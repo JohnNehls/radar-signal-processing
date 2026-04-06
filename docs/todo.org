@@ -1,28 +1,26 @@
 To improve the project and its documentation, consider these
 enhancements:
 
-* 1. Source document
+*  Source document
 - *General Document:* Convert the source document to markdown and make
   it my own-- embed our figures
 
-* 2. Documentation & UX
-- *API Reference:* Use [[https://pdoc.dev/][pdoc]] or
-  [[https://www.sphinx-doc.org/][Sphinx]] to generate searchable HTML
-  documentation from your docstrings.
+* Features
+- *SAR*
+  - Should the antenna aperture size or beam width be considered in the SarRadar?
+      - It should limit the useful SAR Aperture length per eqn 8.11
 
-* 3. Features
+ - Spotlight SAR
+
 - *Monopulse Study*: LFM should introduce phase defference between reciver array positions and introduce errors into monopulse -- May have looked into this already!
-- *Combine target geometry with steering vector for higher-fidelity RDM*
-- *Windowing Functions:* Explicitly support different windows (Hamming,
-  Hann, Taylor) for sidelobe control in the RDM.
+
 - *CFAR Algorithms:* Implement Constant False Alarm Rate (CFAR)
   detection (e.g., CA-CFAR, OS-CFAR) as a logical next step after RDM
   generation.
+  
 - *GPU Support:* For large data cubes, consider optional
   [[https://cupy.dev/][CuPy]] support for GPU-accelerated FFTs.
 
-* 4. Project Maintenance
+* Project Maintenance
 - *Issue Tracking:* Move the "Known Test Failures" from the README to
   GitHub Issues. A README should ideally highlight what works.
-- *PyPI:* Register the package on PyPI so users can simply run
-  =pip install radar-signal-processing=.
