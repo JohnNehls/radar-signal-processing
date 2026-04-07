@@ -48,8 +48,8 @@ return_list = [Return(target=Target(range=0.5e3, range_rate=1.0e3, rcs=1))]
 
 rdm.gen(radar, waveform, return_list)
 ```
-
-![image](docs/figs/rdm_readme_example.png)
+<img src="docs/figs/rdm_readme_example.png" width="600">
+<!-- ![image](docs/figs/rdm_readme_example.png) -->
 
 Other available waveforms: `uncoded_waveform`, `random_coded_waveform`, `lfm_waveform`.
 For additional RDM examples see [apps/rdms](apps/rdms) and [apps/exercises](apps/exercises),
@@ -60,7 +60,8 @@ or the [API docs](https://johnnehls.github.io/rad-lab/).
 rad-lab also supports stripmap and spotlight SAR image formation from
 point-target scenes:
 
-![image](docs/figs/sar_radlab_point_cloud.png)
+<img src="docs/figs/sar_radlab_point_cloud.png" width="600">
+<!-- ![image](docs/figs/sar_radlab_point_cloud.png) -->
 
 For SAR examples see [apps/sar](apps/sar).
 

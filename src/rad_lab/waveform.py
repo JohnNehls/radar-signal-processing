@@ -93,7 +93,7 @@ def uncoded_pulse(
     Raises:
         AssertionError: If the sample rate is below the Nyquist rate (2 * bw).
     """
-    assert sample_rate / bw >= 2, "Error: sample rate below Nyquist"
+    assert sample_rate / bw >= 2, "sample rate must be >= 2 * bw (Nyquist)"
 
     T = 1 / bw
     dt = 1 / sample_rate
@@ -159,14 +159,13 @@ def coded_pulse(
     Raises:
         AssertionError: If any value in the code is not 1 or -1.
     """
-    len(code)
     Tc = 1 / bw
     dt = 1 / sample_rate
-    samplesPerChip = round(Tc * sample_rate)
+    samples_per_chip = round(Tc * sample_rate)
 
     code_array = np.asarray(code)
-    assert np.all(np.abs(code_array) == 1), "ValueError: Code values must be either 1 or -1."
-    mag = np.repeat(code_array, samplesPerChip).astype(float)
+    assert np.all(np.abs(code_array) == 1), "Code values must be either 1 or -1."
+    mag = np.repeat(code_array, samples_per_chip).astype(float)
     t = np.arange(mag.size) * dt
 
     if normalize:
@@ -199,7 +198,7 @@ def barker_coded_pulse(
     Raises:
         AssertionError: If nChips is not a valid Barker code length.
     """
-    assert nchips in BARKER_DICT, f"Error: {nchips=} is not a valid Barker code."
+    assert nchips in BARKER_DICT, f"{nchips=} is not a valid Barker code length."
     return coded_pulse(
         sample_rate,
         bw,
@@ -262,7 +261,7 @@ def lfm_pulse(
     Raises:
         AssertionError: If chirp_up_down is not 1 or -1.
     """
-    assert chirp_up_down in [1, -1], "ValueError: chirp_up_down must be either 1 or -1."
+    assert chirp_up_down in [1, -1], "chirp_up_down must be either 1 or -1."
     dt = 1 / sample_rate
     t = np.arange(0, T, dt)
     k = bw / T  # Chirp rate

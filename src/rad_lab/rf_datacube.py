@@ -6,7 +6,7 @@ the slow-time dimension with an FFT.
 """
 
 import numpy as np
-from scipy import fft
+from scipy import fft, signal
 from . import constants as c
 from .waveform_helpers import matchfilter_with_waveform
 
@@ -130,19 +130,6 @@ def matchfilter(datacube: np.ndarray, pulse_wvf: np.ndarray, pedantic: bool = Tr
             _, mf = matchfilter_with_waveform(datacube[:, j], pulse_wvf)
             datacube[:, j] = mf
     else:
-        # Take FFT convolution directly
+        # FFT-based matched filter applied to all pulses at once
         kernel = np.conj(pulse_wvf)[::-1]
-
-        # Pad and "center" pulse relative to 0 index so output is centered (datacube is centered)
-        # Method was tested but should be tested further
-        # ref:  https://stackoverflow.com/questions/29746894/why-is-my-convolution-result-shifted-when-using-fft
-        kernel = np.pad(kernel, pad_width=(0, datacube.shape[0] - pulse_wvf.size))
-        offset = -int(pulse_wvf.size / 2)
-        if offset % 2:
-            offset += 1
-        kernel = np.roll(kernel, offset)
-
-        Kernel = fft.fft(kernel).reshape(datacube.shape[0], 1)
-        PulseM = Kernel @ np.ones((1, datacube.shape[1]))
-        DataCube = fft.fft(datacube, axis=0)
-        datacube[:] = fft.ifft(PulseM * DataCube, axis=0, overwrite_x=True, workers=2)
+        datacube[:] = signal.fftconvolve(datacube, kernel.reshape(-1, 1), mode="same", axes=0)
