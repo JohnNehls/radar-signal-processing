@@ -7,7 +7,7 @@ A Python radar module for simulating pulse-Doppler returns, generating
 range-Doppler maps (RDMs), and forming synthetic aperture radar (SAR) images.
 Designed for radar engineers and students who want to build intuition for how
 RDMs and SAR images are formed, how waveforms affect resolution, and how DRFM
-electronic attack techniques appear in the RDM.
+electronic attack techniques appear in the RDMs.
 
 ## Installation
 

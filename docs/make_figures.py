@@ -40,8 +40,8 @@ args = parser.parse_args()
 
 prefix = f"{args.name}_figures" if args.name else "figures"
 
-EXERCISES_DIR = Path(__file__).parent / "exercises"
-DOCS_DIR = Path(__file__).parent.parent / "docs"
+EXERCISES_DIR = Path(__file__).parent.parent / "apps" / "exercises"
+DOCS_DIR = Path(__file__).parent
 ARTIFACTS_DIR = DOCS_DIR / "generated_artifacts"
 OUT_DIR = ARTIFACTS_DIR / prefix
 ORG_FILE = ARTIFACTS_DIR / f"{prefix}.org"
