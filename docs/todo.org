@@ -7,10 +7,7 @@ enhancements:
 
 * Features
 - *SAR*
-  - Should the antenna aperture size or beam width be considered in the SarRadar?
-      - It should limit the useful SAR Aperture length per eqn 8.11
-
- - Spotlight SAR
+  - Comment that it should limit the useful SAR Aperture length per eqn 8.11
 
 - *Monopulse Study*: LFM should introduce phase defference between reciver array positions and introduce errors into monopulse -- May have looked into this already!
 

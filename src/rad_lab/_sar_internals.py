@@ -29,8 +29,10 @@ def _beam_weights(
     """Computes per-pulse two-way antenna gain weights for a steered beam.
 
     For each pulse the antenna boresight points from the platform toward
-    ``scene_center``.  The off-boresight angle to ``target_position`` is
-    computed, and a two-way Gaussian beam pattern is applied.
+    ``scene_center``.  The scalar off-boresight angle to ``target_position``
+    is computed, and a two-way beam pattern is applied.  The pattern is
+    radially symmetric — it depends only on the magnitude of the
+    off-boresight angle, with no distinction between azimuth and elevation.
 
     Args:
         platform_positions: Platform positions ``(n_pulses, 3)`` [m].
