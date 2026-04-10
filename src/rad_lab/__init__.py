@@ -21,6 +21,7 @@ from .waveform import (
     lfm_waveform,
 )
 from .sar_radar import SarRadar, SarTarget
+from . import ambiguity
 from . import rdm
 from . import sar
 from ._version import __version__
@@ -38,6 +39,7 @@ __all__ = [
     "barker_coded_waveform",
     "random_coded_waveform",
     "lfm_waveform",
+    "ambiguity",
     "rdm",
     "sar",
     "__version__",
