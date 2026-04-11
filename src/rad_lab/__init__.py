@@ -23,6 +23,7 @@ from .waveform import (
 from .sar_radar import SarRadar, SarTarget
 from . import ambiguity
 from . import cfar
+from . import detection
 from . import multiprf
 from . import rdm
 from . import sar
@@ -44,6 +45,7 @@ __all__ = [
     "lfm_waveform",
     "ambiguity",
     "cfar",
+    "detection",
     "multiprf",
     "rdm",
     "sar",
