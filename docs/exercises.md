@@ -410,6 +410,37 @@ $N$ = 5, 10, 20 pulses.
 Required per-pulse SNR (Swerling 0, NCI): 13.2 dB ($N=1$), 7.5 dB
 ($N=5$), 5.3 dB ($N=10$), 3.2 dB ($N=20$), 0.6 dB ($N=50$).
 
+### Exercise 6.2: MTI Cancellers
+
+Apply 2-pulse and 3-pulse MTI cancellers to a cluttered datacube and
+compare against conventional Doppler processing.
+
+| Parameter          | Value          |
+|--------------------|----------------|
+| Bandwidth          | 5 MHz          |
+| Carrier frequency  | 10 GHz         |
+| Transmit power     | 1 kW           |
+| Tx/Rx gain         | 30 dB each     |
+| Temperature        | 290 K          |
+| Sample rate        | 10 MHz         |
+| Noise factor       | 5 dB           |
+| System losses      | 3 dB           |
+| PRF                | 10 kHz         |
+| Dwell time         | 6.4 ms (64 pulses) |
+| Waveform           | LFM, $T = 1\ \mu$s, up-chirp |
+| Clutter            | 40 dB CNR, zero Doppler, all range bins |
+| Target 1           | 5 km, $-300$ m/s, 20 dBsm |
+| Target 2           | 3 km, $-50$ m/s, 10 dBsm  |
+
+**Figure 1:** Three side-by-side RDMs — no MTI, 2-pulse MTI, 3-pulse MTI.
+The no-MTI map is dominated by the clutter ridge at zero Doppler.  After
+cancellation the clutter is suppressed and both targets become visible.
+
+**Figure 2:** Normalised frequency response of 2-pulse, 3-pulse, and
+4-pulse cancellers, showing the DC null depth and blind-speed notch widths.
+
+**Output:** Printed peak power for each case.
+
 ---
 
 ## 7 — Linear Arrays
