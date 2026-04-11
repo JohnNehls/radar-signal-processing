@@ -25,6 +25,7 @@ from . import ambiguity
 from . import cfar
 from . import rdm
 from . import sar
+from . import stap
 from ._version import __version__
 
 __all__ = [
@@ -44,5 +45,6 @@ __all__ = [
     "cfar",
     "rdm",
     "sar",
+    "stap",
     "__version__",
 ]
